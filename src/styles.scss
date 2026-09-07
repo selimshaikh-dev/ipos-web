@@ -1,1 +1,123 @@
 /* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+:root {
+  --ipos-primary: #2563eb;
+  --ipos-primary-dark: #1d4ed8;
+  --ipos-primary-soft: #eff6ff;
+
+  --ipos-success: #16a34a;
+  --ipos-warning: #d97706;
+  --ipos-danger: #dc2626;
+  --ipos-info: #0284c7;
+
+  --ipos-sidebar-bg: #101828;
+  --ipos-sidebar-hover: #1d2939;
+  --ipos-sidebar-active: #344054;
+  --ipos-sidebar-text: #d0d5dd;
+  --ipos-sidebar-muted: #98a2b3;
+
+  --ipos-page-bg: #f5f7fa;
+  --ipos-surface: #ffffff;
+  --ipos-surface-soft: #f9fafb;
+
+  --ipos-text: #101828;
+  --ipos-text-secondary: #475467;
+  --ipos-text-muted: #667085;
+
+  --ipos-border: #e4e7ec;
+  --ipos-border-strong: #d0d5dd;
+
+  --ipos-sidebar-width: 250px;
+  --ipos-header-height: 68px;
+
+  --ipos-radius-sm: 6px;
+  --ipos-radius-md: 10px;
+  --ipos-radius-lg: 14px;
+
+  --ipos-shadow-sm:
+    0 1px 2px rgba(16, 24, 40, 0.04);
+
+  --ipos-shadow-md:
+    0 4px 12px rgba(16, 24, 40, 0.06);
+
+  font-family:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--ipos-page-bg);
+  color: var(--ipos-text);
+  font-family:
+    Inter,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-top: 0;
+}
+
+.ipos-card {
+  background: var(--ipos-surface);
+  border: 1px solid var(--ipos-border);
+  border-radius: var(--ipos-radius-lg);
+  box-shadow: var(--ipos-shadow-sm);
+}
+
+.ipos-page-title {
+  margin-bottom: 4px;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.4px;
+}
+
+.ipos-page-description {
+  margin-bottom: 0;
+  color: var(--ipos-text-muted);
+  font-size: 14px;
+}

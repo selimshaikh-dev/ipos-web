@@ -1,0 +1,283 @@
+:host {
+  display: block;
+}
+
+.topbar {
+  display: grid;
+  grid-template-columns: minmax(200px, 1fr) minmax(280px, 520px) minmax(300px, 1fr);
+  align-items: center;
+
+  min-height: var(--ipos-header-height);
+  padding: 0 24px;
+
+  border-bottom: 1px solid var(--ipos-border);
+  background: var(--ipos-surface);
+}
+
+.topbar-left,
+.topbar-actions {
+  display: flex;
+  align-items: center;
+}
+
+.topbar-actions {
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.menu-button {
+  margin-right: 12px;
+}
+
+.page-context {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-title {
+  color: var(--ipos-text);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 19px;
+}
+
+.breadcrumb {
+  margin-top: 1px;
+  color: var(--ipos-text-muted);
+  font-size: 11px;
+}
+
+.topbar-center {
+  padding: 0 20px;
+}
+
+.global-search {
+  display: flex;
+  align-items: center;
+
+  height: 38px;
+  padding: 0 10px;
+
+  border: 1px solid var(--ipos-border);
+  border-radius: 8px;
+  background: var(--ipos-surface-soft);
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+.global-search:focus-within {
+  border-color: #84adff;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+}
+
+.global-search > span:first-child {
+  margin-right: 8px;
+  color: var(--ipos-text-muted);
+  font-size: 19px;
+}
+
+.global-search input {
+  flex: 1;
+  min-width: 0;
+
+  border: 0;
+  outline: 0;
+  background: transparent;
+
+  color: var(--ipos-text);
+  font-size: 12px;
+}
+
+.global-search input::placeholder {
+  color: #98a2b3;
+}
+
+.search-shortcut {
+  padding: 2px 6px;
+
+  border: 1px solid var(--ipos-border);
+  border-radius: 5px;
+  background: #fff;
+
+  color: var(--ipos-text-muted);
+  font-size: 9px;
+}
+
+.icon-button {
+  position: relative;
+
+  display: grid;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  place-items: center;
+
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+
+  color: var(--ipos-text-secondary);
+}
+
+.icon-button:hover {
+  border-color: var(--ipos-border);
+  background: var(--ipos-surface-soft);
+}
+
+.icon-button .material-symbols-rounded {
+  font-size: 20px;
+}
+
+.pos-button {
+  display: flex;
+  align-items: center;
+  height: 38px;
+  padding: 0 13px;
+
+  border: 0;
+  border-radius: 8px;
+  background: var(--ipos-primary);
+
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+
+  box-shadow: var(--ipos-shadow-sm);
+}
+
+.pos-button:hover {
+  background: var(--ipos-primary-dark);
+}
+
+.pos-button .material-symbols-rounded {
+  margin-right: 7px;
+  font-size: 18px;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+
+  width: 6px;
+  height: 6px;
+
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: var(--ipos-danger);
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  margin: 0 3px;
+  background: var(--ipos-border);
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  padding: 3px 5px;
+
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+
+  text-align: left;
+}
+
+.user-menu:hover {
+  background: var(--ipos-surface-soft);
+}
+
+.user-avatar {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  margin-right: 9px;
+  place-items: center;
+
+  border-radius: 9px;
+  background: var(--ipos-primary-soft);
+
+  color: var(--ipos-primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.user-details {
+  display: flex;
+  min-width: 90px;
+  flex-direction: column;
+}
+
+.user-details strong {
+  color: var(--ipos-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.user-details span {
+  margin-top: 1px;
+  color: var(--ipos-text-muted);
+  font-size: 9px;
+}
+
+.dropdown-icon {
+  margin-left: 5px;
+  color: var(--ipos-text-muted);
+  font-size: 18px;
+}
+
+@media (max-width: 1200px) {
+  .topbar {
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .page-context {
+    display: none;
+  }
+
+  .user-details {
+    display: none;
+  }
+}
+
+@media (max-width: 850px) {
+  .topbar {
+    padding: 0 14px;
+  }
+
+  .topbar-center {
+    padding: 0 10px;
+  }
+
+  .search-shortcut,
+  .pos-button span:not(.material-symbols-rounded) {
+    display: none;
+  }
+
+  .pos-button {
+    width: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .pos-button .material-symbols-rounded {
+    margin: 0;
+  }
+}
+
+@media (max-width: 575px) {
+  .topbar-center {
+    display: none;
+  }
+
+  .topbar {
+    grid-template-columns: 1fr auto;
+  }
+}

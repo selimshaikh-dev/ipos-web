@@ -1,1 +1,449 @@
-<p>dashboard works!</p>
+<section class="dashboard">
+
+  <div class="welcome-panel">
+    <div class="welcome-copy">
+      <h1>{{ greeting }}, {{ userName }}!</h1>
+      <p>Here's what is happening with your business today.</p>
+    </div>
+
+    <div class="welcome-meta">
+      <div class="meta-item">
+        <span class="material-symbols-rounded">calendar_month</span>
+
+        <div>
+          <strong>{{ businessDate }}</strong>
+          <span>Business Day</span>
+        </div>
+      </div>
+
+      <div class="meta-item">
+        <span class="system-dot"></span>
+
+        <div>
+          <strong>System Online</strong>
+          <span>All systems operational</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stats-grid">
+    @for (stat of stats; track stat.label) {
+
+      <article class="stat-card">
+
+        <div class="stat-top">
+          <div class="stat-icon" [class]="stat.type">
+            <span class="material-symbols-rounded">
+              {{ stat.icon }}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            class="more-button"
+            [attr.aria-label]="'More options for ' + stat.label"
+          >
+            <span class="material-symbols-rounded">more_horiz</span>
+          </button>
+        </div>
+
+        <div class="stat-label">
+          {{ stat.label }}
+        </div>
+
+        <div class="stat-value">
+          {{ stat.value }}
+        </div>
+
+        <div
+          class="stat-trend"
+          [class.down]="stat.direction === 'down'"
+          [class.neutral]="stat.direction === 'neutral'"
+        >
+          @if (stat.direction !== 'neutral') {
+            <span class="material-symbols-rounded">
+              {{ stat.direction === 'down' ? 'south' : 'north' }}
+            </span>
+          }
+
+          <strong>{{ stat.trend }}</strong>
+
+          <span class="comparison">
+            {{ stat.comparison }}
+          </span>
+        </div>
+
+      </article>
+
+    }
+  </div>
+
+  <div class="analytics-grid">
+
+    <article class="panel sales-panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Sales Trend</h2>
+          <p>Revenue performance for the last 7 days</p>
+        </div>
+
+        <button
+          class="filter-button"
+          type="button"
+          aria-label="Select sales trend period"
+        >
+          Last 7 Days
+
+          <span class="material-symbols-rounded">
+            keyboard_arrow_down
+          </span>
+        </button>
+      </div>
+
+      <div class="chart-wrap">
+
+        <svg
+          class="sales-chart"
+          viewBox="0 0 700 260"
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="Sales trend chart for the last seven days"
+        >
+          <defs>
+            <linearGradient
+              id="salesArea"
+              x1="0"
+              x2="0"
+              y1="0"
+              y2="1"
+            >
+              <stop
+                offset="0%"
+                stop-color="#2563eb"
+                stop-opacity=".22"
+              />
+
+              <stop
+                offset="100%"
+                stop-color="#2563eb"
+                stop-opacity="0"
+              />
+            </linearGradient>
+          </defs>
+
+          <line
+            x1="45"
+            y1="45"
+            x2="680"
+            y2="45"
+            class="grid-line"
+          />
+
+          <line
+            x1="45"
+            y1="105"
+            x2="680"
+            y2="105"
+            class="grid-line"
+          />
+
+          <line
+            x1="45"
+            y1="165"
+            x2="680"
+            y2="165"
+            class="grid-line"
+          />
+
+          <line
+            x1="45"
+            y1="225"
+            x2="680"
+            y2="225"
+            class="grid-line"
+          />
+
+          <path
+            class="chart-area"
+            d="
+              M45 196
+              C100 190, 120 180, 150 187
+              S225 175, 255 148
+              S330 155, 360 142
+              S430 113, 465 108
+              S535 97, 570 87
+              S640 60, 680 48
+              L680 225
+              L45 225
+              Z
+            "
+          />
+
+          <path
+            class="chart-line"
+            d="
+              M45 196
+              C100 190, 120 180, 150 187
+              S225 175, 255 148
+              S330 155, 360 142
+              S430 113, 465 108
+              S535 97, 570 87
+              S640 60, 680 48
+            "
+          />
+
+          <circle cx="45" cy="196" r="4" />
+          <circle cx="150" cy="187" r="4" />
+          <circle cx="255" cy="148" r="4" />
+          <circle cx="360" cy="142" r="4" />
+          <circle cx="465" cy="108" r="4" />
+          <circle cx="570" cy="87" r="4" />
+          <circle cx="680" cy="48" r="4" />
+        </svg>
+
+        <div class="chart-labels">
+          <span>Sep 1</span>
+          <span>Sep 2</span>
+          <span>Sep 3</span>
+          <span>Sep 4</span>
+          <span>Sep 5</span>
+          <span>Sep 6</span>
+          <span>Sep 7</span>
+        </div>
+
+      </div>
+
+    </article>
+
+    <article class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Sales by Payment Method</h2>
+          <p>Today's collection breakdown</p>
+        </div>
+      </div>
+
+      <div class="payment-content">
+
+        <div class="donut">
+          <div class="donut-inner">
+            <strong>৳125,430</strong>
+            <span>Total Sales</span>
+          </div>
+        </div>
+
+        <div class="payment-list">
+          @for (payment of paymentMethods; track payment.name) {
+
+            <div class="payment-row">
+              <span class="payment-name">
+                <span class="payment-dot"></span>
+                {{ payment.name }}
+              </span>
+
+              <strong>
+                {{ payment.percent }}%
+              </strong>
+            </div>
+
+          }
+        </div>
+
+      </div>
+
+    </article>
+
+    <article class="panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Top Products</h2>
+          <p>This month's best sellers</p>
+        </div>
+
+        <button
+          type="button"
+          class="text-button"
+        >
+          View All
+        </button>
+      </div>
+
+      <div class="product-list">
+        @for (
+          product of topProducts;
+          track product.name;
+          let index = $index
+        ) {
+
+          <div class="product-row">
+
+            <span class="product-rank">
+              {{ index + 1 }}
+            </span>
+
+            <div class="product-copy">
+              <strong>
+                {{ product.name }}
+              </strong>
+
+              <span>
+                General Product
+              </span>
+            </div>
+
+            <strong class="product-qty">
+              {{ product.quantity }}
+            </strong>
+
+          </div>
+
+        }
+      </div>
+
+    </article>
+
+  </div>
+
+  <div class="tables-grid">
+
+    <article class="panel table-panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Recent Sales</h2>
+          <p>Latest completed transactions</p>
+        </div>
+
+        <button
+          class="text-button"
+          type="button"
+        >
+          View All
+        </button>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th>
+              <th>Date & Time</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (sale of recentSales; track sale.invoice) {
+
+              <tr>
+                <td class="invoice">
+                  {{ sale.invoice }}
+                </td>
+
+                <td>
+                  {{ sale.date }}
+                </td>
+
+                <td>
+                  {{ sale.customer }}
+                </td>
+
+                <td>
+                  {{ sale.items }}
+                </td>
+
+                <td class="money">
+                  {{ sale.total }}
+                </td>
+
+                <td>
+                  {{ sale.payment }}
+                </td>
+
+                <td>
+                  <span class="status completed">
+                    <span></span>
+                    {{ sale.status }}
+                  </span>
+                </td>
+              </tr>
+
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </article>
+
+    <article class="panel table-panel">
+
+      <div class="panel-header">
+        <div>
+          <h2>Stock Alerts</h2>
+          <p>Items requiring attention</p>
+        </div>
+
+        <button
+          class="text-button"
+          type="button"
+        >
+          View All
+        </button>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Current Stock</th>
+              <th>Reorder Level</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (item of stockAlerts; track item.product) {
+
+              <tr>
+                <td class="product-name">
+                  {{ item.product }}
+                </td>
+
+                <td>
+                  {{ item.stock }}
+                </td>
+
+                <td>
+                  {{ item.reorder }}
+                </td>
+
+                <td>
+                  <span
+                    class="status stock-status"
+                    [class.critical]="item.status === 'Critical'"
+                  >
+                    <span></span>
+                    {{ item.status }}
+                  </span>
+                </td>
+              </tr>
+
+            }
+          </tbody>
+        </table>
+      </div>
+
+    </article>
+
+  </div>
+
+</section>

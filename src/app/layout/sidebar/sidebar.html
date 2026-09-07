@@ -1,1 +1,66 @@
-<p>sidebar works!</p>
+<div class="sidebar">
+
+  <div class="brand">
+    <div class="brand-mark">i</div>
+
+    <div class="brand-copy">
+      <div class="brand-name">iPOS</div>
+      <div class="brand-caption">Business Management</div>
+    </div>
+  </div>
+
+  <div class="business-context">
+    <span class="context-label">WORKSPACE</span>
+
+    <div class="company">
+      <div class="company-avatar">AC</div>
+
+      <div class="company-details">
+        <strong>ABC Trading</strong>
+        <span>Main Branch</span>
+      </div>
+
+      <span class="material-symbols-rounded context-arrow">
+        unfold_more
+      </span>
+    </div>
+  </div>
+
+  <nav class="navigation">
+
+    <span class="navigation-title">MAIN MENU</span>
+
+    @for (item of navigation; track item.label) {
+      <a
+        class="navigation-item"
+        [routerLink]="item.route"
+        routerLinkActive="active"
+      >
+        <span class="material-symbols-rounded navigation-icon">
+          {{ item.icon }}
+        </span>
+
+        <span>{{ item.label }}</span>
+      </a>
+    }
+
+  </nav>
+
+  <div class="sidebar-footer">
+
+    <div class="support-card">
+      <span class="material-symbols-rounded">help</span>
+
+      <div>
+        <strong>Need help?</strong>
+        <span>Contact support</span>
+      </div>
+    </div>
+
+    <div class="version">
+      iPOS v1.0
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,130 @@
+:host {
+  display: block;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* =========================
+   Main Application Shell
+   ========================= */
+
+.ipos-shell {
+  display: flex;
+
+  width: 100%;
+  min-width: 0;
+  min-height: 100vh;
+
+  background: var(--ipos-page-bg);
+}
+
+/* =========================
+   Sidebar
+   ========================= */
+
+.ipos-sidebar {
+  position: sticky;
+  top: 0;
+
+  width: var(--ipos-sidebar-width);
+  min-width: var(--ipos-sidebar-width);
+  height: 100vh;
+
+  flex-shrink: 0;
+  align-self: flex-start;
+
+  overflow: hidden;
+
+  background: var(--ipos-sidebar-bg);
+
+  z-index: 20;
+}
+
+/* =========================
+   Main Workspace
+   ========================= */
+
+.ipos-workspace {
+  display: flex;
+
+  flex: 1;
+  min-width: 0;
+  min-height: 100vh;
+
+  flex-direction: column;
+
+  background: var(--ipos-page-bg);
+}
+
+/* =========================
+   Main Content
+   ========================= */
+
+.ipos-content {
+  flex: 1;
+
+  width: 100%;
+  min-width: 0;
+
+  padding: 24px;
+
+  background: var(--ipos-page-bg);
+}
+
+/* =========================
+   Large Desktop
+   ========================= */
+
+@media (min-width: 1600px) {
+  .ipos-content {
+    padding: 24px 28px;
+  }
+}
+
+/* =========================
+   Standard Laptop
+   ========================= */
+
+@media (max-width: 1199px) {
+  .ipos-content {
+    padding: 20px;
+  }
+}
+
+/* =========================
+   Tablet
+   ========================= */
+
+@media (max-width: 991px) {
+  .ipos-sidebar {
+    display: none;
+  }
+
+  .ipos-workspace {
+    width: 100%;
+  }
+
+  .ipos-content {
+    padding: 18px;
+  }
+}
+
+/* =========================
+   Small Tablet
+   ========================= */
+
+@media (max-width: 767px) {
+  .ipos-content {
+    padding: 16px;
+  }
+}
+
+/* =========================
+   Mobile
+   ========================= */
+
+@media (max-width: 575px) {
+  .ipos-content {
+    padding: 14px;
+  }
+}
