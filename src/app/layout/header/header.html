@@ -1,19 +1,37 @@
 <header class="topbar">
 
   <div class="topbar-left">
-    <button class="icon-button menu-button" type="button" aria-label="Toggle navigation">
-      <span class="material-symbols-rounded">menu</span>
+
+    <button
+      class="icon-button menu-button"
+      type="button"
+      aria-label="Toggle navigation"
+    >
+      <span class="material-symbols-rounded">
+        menu
+      </span>
     </button>
 
     <div class="page-context">
-      <span class="page-title">Dashboard</span>
-      <span class="breadcrumb">Business Overview</span>
+      <span class="page-title">
+        Dashboard
+      </span>
+
+      <span class="breadcrumb">
+        Business Overview
+      </span>
     </div>
+
   </div>
 
+
   <div class="topbar-center">
+
     <div class="global-search">
-      <span class="material-symbols-rounded">search</span>
+
+      <span class="material-symbols-rounded">
+        search
+      </span>
 
       <input
         type="search"
@@ -21,36 +39,165 @@
         aria-label="Global search"
       >
 
-      <span class="search-shortcut">Ctrl K</span>
+      <span class="search-shortcut">
+        Ctrl K
+      </span>
+
     </div>
+
   </div>
+
 
   <div class="topbar-actions">
 
-    <button class="pos-button" type="button">
-      <span class="material-symbols-rounded">point_of_sale</span>
-      <span>New Sale</span>
+    <button
+      class="pos-button"
+      type="button"
+    >
+      <span class="material-symbols-rounded">
+        point_of_sale
+      </span>
+
+      <span>
+        New Sale
+      </span>
     </button>
 
-    <button class="icon-button" type="button" aria-label="Notifications">
-      <span class="material-symbols-rounded">notifications</span>
+
+    <button
+      class="icon-button"
+      type="button"
+      aria-label="Notifications"
+    >
+      <span class="material-symbols-rounded">
+        notifications
+      </span>
+
       <span class="notification-dot"></span>
     </button>
 
+
     <div class="divider"></div>
 
-    <button class="user-menu" type="button">
-      <div class="user-avatar">SS</div>
 
-      <div class="user-details">
-        <strong>System Admin</strong>
-        <span>Main Branch</span>
-      </div>
+    <div class="user-menu-wrapper">
 
-      <span class="material-symbols-rounded dropdown-icon">
-        keyboard_arrow_down
-      </span>
-    </button>
+      <button
+        class="user-menu"
+        type="button"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="isUserMenuOpen"
+        (click)="toggleUserMenu()"
+      >
+
+        <div class="user-avatar">
+          {{ userInitials }}
+        </div>
+
+        <div class="user-details">
+
+          <strong>
+            {{ currentUser?.fullName || 'User' }}
+          </strong>
+
+          <span>
+            {{ primaryRole }}
+          </span>
+
+        </div>
+
+        <span
+          class="material-symbols-rounded dropdown-icon"
+          [class.dropdown-icon--open]="isUserMenuOpen"
+        >
+          keyboard_arrow_down
+        </span>
+
+      </button>
+
+
+      @if (isUserMenuOpen) {
+
+        <div
+          class="user-dropdown"
+          role="menu"
+        >
+
+          <div class="user-dropdown__profile">
+
+            <div class="user-dropdown__avatar">
+              {{ userInitials }}
+            </div>
+
+            <div class="user-dropdown__identity">
+
+              <strong>
+                {{ currentUser?.fullName || 'User' }}
+              </strong>
+
+              <span>
+                {{ currentUser?.email || '' }}
+              </span>
+
+              <div class="user-dropdown__role">
+                {{ primaryRole }}
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="user-dropdown__divider"></div>
+
+
+          <button
+            type="button"
+            class="user-dropdown__item"
+            role="menuitem"
+          >
+            <span class="material-symbols-rounded">
+              person
+            </span>
+
+            <span>My Profile</span>
+          </button>
+
+
+          <button
+            type="button"
+            class="user-dropdown__item"
+            role="menuitem"
+          >
+            <span class="material-symbols-rounded">
+              manage_accounts
+            </span>
+
+            <span>Account Settings</span>
+          </button>
+
+
+          <div class="user-dropdown__divider"></div>
+
+
+          <button
+            type="button"
+            class="user-dropdown__item user-dropdown__item--danger"
+            role="menuitem"
+            (click)="logout()"
+          >
+            <span class="material-symbols-rounded">
+              logout
+            </span>
+
+            <span>Sign Out</span>
+          </button>
+
+        </div>
+
+      }
+
+    </div>
 
   </div>
 

@@ -1,8 +1,10 @@
 :host {
   display: block;
+
   width: 100%;
   min-height: 100vh;
 }
+
 
 /* =========================
    Main Application Shell
@@ -18,6 +20,7 @@
   background: var(--ipos-page-bg);
 }
 
+
 /* =========================
    Sidebar
    ========================= */
@@ -25,6 +28,8 @@
 .ipos-sidebar {
   position: sticky;
   top: 0;
+
+  z-index: 20;
 
   width: var(--ipos-sidebar-width);
   min-width: var(--ipos-sidebar-width);
@@ -36,31 +41,57 @@
   overflow: hidden;
 
   background: var(--ipos-sidebar-bg);
-
-  z-index: 20;
 }
+
 
 /* =========================
    Main Workspace
    ========================= */
 
 .ipos-workspace {
+  position: relative;
+
   display: flex;
 
   flex: 1;
+
   min-width: 0;
   min-height: 100vh;
 
   flex-direction: column;
 
+  overflow: visible;
+
   background: var(--ipos-page-bg);
 }
+
+
+/* =========================
+   Header Layer
+   ========================= */
+
+app-header {
+  position: relative;
+
+  z-index: 100;
+
+  display: block;
+
+  flex: 0 0 auto;
+
+  overflow: visible;
+}
+
 
 /* =========================
    Main Content
    ========================= */
 
 .ipos-content {
+  position: relative;
+
+  z-index: 1;
+
   flex: 1;
 
   width: 100%;
@@ -71,31 +102,54 @@
   background: var(--ipos-page-bg);
 }
 
+
+/* =========================
+   Footer
+   ========================= */
+
+app-footer {
+  position: relative;
+
+  z-index: 1;
+
+  display: block;
+
+  flex: 0 0 auto;
+}
+
+
 /* =========================
    Large Desktop
    ========================= */
 
 @media (min-width: 1600px) {
+
   .ipos-content {
     padding: 24px 28px;
   }
+
 }
+
 
 /* =========================
    Standard Laptop
    ========================= */
 
 @media (max-width: 1199px) {
+
   .ipos-content {
     padding: 20px;
   }
+
 }
+
 
 /* =========================
    Tablet
    ========================= */
 
 @media (max-width: 991px) {
+
   .ipos-sidebar {
     display: none;
   }
@@ -107,24 +161,31 @@
   .ipos-content {
     padding: 18px;
   }
+
 }
+
 
 /* =========================
    Small Tablet
    ========================= */
 
 @media (max-width: 767px) {
+
   .ipos-content {
     padding: 16px;
   }
+
 }
+
 
 /* =========================
    Mobile
    ========================= */
 
 @media (max-width: 575px) {
+
   .ipos-content {
     padding: 14px;
   }
+
 }

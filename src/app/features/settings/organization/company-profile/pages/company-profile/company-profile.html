@@ -1,0 +1,698 @@
+<div class="company-profile-page">
+
+  <header class="page-header">
+
+    <div class="page-heading">
+      <div class="breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Organization</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Company Profile</span>
+      </div>
+
+      <h1>Company Profile</h1>
+
+      <p>
+        Manage your organization's identity, contact information,
+        business address and regional settings.
+      </p>
+    </div>
+
+    <div class="page-actions">
+
+      <button
+        type="button"
+        class="button button-secondary"
+        [disabled]="isLoading() || isSaving()"
+        (click)="reload()">
+
+        <span class="button-icon" aria-hidden="true">
+          ↻
+        </span>
+
+        Refresh
+      </button>
+
+      <button
+        type="button"
+        class="button button-primary"
+        [disabled]="
+          isLoading() ||
+          isSaving() ||
+          form.invalid ||
+          form.pristine
+        "
+        (click)="save()">
+
+        @if (isSaving()) {
+          <span
+            class="button-spinner"
+            aria-hidden="true">
+          </span>
+
+          Saving...
+        } @else {
+          Save Changes
+        }
+      </button>
+
+    </div>
+
+  </header>
+
+
+  @if (isLoading()) {
+
+    <section
+      class="state-card"
+      aria-live="polite">
+
+      <div class="loading-spinner"></div>
+
+      <div>
+        <h2>Loading company profile</h2>
+
+        <p>
+          Please wait while the organization information is loaded.
+        </p>
+      </div>
+
+    </section>
+
+  } @else if (loadError()) {
+
+    <section
+      class="state-card state-card-error"
+      role="alert">
+
+      <div class="state-icon">
+        !
+      </div>
+
+      <div class="state-content">
+        <h2>Unable to load company profile</h2>
+
+        <p>
+          {{ loadError() }}
+        </p>
+
+        <button
+          type="button"
+          class="button button-secondary"
+          (click)="reload()">
+
+          Try Again
+        </button>
+      </div>
+
+    </section>
+
+  } @else {
+
+
+    @if (successMessage()) {
+
+      <div
+        class="alert alert-success"
+        role="status">
+
+        <div class="alert-icon">
+          ✓
+        </div>
+
+        <div class="alert-content">
+          <strong>Changes saved</strong>
+          <span>{{ successMessage() }}</span>
+        </div>
+
+      </div>
+
+    }
+
+    @if (saveError()) {
+
+      <div
+        class="alert alert-error"
+        role="alert">
+
+        <div class="alert-icon">
+          !
+        </div>
+
+        <div class="alert-content">
+          <strong>Unable to save changes</strong>
+          <span>{{ saveError() }}</span>
+        </div>
+
+      </div>
+
+    }
+
+
+    <section class="organization-summary">
+
+      <div class="company-avatar">
+        {{ form.controls.name.value.charAt(0).toUpperCase() || 'C' }}
+      </div>
+
+      <div class="company-summary-content">
+
+        <div class="company-summary-heading">
+
+          <h2>
+            {{ form.controls.name.value || 'Company' }}
+          </h2>
+
+          <span
+            class="status-badge"
+            [class.status-active]="isActive()"
+            [class.status-inactive]="!isActive()">
+
+            <span class="status-dot"></span>
+
+            {{ isActive() ? 'Active' : 'Inactive' }}
+          </span>
+
+        </div>
+
+        <div class="company-meta">
+
+          <span>
+            Company Code
+            <strong>{{ companyCode() }}</strong>
+          </span>
+
+          <span class="meta-divider"></span>
+
+          <span>
+            Currency
+            <strong>
+              {{ form.controls.currencyCode.value || '—' }}
+            </strong>
+          </span>
+
+          <span class="meta-divider"></span>
+
+          <span>
+            Country
+            <strong>
+              {{ form.controls.countryCode.value || '—' }}
+            </strong>
+          </span>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <form
+      class="profile-form"
+      [formGroup]="form"
+      (ngSubmit)="save()"
+      novalidate>
+
+
+      <section class="form-card">
+
+        <div class="form-card-header">
+
+          <div>
+            <h2>Business Information</h2>
+
+            <p>
+              Primary organization identity and registration details.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="form-card-body">
+
+          <div class="form-grid">
+
+            <div class="form-field form-field-wide">
+
+              <label for="companyName">
+                Company Name
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="companyName"
+                type="text"
+                formControlName="name"
+                maxlength="200"
+                autocomplete="organization"
+                placeholder="Enter company name">
+
+              @if (
+                form.controls.name.touched &&
+                form.controls.name.hasError('required')
+              ) {
+                <span class="field-error">
+                  Company name is required.
+                </span>
+              }
+
+            </div>
+
+
+            <div class="form-field form-field-wide">
+
+              <label for="legalName">
+                Legal Name
+              </label>
+
+              <input
+                id="legalName"
+                type="text"
+                formControlName="legalName"
+                maxlength="250"
+                placeholder="Registered legal name">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="registrationNumber">
+                Registration Number
+              </label>
+
+              <input
+                id="registrationNumber"
+                type="text"
+                formControlName="registrationNumber"
+                maxlength="100"
+                placeholder="Business registration number">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="taxRegistrationNumber">
+                Tax Registration Number
+              </label>
+
+              <input
+                id="taxRegistrationNumber"
+                type="text"
+                formControlName="taxRegistrationNumber"
+                maxlength="100"
+                placeholder="TIN / VAT / Tax ID">
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <section class="form-card">
+
+        <div class="form-card-header">
+
+          <div>
+            <h2>Contact Information</h2>
+
+            <p>
+              Business contact details used across the system.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="form-card-body">
+
+          <div class="form-grid">
+
+            <div class="form-field">
+
+              <label for="phone">
+                Phone
+              </label>
+
+              <input
+                id="phone"
+                type="tel"
+                formControlName="phone"
+                maxlength="50"
+                autocomplete="tel"
+                placeholder="+880">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="email">
+                Email Address
+              </label>
+
+              <input
+                id="email"
+                type="email"
+                formControlName="email"
+                maxlength="254"
+                autocomplete="email"
+                placeholder="info@company.com">
+
+              @if (
+                form.controls.email.touched &&
+                form.controls.email.hasError('email')
+              ) {
+                <span class="field-error">
+                  Enter a valid email address.
+                </span>
+              }
+
+            </div>
+
+
+            <div class="form-field form-field-wide">
+
+              <label for="website">
+                Website
+              </label>
+
+              <input
+                id="website"
+                type="url"
+                formControlName="website"
+                maxlength="500"
+                autocomplete="url"
+                placeholder="https://www.company.com">
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="form-card">
+
+        <div class="form-card-header">
+
+          <div>
+            <h2>Business Address</h2>
+
+            <p>
+              Registered or primary business address.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="form-card-body">
+
+          <div class="form-grid">
+
+            <div class="form-field form-field-full">
+
+              <label for="addressLine1">
+                Address Line 1
+              </label>
+
+              <input
+                id="addressLine1"
+                type="text"
+                formControlName="addressLine1"
+                maxlength="250"
+                autocomplete="address-line1"
+                placeholder="Street address">
+
+            </div>
+
+
+            <div class="form-field form-field-full">
+
+              <label for="addressLine2">
+                Address Line 2
+              </label>
+
+              <input
+                id="addressLine2"
+                type="text"
+                formControlName="addressLine2"
+                maxlength="250"
+                autocomplete="address-line2"
+                placeholder="Suite, floor, building or area">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="city">
+                City
+              </label>
+
+              <input
+                id="city"
+                type="text"
+                formControlName="city"
+                maxlength="100"
+                autocomplete="address-level2"
+                placeholder="City">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="stateOrProvince">
+                State / Province
+              </label>
+
+              <input
+                id="stateOrProvince"
+                type="text"
+                formControlName="stateOrProvince"
+                maxlength="100"
+                autocomplete="address-level1"
+                placeholder="State, province or division">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="postalCode">
+                Postal Code
+              </label>
+
+              <input
+                id="postalCode"
+                type="text"
+                formControlName="postalCode"
+                maxlength="20"
+                autocomplete="postal-code"
+                placeholder="Postal code">
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="countryCode">
+                Country Code
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="countryCode"
+                type="text"
+                formControlName="countryCode"
+                minlength="2"
+                maxlength="2"
+                autocomplete="country"
+                placeholder="BD">
+
+              @if (
+                form.controls.countryCode.touched &&
+                form.controls.countryCode.invalid
+              ) {
+                <span class="field-error">
+                  Enter a valid 2-letter country code.
+                </span>
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="form-card">
+
+        <div class="form-card-header">
+
+          <div>
+            <h2>Regional Settings</h2>
+
+            <p>
+              Default currency and time zone used for business operations.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="form-card-body">
+
+          <div class="form-grid">
+
+            <div class="form-field">
+
+              <label for="currencyCode">
+                Currency Code
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="currencyCode"
+                type="text"
+                formControlName="currencyCode"
+                minlength="3"
+                maxlength="3"
+                placeholder="BDT">
+
+              @if (
+                form.controls.currencyCode.touched &&
+                form.controls.currencyCode.invalid
+              ) {
+                <span class="field-error">
+                  Enter a valid 3-letter currency code.
+                </span>
+              }
+
+            </div>
+
+
+            <div class="form-field">
+
+              <label for="timeZoneId">
+                Time Zone
+                <span class="required">*</span>
+              </label>
+
+              <input
+                id="timeZoneId"
+                type="text"
+                formControlName="timeZoneId"
+                maxlength="100"
+                placeholder="Bangladesh Standard Time">
+
+              @if (
+                form.controls.timeZoneId.touched &&
+                form.controls.timeZoneId.hasError('required')
+              ) {
+                <span class="field-error">
+                  Time zone is required.
+                </span>
+              }
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section class="form-card">
+
+        <div class="form-card-header">
+
+          <div>
+            <h2>Branding</h2>
+
+            <p>
+              Company logo used in documents and application branding.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="form-card-body">
+
+          <div class="form-field">
+
+            <label for="logoUrl">
+              Logo URL
+            </label>
+
+            <input
+              id="logoUrl"
+              type="url"
+              formControlName="logoUrl"
+              maxlength="1000"
+              placeholder="https://...">
+
+            <span class="field-hint">
+              Image upload and managed file storage will be added
+              separately from the company profile data.
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <div class="form-footer">
+
+        <div class="form-footer-message">
+
+          @if (form.dirty) {
+            <span class="unsaved-indicator">
+              <span class="unsaved-dot"></span>
+              You have unsaved changes
+            </span>
+          } @else {
+            <span>
+              All changes are saved
+            </span>
+          }
+
+        </div>
+
+        <button
+          type="submit"
+          class="button button-primary"
+          [disabled]="
+            isSaving() ||
+            form.invalid ||
+            form.pristine
+          ">
+
+          @if (isSaving()) {
+            <span
+              class="button-spinner"
+              aria-hidden="true">
+            </span>
+
+            Saving...
+          } @else {
+            Save Changes
+          }
+
+        </button>
+
+      </div>
+
+    </form>
+
+  }
+
+</div>

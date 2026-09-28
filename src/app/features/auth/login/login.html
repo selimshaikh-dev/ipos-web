@@ -1,0 +1,557 @@
+<div class="login-page">
+
+  <!-- =====================================================
+       BRAND / INFORMATION PANEL
+       ===================================================== -->
+  <section class="brand-panel">
+
+    <div class="brand-panel__inner">
+
+      <!-- Logo -->
+      <div class="brand">
+        <img
+          src="/images/branding/ipos-logo.png"
+          alt="iPOS - Integrated Point of Sale"
+          class="brand__logo"
+        >
+      </div>
+
+      <!-- Main Brand Message -->
+      <div class="brand-message">
+
+        <p class="brand-message__eyebrow">
+          Integrated Business Operations
+        </p>
+
+        <h1>
+          One platform for your
+          <span>day-to-day business.</span>
+        </h1>
+
+        <p class="brand-message__description">
+          Manage sales, inventory, purchasing, customers,
+          suppliers and financial operations from a secure,
+          centralized workspace.
+        </p>
+
+      </div>
+
+
+      <!-- Business Features -->
+      <div class="system-points">
+
+        <!-- Feature 1 -->
+        <div class="system-point">
+
+          <span
+            class="system-point__icon"
+            aria-hidden="true">
+
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M4 4h6v6H4V4Zm10 0h6v6h-6V4ZM4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z">
+              </path>
+            </svg>
+
+          </span>
+
+          <div>
+            <strong>
+              Centralized operations
+            </strong>
+
+            <span>
+              Manage branches, warehouses and POS operations
+              from one secure system.
+            </span>
+          </div>
+
+        </div>
+
+
+        <!-- Feature 2 -->
+        <div class="system-point">
+
+          <span
+            class="system-point__icon"
+            aria-hidden="true">
+
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2 4 5v6c0 5 3.4 9.7 8 11
+                   4.6-1.3 8-6 8-11V5l-8-3Zm0 2.1
+                   L18 6v5c0 3.9-2.5 7.7-6 8.9
+                   -3.5-1.2-6-5-6-8.9V6l6-1.9Z">
+              </path>
+            </svg>
+
+          </span>
+
+          <div>
+            <strong>
+              Controlled access
+            </strong>
+
+            <span>
+              Role-based access designed for business teams,
+              administrators and operational staff.
+            </span>
+          </div>
+
+        </div>
+
+
+        <!-- Feature 3 -->
+        <div class="system-point">
+
+          <span
+            class="system-point__icon"
+            aria-hidden="true">
+
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M3 19h18v2H1V3h2v16Zm4-3.4
+                   3.8-4 3.1 2.9L19 8l1.5 1.2
+                   -6.4 8-3.2-3L8.4 17 7 15.6Z">
+              </path>
+            </svg>
+
+          </span>
+
+          <div>
+            <strong>
+              Operational visibility
+            </strong>
+
+            <span>
+              Keep important business information organized,
+              accessible and ready for decision-making.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+
+      <!-- Left Footer -->
+      <div class="brand-panel__footer">
+
+        <span>
+          iPOS
+        </span>
+
+        <span class="separator"></span>
+
+        <span>
+          Integrated Point of Sale &amp;
+          Business Management System
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       LOGIN PANEL
+       ===================================================== -->
+  <main class="login-panel">
+
+    <div class="login-panel__content">
+
+
+      <!-- Mobile / Tablet Logo -->
+      <div class="mobile-brand">
+
+        <img
+          src="/images/branding/ipos-logo.png"
+          alt="iPOS"
+          class="mobile-brand__logo"
+        >
+
+      </div>
+
+
+      <!-- Login Heading -->
+      <header class="login-header">
+
+        <p class="login-header__eyebrow">
+          Secure Access
+        </p>
+
+        <h2>
+          Sign in to iPOS
+        </h2>
+
+        <p>
+          Enter your account credentials to continue
+          to your business workspace.
+        </p>
+
+      </header>
+
+
+      <!-- =================================================
+           API ERROR
+           ================================================= -->
+      @if (errorMessage) {
+
+        <div
+          class="alert alert--error"
+          role="alert">
+
+          <span
+            class="alert__icon"
+            aria-hidden="true">
+            !
+          </span>
+
+          <span>
+            {{ errorMessage }}
+          </span>
+
+        </div>
+
+      }
+
+
+      <!-- =================================================
+           LOGIN FORM
+           ================================================= -->
+      <form
+        class="login-form"
+        [formGroup]="loginForm"
+        (ngSubmit)="submit()"
+        novalidate>
+
+
+        <!-- EMAIL -->
+        <div class="field">
+
+          <label for="email">
+            Email address
+          </label>
+
+          <div
+            class="input-control"
+            [class.input-control--invalid]="
+              emailControl.invalid &&
+              emailControl.touched
+            ">
+
+            <span
+              class="input-control__icon"
+              aria-hidden="true">
+
+              <svg
+                viewBox="0 0 24 24"
+                focusable="false">
+
+                <path
+                  d="M4 5h16a2 2 0 0 1 2 2v10
+                     a2 2 0 0 1-2 2H4
+                     a2 2 0 0 1-2-2V7
+                     a2 2 0 0 1 2-2Zm0 2
+                     8 5 8-5H4Zm16 10V9.3
+                     l-7.47 4.67
+                     a1 1 0 0 1-1.06 0
+                     L4 9.3V17h16Z">
+                </path>
+
+              </svg>
+
+            </span>
+
+
+            <input
+              id="email"
+              type="email"
+              formControlName="email"
+              autocomplete="username"
+              inputmode="email"
+              placeholder="name@company.com"
+              aria-label="Email address"
+            >
+
+          </div>
+
+
+          @if (
+            emailControl.invalid &&
+            emailControl.touched
+          ) {
+
+            <p class="field__error">
+
+              @if (
+                emailControl.hasError('required')
+              ) {
+                Email address is required.
+              }
+
+              @else if (
+                emailControl.hasError('email')
+              ) {
+                Enter a valid email address.
+              }
+
+            </p>
+
+          }
+
+        </div>
+
+
+        <!-- PASSWORD -->
+        <div class="field">
+
+          <div class="field__label-row">
+
+            <label for="password">
+              Password
+            </label>
+
+          </div>
+
+
+          <div
+            class="input-control"
+            [class.input-control--invalid]="
+              passwordControl.invalid &&
+              passwordControl.touched
+            ">
+
+            <span
+              class="input-control__icon"
+              aria-hidden="true">
+
+              <svg
+                viewBox="0 0 24 24"
+                focusable="false">
+
+                <path
+                  d="M17 8h-1V6a4 4 0 0 0-8 0v2H7
+                     a3 3 0 0 0-3 3v7
+                     a3 3 0 0 0 3 3h10
+                     a3 3 0 0 0 3-3v-7
+                     a3 3 0 0 0-3-3Zm-7-2
+                     a2 2 0 1 1 4 0v2h-4V6Zm8 12
+                     a1 1 0 0 1-1 1H7
+                     a1 1 0 0 1-1-1v-7
+                     a1 1 0 0 1 1-1h10
+                     a1 1 0 0 1 1 1v7Z">
+                </path>
+
+              </svg>
+
+            </span>
+
+
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              placeholder="Enter your password"
+              aria-label="Password"
+            >
+
+
+            <button
+              class="password-toggle"
+              type="button"
+              (click)="togglePasswordVisibility()"
+              [attr.aria-label]="
+                showPassword
+                  ? 'Hide password'
+                  : 'Show password'
+              ">
+
+
+              @if (showPassword) {
+
+                <!-- Eye Off -->
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true">
+
+                  <path
+                    d="M3.3 2 22 20.7 20.7 22
+                       l-3.1-3.1A11.8 11.8 0 0 1 12 20
+                       C5 20 1 12 1 12
+                       a19.2 19.2 0 0 1 4-5.2L2 3.3
+                       3.3 2Zm3.1 6.2
+                       A15.6 15.6 0 0 0 3.3 12
+                       S6.7 18 12 18
+                       c1.5 0 2.8-.5 4-1.1
+                       l-1.6-1.6
+                       A4 4 0 0 1 8.7 9.6
+                       L6.4 8.2ZM12 4
+                       c7 0 11 8 11 8
+                       a18.7 18.7 0 0 1-3.1 4.3
+                       l-1.5-1.5
+                       a15.1 15.1 0 0 0 2.3-2.8
+                       S17.3 6 12 6
+                       c-.7 0-1.4.1-2 .2
+                       L8.3 4.5A11.8 11.8 0 0 1 12 4Z">
+                  </path>
+
+                </svg>
+
+              } @else {
+
+                <!-- Eye -->
+                <svg
+                  viewBox="0 0 24 24"
+                  aria-hidden="true">
+
+                  <path
+                    d="M12 4C5 4 1 12 1 12
+                       s4 8 11 8 11-8 11-8
+                       -4-8-11-8Zm0 14
+                       c-5.3 0-8.7-6-8.7-6
+                       S6.7 6 12 6s8.7 6 8.7 6
+                       -3.4 6-8.7 6Zm0-10
+                       a4 4 0 1 0 0 8
+                       4 4 0 0 0 0-8Zm0 6
+                       a2 2 0 1 1 0-4
+                       2 2 0 0 1 0 4Z">
+                  </path>
+
+                </svg>
+
+              }
+
+            </button>
+
+          </div>
+
+
+          @if (
+            passwordControl.invalid &&
+            passwordControl.touched
+          ) {
+
+            <p class="field__error">
+
+              @if (
+                passwordControl.hasError('required')
+              ) {
+                Password is required.
+              }
+
+              @else if (
+                passwordControl.hasError('minlength')
+              ) {
+                Password must contain at least
+                8 characters.
+              }
+
+            </p>
+
+          }
+
+        </div>
+
+
+        <!-- SIGN IN -->
+        <button
+          class="sign-in-button"
+          type="submit"
+          [disabled]="isSubmitting">
+
+          @if (isSubmitting) {
+
+            <span
+              class="spinner"
+              aria-hidden="true">
+            </span>
+
+            <span>
+              Signing in...
+            </span>
+
+          } @else {
+
+            <span>
+              Sign in
+            </span>
+
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true">
+
+              <path
+                d="m13.3 5.3 6 6
+                   a1 1 0 0 1 0 1.4
+                   l-6 6-1.4-1.4
+                   4.3-4.3H5v-2h11.2
+                   l-4.3-4.3
+                   1.4-1.4Z">
+              </path>
+
+            </svg>
+
+          }
+
+        </button>
+
+      </form>
+
+
+      <!-- =================================================
+           SECURITY MESSAGE
+           ================================================= -->
+      <div class="security-note">
+
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true">
+
+          <path
+            d="M12 2 4 5v6
+               c0 5 3.4 9.7 8 11
+               4.6-1.3 8-6 8-11V5l-8-3Zm0 2.1
+               L18 6v5
+               c0 3.9-2.5 7.7-6 8.9
+               -3.5-1.2-6-5-6-8.9V6
+               l6-1.9Z">
+          </path>
+
+        </svg>
+
+        <p>
+          This is a restricted business system.
+          Access is limited to authorized users.
+          Sign-in activity may be recorded for security
+          and auditing purposes.
+        </p>
+
+      </div>
+
+
+      <!-- Footer -->
+      <footer class="login-footer">
+
+        <span>
+          © {{ currentYear }} iPOS
+        </span>
+
+        <span class="login-footer__separator">
+          •
+        </span>
+
+        <span>
+          All rights reserved.
+        </span>
+
+      </footer>
+
+    </div>
+
+  </main>
+
+</div>
