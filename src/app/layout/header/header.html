@@ -1,3 +1,4 @@
+
 <header class="topbar">
 
   <div class="topbar-left">
@@ -85,8 +86,9 @@
       <button
         class="user-menu"
         type="button"
-        aria-haspopup="menu"
-        [attr.aria-expanded]="isUserMenuOpen"
+        aria-haspopup="true"
+        aria-controls="user-account-menu"
+        [attr.aria-expanded]="isUserMenuOpen()"
         (click)="toggleUserMenu()"
       >
 
@@ -108,7 +110,8 @@
 
         <span
           class="material-symbols-rounded dropdown-icon"
-          [class.dropdown-icon--open]="isUserMenuOpen"
+          [class.dropdown-icon--open]="isUserMenuOpen()"
+          aria-hidden="true"
         >
           keyboard_arrow_down
         </span>
@@ -116,11 +119,11 @@
       </button>
 
 
-      @if (isUserMenuOpen) {
+      @if (isUserMenuOpen()) {
 
         <div
+          id="user-account-menu"
           class="user-dropdown"
-          role="menu"
         >
 
           <div class="user-dropdown__profile">
@@ -154,7 +157,6 @@
           <button
             type="button"
             class="user-dropdown__item"
-            role="menuitem"
           >
             <span class="material-symbols-rounded">
               person
@@ -167,7 +169,6 @@
           <button
             type="button"
             class="user-dropdown__item"
-            role="menuitem"
           >
             <span class="material-symbols-rounded">
               manage_accounts
@@ -183,7 +184,6 @@
           <button
             type="button"
             class="user-dropdown__item user-dropdown__item--danger"
-            role="menuitem"
             (click)="logout()"
           >
             <span class="material-symbols-rounded">

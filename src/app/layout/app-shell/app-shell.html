@@ -1,19 +1,211 @@
+
 <div class="ipos-shell">
+
+  <!-- =====================================================
+       Application Sidebar
+       ===================================================== -->
 
   <aside class="ipos-sidebar">
     <app-sidebar></app-sidebar>
   </aside>
+
+  <!-- =====================================================
+       Main Workspace
+       ===================================================== -->
 
   <section class="ipos-workspace">
 
     <app-header></app-header>
 
     <main class="ipos-content">
-      <router-outlet></router-outlet>
+
+      <!-- ================================================
+           Workspace Loading
+           ================================================ -->
+
+      @if (isWorkspaceLoading()) {
+
+        <section
+          class="workspace-state workspace-state-loading"
+          aria-live="polite"
+          aria-busy="true"
+        >
+
+          <div class="workspace-state-content">
+
+            <span
+              class="material-symbols-rounded workspace-state-icon"
+              aria-hidden="true"
+            >
+              progress_activity
+            </span>
+
+            <h2>Loading workspace</h2>
+
+            <p>
+              Please wait while we verify your company
+              and authorized workspace access.
+            </p>
+
+          </div>
+
+        </section>
+
+      }
+
+      <!-- ================================================
+           Workspace Initialization Error
+           ================================================ -->
+
+      @else if (hasWorkspaceError()) {
+
+        <section
+          class="workspace-state workspace-state-error"
+          role="alert"
+        >
+
+          <div class="workspace-state-content">
+
+            <span
+              class="material-symbols-rounded workspace-state-icon"
+              aria-hidden="true"
+            >
+              error
+            </span>
+
+            <h2>Workspace unavailable</h2>
+
+            <p>
+              We couldn't initialize your workspace.
+              Please check your connection or contact
+              your system administrator if the problem
+              continues.
+            </p>
+
+          </div>
+
+        </section>
+
+      }
+
+      <!-- ================================================
+           Branch Selection Required
+           ================================================ -->
+
+      @else if (requiresBranchSelection()) {
+
+        <section
+          class="workspace-state workspace-state-selection"
+          aria-labelledby="workspace-selection-title"
+        >
+
+          <div class="workspace-state-content">
+
+            <span
+              class="material-symbols-rounded workspace-state-icon"
+              aria-hidden="true"
+            >
+              account_tree
+            </span>
+
+            <h2 id="workspace-selection-title">
+              Select your branch
+            </h2>
+
+            <p>
+              Choose an authorized branch to continue
+              working on this page.
+            </p>
+
+            <div class="workspace-selection-list">
+
+              @for (
+                branch of workspaceContext.branchOptions();
+                track branch.id
+              ) {
+
+                <button
+                  type="button"
+                  class="workspace-selection-option"
+                  (click)="workspaceContext.selectBranch(branch.id)"
+                >
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true"
+                  >
+                    store
+                  </span>
+
+                  <span class="workspace-selection-details">
+
+                    <strong>
+                      {{ branch.name }}
+                    </strong>
+
+                    <small>
+                      {{ branch.code }}
+                    </small>
+
+                  </span>
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true"
+                  >
+                    arrow_forward
+                  </span>
+
+                </button>
+
+              }
+
+            </div>
+
+          </div>
+
+        </section>
+
+      }
+
+      <!-- ================================================
+           Persistent Angular Router Outlet
+           ================================================ -->
+
+      <!--
+        Keep router-outlet instantiated throughout
+        the AppShell lifecycle.
+
+        Company-scoped routes become visible after
+        successful company initialization.
+
+        Branch-scoped routes additionally require
+        an authorized branch selection.
+
+        Visibility is not route or API authorization.
+      -->
+
+      <div
+        class="workspace-routed-content"
+        [hidden]="!canAccessCurrentRoute()"
+        [attr.aria-hidden]="!canAccessCurrentRoute()"
+        [attr.inert]="canAccessCurrentRoute() ? null : ''"
+      >
+
+        <router-outlet></router-outlet>
+
+      </div>
+
     </main>
 
     <app-footer></app-footer>
 
   </section>
+
+  <!-- =====================================================
+       Global Application Notifications
+       ===================================================== -->
+
+  <app-notification-container></app-notification-container>
 
 </div>

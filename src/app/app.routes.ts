@@ -1,3 +1,4 @@
+
 import { Routes } from '@angular/router';
 
 import { AppShell } from './layout/app-shell/app-shell';
@@ -6,7 +7,34 @@ import { Dashboard } from './features/dashboard/pages/dashboard/dashboard';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { guestGuard } from './core/auth/guards/guest.guard';
 
+// =========================================================
+// Workspace Route Scope
+// =========================================================
+
+/**
+ * Defines the workspace context required by a route.
+ *
+ * company:
+ *   Requires an authorized company.
+ *
+ * branch:
+ *   Requires an authorized company and a selected
+ *   authorized branch.
+ *
+ * Route metadata is not an authorization mechanism.
+ * Guards and backend policies must enforce access.
+ */
+export type WorkspaceRouteScope = 'company' | 'branch';
+
+// =========================================================
+// Application Routes
+// =========================================================
+
 export const routes: Routes = [
+
+  // =======================================================
+  // Default Route
+  // =======================================================
 
   {
     path: '',
@@ -14,6 +42,9 @@ export const routes: Routes = [
     redirectTo: 'login'
   },
 
+  // =======================================================
+  // Guest Routes
+  // =======================================================
 
   {
     path: 'login',
@@ -29,6 +60,9 @@ export const routes: Routes = [
     title: 'Sign In | iPOS'
   },
 
+  // =======================================================
+  // Authenticated Application Shell
+  // =======================================================
 
   {
     path: '',
@@ -41,13 +75,25 @@ export const routes: Routes = [
 
     children: [
 
+      // ===================================================
+      // Dashboard
+      // ===================================================
+
       {
         path: 'dashboard',
 
         component: Dashboard,
 
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
         title: 'Dashboard | iPOS'
       },
+
+      // ===================================================
+      // Organization / Company Profile
+      // ===================================================
 
       {
         path: 'settings/organization/company-profile',
@@ -58,11 +104,19 @@ export const routes: Routes = [
           )
             .then(m => m.CompanyProfile),
 
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
         title: 'Company Profile | iPOS'
       }
 
     ]
   },
+
+  // =======================================================
+  // Fallback Route
+  // =======================================================
 
   {
     path: '**',

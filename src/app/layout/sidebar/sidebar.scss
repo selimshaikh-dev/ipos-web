@@ -1,63 +1,50 @@
+
 :host {
   display: block;
   width: 100%;
   height: 100%;
+  min-height: 0;
 }
 
 .sidebar {
   display: flex;
   width: 100%;
   height: 100%;
-
+  min-height: 0;
   flex-direction: column;
-
   padding: 0 14px 16px;
-
   overflow: hidden;
-
   color: var(--ipos-sidebar-text);
   background: var(--ipos-sidebar-bg);
 }
 
-/* =========================
+/* =========================================
    Brand
-   ========================= */
+   ========================================= */
 
 .brand {
   display: flex;
   min-height: 76px;
   flex-shrink: 0;
-
   align-items: center;
-
   padding: 0 8px;
-
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 .brand-mark {
   display: grid;
-
   width: 38px;
   height: 38px;
   flex: 0 0 38px;
-
   margin-right: 11px;
-
   place-items: center;
-
   border-radius: 10px;
-
   background: var(--ipos-primary);
-
   color: #ffffff;
-
   font-size: 23px;
   font-weight: 800;
   font-style: italic;
-
-  box-shadow:
-    0 4px 10px rgba(37, 99, 235, 0.16);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.16);
 }
 
 .brand-copy {
@@ -68,7 +55,6 @@
 
 .brand-name {
   color: #ffffff;
-
   font-size: 20px;
   font-weight: 700;
   line-height: 22px;
@@ -77,32 +63,26 @@
 
 .brand-caption {
   margin-top: 2px;
-
   color: var(--ipos-sidebar-muted);
-
   font-size: 10px;
   line-height: 14px;
   letter-spacing: 0.2px;
 }
 
-/* =========================
+/* =========================================
    Workspace / Company
-   ========================= */
+   ========================================= */
 
 .business-context {
   flex-shrink: 0;
-
   padding: 20px 4px 16px;
 }
 
 .context-label,
 .navigation-title {
   display: block;
-
   padding: 0 8px;
-
   color: #667085;
-
   font-size: 10px;
   font-weight: 700;
   line-height: 14px;
@@ -111,19 +91,13 @@
 
 .company {
   display: flex;
-
   min-width: 0;
-
   align-items: center;
-
   margin-top: 9px;
   padding: 9px 8px;
-
   border: 1px solid rgba(255, 255, 255, 0.025);
   border-radius: 9px;
-
   background: rgba(255, 255, 255, 0.04);
-
   transition:
     background-color 140ms ease,
     border-color 140ms ease;
@@ -136,124 +110,130 @@
 
 .company-avatar {
   display: grid;
-
   width: 32px;
   height: 32px;
   flex: 0 0 32px;
-
   margin-right: 9px;
-
   place-items: center;
-
   border-radius: 8px;
-
   background: rgba(37, 99, 235, 0.18);
-
   color: #84adff;
-
   font-size: 11px;
   font-weight: 700;
 }
 
 .company-details {
   display: flex;
-
   flex: 1;
   min-width: 0;
-
   flex-direction: column;
 }
 
 .company-details strong {
   overflow: hidden;
-
   color: #f2f4f7;
-
   font-size: 12px;
   font-weight: 600;
   line-height: 16px;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .company-details span {
   overflow: hidden;
-
   margin-top: 1px;
-
   color: var(--ipos-sidebar-muted);
-
   font-size: 10px;
   line-height: 14px;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .context-arrow {
   flex-shrink: 0;
-
   margin-left: 6px;
-
   color: #667085;
-
   font-size: 18px;
 }
 
-/* =========================
-   Navigation
-   ========================= */
+/* =========================================
+   Navigation Container
+   ========================================= */
 
 .navigation {
   flex: 1;
   min-height: 0;
-
   overflow-x: hidden;
   overflow-y: auto;
-
+  overscroll-behavior: contain;
   padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
 
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+.navigation:hover {
+  scrollbar-color:
+    rgba(152, 162, 179, 0.28)
+    transparent;
 }
 
 .navigation::-webkit-scrollbar {
-  width: 0;
-  height: 0;
+  width: 4px;
+}
+
+.navigation::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navigation::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: transparent;
+}
+
+.navigation:hover::-webkit-scrollbar-thumb {
+  background: rgba(152, 162, 179, 0.28);
 }
 
 .navigation-title {
   margin-bottom: 8px;
 }
 
+/* =========================================
+   Level 1: Main Navigation
+   ========================================= */
+
+.navigation-group {
+  min-width: 0;
+}
+
 .navigation-item {
   display: flex;
-
+  width: 100%;
+  min-width: 0;
   min-height: 42px;
-
   align-items: center;
-
-  margin-bottom: 3px;
+  margin: 0 0 3px;
   padding: 0 11px;
-
+  border: 1px solid transparent;
   border-radius: 8px;
-
+  background: transparent;
   color: var(--ipos-sidebar-text);
-
+  font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   line-height: 18px;
-
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
   transition:
     background-color 140ms ease,
+    border-color 140ms ease,
     color 140ms ease,
     transform 140ms ease;
 }
 
 .navigation-item:hover {
   background: var(--ipos-sidebar-hover);
-
   color: #ffffff;
 }
 
@@ -261,53 +241,231 @@
   transform: translateY(1px);
 }
 
-.navigation-item.active {
+.navigation-item.active,
+.navigation-item.navigation-expanded {
   background: #1d2939;
-
   color: #ffffff;
 }
 
-.navigation-item.active .navigation-icon {
+.navigation-item.active .navigation-icon,
+.navigation-item.navigation-expanded .navigation-icon {
   color: #84adff;
 }
 
 .navigation-icon {
   width: 21px;
   flex: 0 0 21px;
-
   margin-right: 11px;
-
   color: #98a2b3;
-
   font-size: 19px;
-
+  line-height: 1;
   transition: color 140ms ease;
 }
 
-/* =========================
+.navigation-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navigation-parent {
+  appearance: none;
+}
+
+.navigation-chevron {
+  width: 18px;
+  flex: 0 0 18px;
+  margin-left: 5px;
+  color: #667085;
+  font-size: 18px;
+  line-height: 1;
+  text-align: center;
+  transition:
+    color 140ms ease,
+    transform 180ms ease;
+}
+
+.navigation-chevron-open {
+  transform: rotate(180deg);
+  color: #98a2b3;
+}
+
+/* =========================================
+   Level 2: Submenu
+   ========================================= */
+
+.navigation-submenu {
+  margin: 1px 0 7px 20px;
+  padding: 3px 0 3px 10px;
+  border-left: 1px solid rgba(152, 162, 179, 0.17);
+}
+
+.navigation-subgroup {
+  min-width: 0;
+}
+
+.navigation-subitem {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 35px;
+  align-items: center;
+  margin: 1px 0;
+  padding: 6px 9px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: #98a2b3;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 17px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.navigation-subitem:hover {
+  background: rgba(255, 255, 255, 0.055);
+  color: #f2f4f7;
+}
+
+.navigation-subitem.active,
+.navigation-subitem.navigation-expanded {
+  background: rgba(37, 99, 235, 0.12);
+  color: #dbe7ff;
+}
+
+.navigation-subparent {
+  appearance: none;
+}
+
+.navigation-subitem-indicator {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  margin-right: 12px;
+  border-radius: 50%;
+  background: #667085;
+  transition: background-color 140ms ease;
+}
+
+.navigation-subitem.active .navigation-subitem-indicator,
+.navigation-subitem.navigation-expanded .navigation-subitem-indicator {
+  background: #84adff;
+}
+
+/* =========================================
+   Level 3: Nested Navigation
+   ========================================= */
+
+.navigation-third-level {
+  margin: 2px 0 6px 10px;
+  padding: 2px 0 2px 11px;
+  border-left: 1px solid rgba(152, 162, 179, 0.13);
+}
+
+.navigation-third-item {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  align-items: center;
+  margin: 1px 0;
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: #98a2b3;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 16px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.navigation-third-item > span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.navigation-third-item:hover {
+  background: rgba(255, 255, 255, 0.055);
+  color: #ffffff;
+}
+
+.navigation-third-item.active {
+  background: rgba(37, 99, 235, 0.18);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.navigation-third-dot {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 5px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: #667085;
+}
+
+.navigation-third-item.active .navigation-third-dot {
+  background: #84adff;
+}
+
+/* =========================================
+   Planned / Non-interactive Features
+   ========================================= */
+
+.navigation-disabled {
+  cursor: default;
+}
+
+.navigation-disabled:hover {
+  background: transparent;
+  color: #98a2b3;
+}
+
+.navigation-disabled:active {
+  transform: none;
+}
+
+/* =========================================
+   Keyboard Accessibility
+   ========================================= */
+
+.navigation-item:focus-visible,
+.navigation-subitem:focus-visible,
+.navigation-third-item:focus-visible {
+  outline: 2px solid #84adff;
+  outline-offset: -2px;
+}
+
+/* =========================================
    Sidebar Footer
-   ========================= */
+   ========================================= */
 
 .sidebar-footer {
   flex-shrink: 0;
-
   padding-top: 14px;
-
   background: var(--ipos-sidebar-bg);
 }
 
 .support-card {
   display: flex;
-
   align-items: center;
-
   padding: 11px;
-
   border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 9px;
-
   background: rgba(255, 255, 255, 0.025);
-
   transition:
     background-color 140ms ease,
     border-color 140ms ease;
@@ -320,25 +478,19 @@
 
 .support-card > span {
   flex-shrink: 0;
-
   margin-right: 10px;
-
   color: #98a2b3;
-
   font-size: 19px;
 }
 
 .support-card div {
   display: flex;
-
   min-width: 0;
-
   flex-direction: column;
 }
 
 .support-card strong {
   color: #e4e7ec;
-
   font-size: 11px;
   font-weight: 600;
   line-height: 15px;
@@ -346,27 +498,22 @@
 
 .support-card div span {
   margin-top: 1px;
-
   color: #667085;
-
   font-size: 10px;
   line-height: 14px;
 }
 
 .version {
   padding-top: 13px;
-
   text-align: center;
-
   color: #475467;
-
   font-size: 10px;
   line-height: 14px;
 }
 
-/* =========================
-   Compact height handling
-   ========================= */
+/* =========================================
+   Compact Height Handling
+   ========================================= */
 
 @media (max-height: 760px) {
   .brand {
@@ -382,6 +529,14 @@
     min-height: 38px;
   }
 
+  .navigation-subitem {
+    min-height: 32px;
+  }
+
+  .navigation-third-item {
+    min-height: 30px;
+  }
+
   .sidebar-footer {
     padding-top: 10px;
   }
@@ -392,5 +547,274 @@
 
   .version {
     padding-top: 9px;
+  }
+}
+
+/* =========================================
+   Reduced Motion
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  .navigation-item,
+  .navigation-subitem,
+  .navigation-third-item,
+  .navigation-icon,
+  .navigation-chevron {
+    transition: none;
+  }
+}
+
+
+/* =========================================
+   Workspace Branch Selector
+   ========================================= */
+
+/*
+ * The workspace selector extends the existing
+ * sidebar design system without changing
+ * navigation styles or layout structure.
+ */
+
+button.company {
+  appearance: none;
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+button.company:focus-visible {
+  outline: 2px solid #84adff;
+  outline-offset: 2px;
+}
+
+button.company[aria-expanded='true'] {
+  border-color: rgba(132, 173, 255, 0.25);
+  background: rgba(37, 99, 235, 0.12);
+}
+
+button.company[aria-expanded='true'] .context-arrow {
+  color: #84adff;
+}
+
+/* =========================================
+   Branch Options Container
+   ========================================= */
+
+.workspace-branch-options {
+  display: flex;
+  min-width: 0;
+  max-height: min(260px, 35vh);
+  flex-direction: column;
+  gap: 3px;
+  margin-top: 8px;
+  padding: 8px 5px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  border: 1px solid rgba(152, 162, 179, 0.14);
+  border-radius: 9px;
+
+  background: #1d2939;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    rgba(152, 162, 179, 0.28)
+    transparent;
+}
+
+.workspace-branch-options::-webkit-scrollbar {
+  width: 4px;
+}
+
+.workspace-branch-options::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.workspace-branch-options::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: rgba(152, 162, 179, 0.28);
+}
+
+/* =========================================
+   Branch Section Heading
+   ========================================= */
+
+.workspace-branch-heading {
+  display: block;
+  padding: 5px 8px 7px;
+
+  color: #98a2b3;
+
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 14px;
+  letter-spacing: 0.6px;
+}
+
+/* =========================================
+   Individual Branch Option
+   ========================================= */
+
+.workspace-branch-option {
+  appearance: none;
+
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 9px;
+
+  padding: 8px;
+
+  border: 1px solid transparent;
+  border-radius: 7px;
+
+  background: transparent;
+  color: var(--ipos-sidebar-text);
+
+  font-family: inherit;
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+.workspace-branch-option:hover {
+  border-color: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.workspace-branch-option:focus-visible {
+  outline: 2px solid #84adff;
+  outline-offset: -2px;
+}
+
+/* =========================================
+   Selected Branch
+   ========================================= */
+
+.workspace-branch-option-active {
+  border-color: rgba(37, 99, 235, 0.22);
+  background: rgba(37, 99, 235, 0.14);
+  color: #ffffff;
+}
+
+.workspace-branch-option-active:hover {
+  border-color: rgba(132, 173, 255, 0.3);
+  background: rgba(37, 99, 235, 0.2);
+}
+
+/* =========================================
+   Branch Icon
+   ========================================= */
+
+.workspace-branch-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+
+  place-items: center;
+
+  border-radius: 7px;
+  background: rgba(152, 162, 179, 0.1);
+  color: #98a2b3;
+
+  font-size: 18px;
+}
+
+.workspace-branch-option-active .workspace-branch-icon {
+  background: rgba(37, 99, 235, 0.2);
+  color: #84adff;
+}
+
+/* =========================================
+   Branch Name and Code
+   ========================================= */
+
+.workspace-branch-details {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.workspace-branch-details strong {
+  overflow: hidden;
+
+  color: #e4e7ec;
+
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 15px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-branch-details > span {
+  overflow: hidden;
+
+  color: var(--ipos-sidebar-muted);
+
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 14px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-branch-option-active .workspace-branch-details strong {
+  color: #ffffff;
+}
+
+/* =========================================
+   Selected Branch Indicator
+   ========================================= */
+
+.workspace-branch-check {
+  flex: 0 0 auto;
+  margin-left: auto;
+
+  color: #84adff;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* =========================================
+   Compact Height Handling
+   ========================================= */
+
+@media (max-height: 760px) {
+  .workspace-branch-options {
+    max-height: min(200px, 30vh);
+    padding: 6px 4px;
+  }
+
+  .workspace-branch-option {
+    min-height: 40px;
+    padding: 6px 7px;
+  }
+}
+
+/* =========================================
+   Reduced Motion
+   ========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  button.company,
+  .workspace-branch-option {
+    transition: none;
   }
 }

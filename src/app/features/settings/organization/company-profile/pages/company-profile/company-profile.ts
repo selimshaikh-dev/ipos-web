@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  effect,
   inject,
   signal
 } from '@angular/core';
@@ -14,7 +15,7 @@ import {
 
 import { HttpErrorResponse } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { finalize } from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 
 import {
   CompanyProfile as CompanyProfileModel,
@@ -23,55 +24,56 @@ import {
 
 import { CompanyProfileService } from '../../services/company-profile.service';
 
+import { NotificationService } from '../../../../../../core/notifications/notification.service';
+import { WorkspaceContextService } from '../../../../../../core/workspace/services/workspace-context.service';
+
 @Component({
   selector: 'app-company-profile',
   standalone: true,
-
   imports: [
     ReactiveFormsModule
   ],
-
   templateUrl: './company-profile.html',
   styleUrl: './company-profile.scss',
-
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CompanyProfile {
+
+  // =========================================================
+  // Dependencies
+  // =========================================================
 
   private readonly formBuilder = inject(FormBuilder);
 
   private readonly companyProfileService =
     inject(CompanyProfileService);
 
+  private readonly notificationService =
+    inject(NotificationService);
+
+  private readonly workspaceContext =
+    inject(WorkspaceContextService);
+
   private readonly destroyRef =
     inject(DestroyRef);
 
-  // ---------------------------------------------------------
-  // Organization Context
-  // ---------------------------------------------------------
-  // Temporary:
-  // Later this value will come from the application's
-  // Workspace / Organization Context service.
-  // ---------------------------------------------------------
+  // =========================================================
+  // Active Workspace (client-side context, not authorization)
+  // =========================================================
 
-  private readonly companyId = 1;
+  private readonly companyId = this.workspaceContext.companyId;
+  private loadedCompanyId: number | null = null;
+  private profileLoadSubscription?: Subscription;
 
-
-  // ---------------------------------------------------------
+  // =========================================================
   // Page State
-  // ---------------------------------------------------------
+  // =========================================================
 
-  readonly isLoading = signal(true);
+  readonly isLoading = signal(false);
 
   readonly isSaving = signal(false);
 
   readonly loadError =
-    signal<string | null>(null);
-
-  readonly saveError =
-    signal<string | null>(null);
-
-  readonly successMessage =
     signal<string | null>(null);
 
   readonly companyCode =
@@ -80,17 +82,15 @@ export class CompanyProfile {
   readonly isActive =
     signal<boolean>(false);
 
-
-  // ---------------------------------------------------------
-  // Concurrency
-  // ---------------------------------------------------------
+  // =========================================================
+  // Optimistic Concurrency
+  // =========================================================
 
   private rowVersion = '';
 
-
-  // ---------------------------------------------------------
-  // Form
-  // ---------------------------------------------------------
+  // =========================================================
+  // Reactive Form
+  // =========================================================
 
   readonly form = this.formBuilder.nonNullable.group({
 
@@ -193,24 +193,54 @@ export class CompanyProfile {
 
   });
 
-
-  // ---------------------------------------------------------
+  // =========================================================
   // Initialization
-  // ---------------------------------------------------------
+  // =========================================================
 
   constructor() {
-    this.loadProfile();
+    effect(() => {
+      const companyId = this.companyId();
+
+      // Cancel any request for a previously selected company.
+      this.profileLoadSubscription?.unsubscribe();
+      this.loadedCompanyId = null;
+      this.rowVersion = '';
+      this.companyCode.set('');
+      this.isActive.set(false);
+      this.form.reset();
+
+      if (companyId === null) {
+        this.isLoading.set(false);
+        this.loadError.set('Select a company to view its profile.');
+        return;
+      }
+
+      this.loadProfile(companyId);
+    });
   }
 
-
-  // ---------------------------------------------------------
+  // =========================================================
   // Save Company Profile
-  // ---------------------------------------------------------
+  // =========================================================
 
   save(): void {
 
-    this.successMessage.set(null);
-    this.saveError.set(null);
+    // Prevent saving during loading or an active request.
+
+    if (this.isLoading() || this.isSaving()) {
+      return;
+    }
+
+    const companyId = this.companyId();
+    if (companyId === null || companyId !== this.loadedCompanyId) {
+      this.notificationService.error(
+        'Select a company and load its profile before saving.',
+        { title: 'Company selection required' }
+      );
+      return;
+    }
+
+    // Validate all form controls before submission.
 
     if (this.form.invalid) {
 
@@ -219,17 +249,31 @@ export class CompanyProfile {
       return;
     }
 
+    // Avoid unnecessary API requests.
+
+    if (this.form.pristine) {
+      return;
+    }
+
+    // RowVersion is required for optimistic concurrency.
+
     if (!this.rowVersion) {
 
-      this.saveError.set(
-        'The company profile version is unavailable. Refresh the page and try again.'
+      this.notificationService.error(
+        'The company profile version is unavailable. Refresh the page and try again.',
+        {
+          title: 'Profile version unavailable'
+        }
       );
 
       return;
     }
 
-    const value =
-      this.form.getRawValue();
+    const value = this.form.getRawValue();
+
+    // =======================================================
+    // Build Update Request
+    // =======================================================
 
     const request: UpdateCompanyProfileRequest = {
 
@@ -289,113 +333,158 @@ export class CompanyProfile {
         this.rowVersion
     };
 
+    // =======================================================
+    // Submit Update Request
+    // =======================================================
+
     this.isSaving.set(true);
 
     this.companyProfileService
       .updateProfile(
-        this.companyId,
+        companyId,
         request
       )
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
-
-        finalize(() =>
-          this.isSaving.set(false)
-        )
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isSaving.set(false))
       )
       .subscribe({
 
         next: company => {
 
-          this.applyProfile(company);
+          // Apply updated server response, including RowVersion.
 
-          this.successMessage.set(
-            'Company profile updated successfully.'
+          if (this.companyId() !== companyId || company.id !== companyId) {
+            return;
+          }
+
+          this.applyProfile(company);
+          this.loadedCompanyId = companyId;
+
+          // Synchronize the active company only after the API confirms the update.
+          // The service ignores responses for a different company.
+          this.workspaceContext.synchronizeCompany(
+            company.id,
+            company.name,
+            company.code
+          );
+
+          // Show centralized success notification.
+
+          this.notificationService.success(
+            'Company profile updated successfully.',
+            {
+              title: 'Changes saved successfully'
+            }
           );
         },
 
-        error: (
-          error: HttpErrorResponse
-        ) => {
+        error: (error: HttpErrorResponse) => {
+
+          // HTTP 409: Concurrent modification.
 
           if (error.status === 409) {
 
-            this.saveError.set(
-              'This company profile was updated by another user. Refresh the page before saving again.'
+            this.notificationService.error(
+              'This company profile was updated by another user. Refresh the page before saving again.',
+              {
+                title: 'Concurrent modification detected'
+              }
             );
 
             return;
           }
+
+          // HTTP 403: Insufficient permission.
 
           if (error.status === 403) {
 
-            this.saveError.set(
-              'You do not have permission to update this company profile.'
+            this.notificationService.error(
+              'You do not have permission to update this company profile.',
+              {
+                title: 'Permission denied'
+              }
             );
 
             return;
           }
+
+          // HTTP 404: Company does not exist.
 
           if (error.status === 404) {
 
-            this.saveError.set(
-              'The company profile could not be found.'
+            this.notificationService.error(
+              'The company profile could not be found.',
+              {
+                title: 'Company not found'
+              }
             );
 
             return;
           }
 
-          this.saveError.set(
-            'Unable to save the company profile. Please try again.'
+          // General API/network failure.
+
+          this.notificationService.error(
+            'Unable to save the company profile. Please try again.',
+            {
+              title: 'Unable to save changes'
+            }
           );
         }
       });
   }
 
-
-  // ---------------------------------------------------------
-  // Reload
-  // ---------------------------------------------------------
+  // =========================================================
+  // Reload Company Profile
+  // =========================================================
 
   reload(): void {
-    this.loadProfile();
+
+    if (this.isLoading() || this.isSaving()) {
+      return;
+    }
+
+    const companyId = this.companyId();
+    if (companyId === null) {
+      this.loadError.set('Select a company to view its profile.');
+      return;
+    }
+
+    this.profileLoadSubscription?.unsubscribe();
+    this.loadProfile(companyId);
   }
 
-
-  // ---------------------------------------------------------
+  // =========================================================
   // Load Company Profile
-  // ---------------------------------------------------------
+  // =========================================================
 
-  private loadProfile(): void {
+  private loadProfile(companyId: number): void {
 
+    this.loadedCompanyId = null;
+    this.rowVersion = '';
     this.isLoading.set(true);
 
     this.loadError.set(null);
-    this.saveError.set(null);
-    this.successMessage.set(null);
 
-    this.companyProfileService
-      .getProfile(this.companyId)
+    this.profileLoadSubscription = this.companyProfileService
+      .getProfile(companyId)
       .pipe(
-        takeUntilDestroyed(
-          this.destroyRef
-        ),
-
-        finalize(() =>
-          this.isLoading.set(false)
-        )
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isLoading.set(false))
       )
       .subscribe({
 
         next: company => {
+          if (this.companyId() !== companyId || company.id !== companyId) {
+            return;
+          }
+
           this.applyProfile(company);
+          this.loadedCompanyId = companyId;
         },
 
-        error: (
-          error: HttpErrorResponse
-        ) => {
+        error: (error: HttpErrorResponse) => {
 
           if (error.status === 403) {
 
@@ -422,10 +511,9 @@ export class CompanyProfile {
       });
   }
 
-
-  // ---------------------------------------------------------
+  // =========================================================
   // Apply API Response
-  // ---------------------------------------------------------
+  // =========================================================
 
   private applyProfile(
     company: CompanyProfileModel
@@ -439,8 +527,12 @@ export class CompanyProfile {
       company.isActive
     );
 
+    // Store latest concurrency token.
+
     this.rowVersion =
       company.rowVersion;
+
+    // Populate form with server-confirmed values.
 
     this.form.reset({
 
@@ -494,13 +586,14 @@ export class CompanyProfile {
 
     });
 
+    // Reset unsaved-changes state after loading or saving.
+
     this.form.markAsPristine();
   }
 
-
-  // ---------------------------------------------------------
+  // =========================================================
   // Helpers
-  // ---------------------------------------------------------
+  // =========================================================
 
   private toNullable(
     value: string

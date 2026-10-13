@@ -1,4 +1,5 @@
-import { Component, inject } from '@angular/core';
+
+import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { AuthService } from '../../core/auth/services/auth.service';
@@ -17,59 +18,46 @@ export class Header {
   protected readonly currentUser =
     this.authService.getCurrentUser();
 
-  protected isUserMenuOpen = false;
-
+  protected readonly isUserMenuOpen = signal(false);
 
   protected toggleUserMenu(): void {
-    this.isUserMenuOpen =
-      !this.isUserMenuOpen;
+    this.isUserMenuOpen.update(isOpen => !isOpen);
   }
 
+  protected closeUserMenu(): void {
+    this.isUserMenuOpen.set(false);
+  }
 
   protected logout(): void {
-    this.isUserMenuOpen = false;
+    this.closeUserMenu();
 
     this.authService
       .logout()
       .subscribe({
-
         next: () => {
-          void this.router.navigateByUrl(
-            '/login'
-          );
+          void this.router.navigateByUrl('/login');
         },
 
         error: () => {
-          // Even if the API is unavailable,
-          // remove the local authentication state.
           this.authService.clearLocalSession();
-
-          void this.router.navigateByUrl(
-            '/login'
-          );
+          void this.router.navigateByUrl('/login');
         }
-
       });
   }
 
-
   protected get userInitials(): string {
-    const name =
-      this.currentUser?.fullName?.trim();
+    const name = this.currentUser?.fullName?.trim();
 
     if (!name) {
       return 'U';
     }
 
-    const parts =
-      name
-        .split(/\s+/)
-        .filter(Boolean);
+    const parts = name
+      .split(/\s+/)
+      .filter(Boolean);
 
     if (parts.length === 1) {
-      return parts[0]
-        .substring(0, 2)
-        .toUpperCase();
+      return parts[0].substring(0, 2).toUpperCase();
     }
 
     return (
@@ -78,9 +66,7 @@ export class Header {
     ).toUpperCase();
   }
 
-
   protected get primaryRole(): string {
-    return this.currentUser?.roles?.[0]
-      ?? 'User';
+    return this.currentUser?.roles?.[0] ?? 'User';
   }
 }

@@ -1,0 +1,87 @@
+
+<!-- =====================================================
+     iPOS Enterprise Notification Container
+     Global application toast notifications
+     ===================================================== -->
+
+@if (notificationService.hasNotifications()) {
+
+  <section
+    class="notification-container"
+    aria-label="Application notifications"
+  >
+
+    @for (
+      notification of notificationService.notifications();
+      track notification.id
+    ) {
+
+      <div
+        class="notification-toast"
+        [class.notification-success]="notification.type === 'success'"
+        [class.notification-error]="notification.type === 'error'"
+        [class.notification-warning]="notification.type === 'warning'"
+        [class.notification-info]="notification.type === 'info'"
+        [attr.role]="notification.type === 'error' ? 'alert' : 'status'"
+        [attr.aria-live]="notification.type === 'error' ? 'assertive' : 'polite'"
+        aria-atomic="true"
+      >
+
+        <!-- Notification Icon -->
+        <div class="notification-icon-wrapper">
+
+          <span
+            class="material-symbols-rounded notification-icon"
+            aria-hidden="true"
+          >
+            {{ getIcon(notification.type) }}
+          </span>
+
+        </div>
+
+        <!-- Notification Content -->
+        <div class="notification-content">
+
+          <div class="notification-title">
+            {{ notification.title }}
+          </div>
+
+          <p class="notification-message">
+            {{ notification.message }}
+          </p>
+
+        </div>
+
+        <!-- Dismiss Button -->
+        <button
+          type="button"
+          class="notification-close"
+          [attr.aria-label]="'Dismiss notification: ' + notification.title"
+          (click)="dismiss(notification.id)"
+        >
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true"
+          >
+            close
+          </span>
+        </button>
+
+        <!-- Auto-dismiss Progress Indicator -->
+        @if (notification.duration > 0) {
+
+          <div
+            class="notification-progress"
+            [style.animation-duration.ms]="notification.duration"
+            aria-hidden="true"
+          ></div>
+
+        }
+
+      </div>
+
+    }
+
+  </section>
+
+}

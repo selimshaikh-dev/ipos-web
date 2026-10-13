@@ -1,0 +1,378 @@
+
+/* ==========================================================
+   iPOS Design System
+   Component: Global Notification Container
+
+   Responsibilities:
+   - Application-wide toast presentation
+   - Semantic notification states
+   - Responsive positioning
+   - Accessible interaction states
+   - Reduced-motion support
+
+   Notification lifecycle is managed by NotificationService.
+   ========================================================== */
+
+:host {
+  display: contents;
+}
+
+/* ==========================================================
+   Component Design Tokens
+   ========================================================== */
+
+.notification-container {
+  --notification-text-primary: #101828;
+  --notification-text-secondary: #667085;
+  --notification-border-default: #e4e7ec;
+  --notification-surface-default: #ffffff;
+  --notification-focus-color: var(--ipos-primary, #2563eb);
+
+  position: fixed;
+  top: 84px;
+  right: 24px;
+  z-index: 1100;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  width: min(400px, calc(100vw - 32px));
+  max-height: calc(100vh - 108px);
+  max-height: calc(100dvh - 108px);
+
+  padding: 2px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  pointer-events: none;
+
+  scrollbar-width: thin;
+  scrollbar-color: #d0d5dd transparent;
+}
+
+/* ==========================================================
+   Base Notification
+   ========================================================== */
+
+.notification-toast {
+  --notification-accent: var(--ipos-primary, #2563eb);
+  --notification-icon-background: #eff6ff;
+  --notification-icon-border: #bfdbfe;
+
+  position: relative;
+
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+
+  padding: 16px 40px 18px 16px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--notification-border-default);
+  border-left: 3px solid var(--notification-accent);
+  border-radius: 10px;
+
+  background-color: var(--notification-surface-default);
+  color: var(--notification-text-primary);
+
+  box-shadow:
+    0 12px 32px rgba(16, 24, 40, 0.10),
+    0 3px 8px rgba(16, 24, 40, 0.04);
+
+  pointer-events: auto;
+
+  animation: notification-enter 220ms ease-out both;
+}
+
+/* ==========================================================
+   Semantic Notification Variants
+   ========================================================== */
+
+.notification-success {
+  --notification-accent: #16a34a;
+  --notification-icon-background: #f0fdf4;
+  --notification-icon-border: #bbf7d0;
+}
+
+.notification-error {
+  --notification-accent: #dc2626;
+  --notification-icon-background: #fef2f2;
+  --notification-icon-border: #fecaca;
+}
+
+.notification-warning {
+  --notification-accent: #d97706;
+  --notification-icon-background: #fffbeb;
+  --notification-icon-border: #fde68a;
+}
+
+.notification-info {
+  --notification-accent: var(--ipos-primary, #2563eb);
+  --notification-icon-background: #eff6ff;
+  --notification-icon-border: #bfdbfe;
+}
+
+/* ==========================================================
+   Notification Icon
+   ========================================================== */
+
+.notification-icon-wrapper {
+  display: grid;
+  place-items: center;
+
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+
+  border: 1px solid var(--notification-icon-border);
+  border-radius: 9px;
+
+  background-color: var(--notification-icon-background);
+  color: var(--notification-accent);
+}
+
+.notification-icon {
+  display: block;
+
+  font-size: 21px;
+  line-height: 1;
+
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+/* ==========================================================
+   Notification Content
+   ========================================================== */
+
+.notification-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+
+  min-width: 0;
+  padding-top: 1px;
+}
+
+.notification-title {
+  margin: 0;
+
+  color: var(--notification-text-primary);
+
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 19px;
+  letter-spacing: -0.1px;
+
+  overflow-wrap: anywhere;
+}
+
+.notification-message {
+  margin: 0;
+
+  color: var(--notification-text-secondary);
+
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 19px;
+
+  overflow-wrap: anywhere;
+}
+
+/* ==========================================================
+   Dismiss Action
+   ========================================================== */
+
+.notification-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+
+  display: grid;
+  place-items: center;
+
+  width: 28px;
+  height: 28px;
+
+  padding: 0;
+
+  appearance: none;
+
+  border: 0;
+  border-radius: 6px;
+
+  background: transparent;
+  color: #98a2b3;
+
+  cursor: pointer;
+
+  transition:
+    background-color 140ms ease,
+    color 140ms ease;
+}
+
+.notification-close:hover {
+  background-color: #f2f4f7;
+  color: #344054;
+}
+
+.notification-close:active {
+  background-color: #e4e7ec;
+}
+
+.notification-close:focus-visible {
+  outline: 2px solid var(--notification-focus-color);
+  outline-offset: 2px;
+}
+
+.notification-close .material-symbols-rounded {
+  display: block;
+
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* ==========================================================
+   Notification Lifetime Indicator
+   ========================================================== */
+
+.notification-progress {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  height: 3px;
+
+  background-color: var(--notification-accent);
+
+  transform-origin: left center;
+
+  animation-name: notification-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* ==========================================================
+   Motion
+   ========================================================== */
+
+@keyframes notification-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(16px, -6px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes notification-progress {
+  from {
+    transform: scaleX(1);
+  }
+
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* ==========================================================
+   Tablet
+   ========================================================== */
+
+@media (max-width: 1024px) {
+  .notification-container {
+    top: 76px;
+    right: 16px;
+
+    max-height: calc(100vh - 92px);
+    max-height: calc(100dvh - 92px);
+  }
+}
+
+/* ==========================================================
+   Mobile
+   ========================================================== */
+
+@media (max-width: 600px) {
+  .notification-container {
+    top: 72px;
+    right: 12px;
+    left: 12px;
+
+    width: auto;
+
+    max-height: calc(100vh - 84px);
+    max-height: calc(100dvh - 84px);
+
+    gap: 10px;
+  }
+
+  .notification-toast {
+    gap: 10px;
+
+    padding: 13px 36px 16px 12px;
+
+    border-radius: 9px;
+  }
+
+  .notification-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    flex-basis: 32px;
+
+    border-radius: 8px;
+  }
+
+  .notification-icon {
+    font-size: 19px;
+  }
+
+  .notification-title {
+    font-size: 12px;
+    line-height: 18px;
+  }
+
+  .notification-message {
+    font-size: 11px;
+    line-height: 17px;
+  }
+
+  .notification-close {
+    top: 7px;
+    right: 7px;
+  }
+}
+
+/* ==========================================================
+   Accessibility: Reduced Motion
+   ========================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-toast {
+    animation: none;
+  }
+
+  .notification-close {
+    transition: none;
+  }
+
+  .notification-progress {
+    animation: none;
+    transform: none;
+  }
+}

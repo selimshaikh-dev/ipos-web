@@ -1,3 +1,4 @@
+
 <div class="company-profile-page">
 
   <header class="page-header">
@@ -27,8 +28,8 @@
         [disabled]="isLoading() || isSaving()"
         (click)="reload()">
 
-        <span class="button-icon" aria-hidden="true">
-          ↻
+        <span class="button-icon material-symbols-rounded" aria-hidden="true">
+          refresh
         </span>
 
         Refresh
@@ -61,7 +62,6 @@
 
   </header>
 
-
   @if (isLoading()) {
 
     <section
@@ -86,16 +86,12 @@
       class="state-card state-card-error"
       role="alert">
 
-      <div class="state-icon">
-        !
-      </div>
+      <div class="state-icon">!</div>
 
       <div class="state-content">
         <h2>Unable to load company profile</h2>
 
-        <p>
-          {{ loadError() }}
-        </p>
+        <p>{{ loadError() }}</p>
 
         <button
           type="button"
@@ -109,46 +105,6 @@
     </section>
 
   } @else {
-
-
-    @if (successMessage()) {
-
-      <div
-        class="alert alert-success"
-        role="status">
-
-        <div class="alert-icon">
-          ✓
-        </div>
-
-        <div class="alert-content">
-          <strong>Changes saved</strong>
-          <span>{{ successMessage() }}</span>
-        </div>
-
-      </div>
-
-    }
-
-    @if (saveError()) {
-
-      <div
-        class="alert alert-error"
-        role="alert">
-
-        <div class="alert-icon">
-          !
-        </div>
-
-        <div class="alert-content">
-          <strong>Unable to save changes</strong>
-          <span>{{ saveError() }}</span>
-        </div>
-
-      </div>
-
-    }
-
 
     <section class="organization-summary">
 
@@ -207,26 +163,21 @@
 
     </section>
 
-
     <form
       class="profile-form"
       [formGroup]="form"
       (ngSubmit)="save()"
       novalidate>
 
-
       <section class="form-card">
 
         <div class="form-card-header">
-
           <div>
             <h2>Business Information</h2>
-
             <p>
               Primary organization identity and registration details.
             </p>
           </div>
-
         </div>
 
         <div class="form-card-body">
@@ -259,7 +210,6 @@
 
             </div>
 
-
             <div class="form-field form-field-wide">
 
               <label for="legalName">
@@ -275,7 +225,6 @@
 
             </div>
 
-
             <div class="form-field">
 
               <label for="registrationNumber">
@@ -290,7 +239,6 @@
                 placeholder="Business registration number">
 
             </div>
-
 
             <div class="form-field">
 
@@ -313,19 +261,15 @@
 
       </section>
 
-
       <section class="form-card">
 
         <div class="form-card-header">
-
           <div>
             <h2>Contact Information</h2>
-
             <p>
               Business contact details used across the system.
             </p>
           </div>
-
         </div>
 
         <div class="form-card-body">
@@ -347,7 +291,6 @@
                 placeholder="+880">
 
             </div>
-
 
             <div class="form-field">
 
@@ -374,7 +317,6 @@
 
             </div>
 
-
             <div class="form-field form-field-wide">
 
               <label for="website">
@@ -400,15 +342,12 @@
       <section class="form-card">
 
         <div class="form-card-header">
-
           <div>
             <h2>Business Address</h2>
-
             <p>
               Registered or primary business address.
             </p>
           </div>
-
         </div>
 
         <div class="form-card-body">
@@ -431,7 +370,6 @@
 
             </div>
 
-
             <div class="form-field form-field-full">
 
               <label for="addressLine2">
@@ -447,7 +385,6 @@
                 placeholder="Suite, floor, building or area">
 
             </div>
-
 
             <div class="form-field">
 
@@ -465,7 +402,6 @@
 
             </div>
 
-
             <div class="form-field">
 
               <label for="stateOrProvince">
@@ -482,7 +418,6 @@
 
             </div>
 
-
             <div class="form-field">
 
               <label for="postalCode">
@@ -498,7 +433,6 @@
                 placeholder="Postal code">
 
             </div>
-
 
             <div class="form-field">
 
@@ -536,15 +470,12 @@
       <section class="form-card">
 
         <div class="form-card-header">
-
           <div>
             <h2>Regional Settings</h2>
-
             <p>
               Default currency and time zone used for business operations.
             </p>
           </div>
-
         </div>
 
         <div class="form-card-body">
@@ -576,7 +507,6 @@
               }
 
             </div>
-
 
             <div class="form-field">
 
@@ -612,15 +542,12 @@
       <section class="form-card">
 
         <div class="form-card-header">
-
           <div>
             <h2>Branding</h2>
-
             <p>
               Company logo used in documents and application branding.
             </p>
           </div>
-
         </div>
 
         <div class="form-card-body">
@@ -649,7 +576,6 @@
 
       </section>
 
-
       <div class="form-footer">
 
         <div class="form-footer-message">
@@ -671,6 +597,7 @@
           type="submit"
           class="button button-primary"
           [disabled]="
+            isLoading() ||
             isSaving() ||
             form.invalid ||
             form.pristine
