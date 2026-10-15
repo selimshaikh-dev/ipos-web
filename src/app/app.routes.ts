@@ -109,6 +109,26 @@ export const routes: Routes = [
         },
 
         title: 'Company Profile | iPOS'
+      },
+
+      // ===================================================
+      // Organization / Branch Management
+      // ===================================================
+
+      {
+        path: 'settings/organization/branch-management',
+
+        loadComponent: () =>
+          import(
+            './features/settings/organization/branch-management/pages/branch-management/branch-management'
+          )
+            .then(m => m.BranchManagement),
+
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Branch Management | iPOS'
       }
 
     ]

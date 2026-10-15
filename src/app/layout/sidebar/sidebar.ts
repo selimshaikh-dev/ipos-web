@@ -305,7 +305,11 @@ export class Sidebar {
               route: '/settings/organization/company-profile',
               implemented: true
             },
-            { label: 'Branches' },
+            {
+              label: 'Branches',
+              route: '/settings/organization/branch-management',
+              implemented: true
+            },
             { label: 'Warehouses' },
             { label: 'POS Counters' }
           ]
@@ -391,7 +395,6 @@ export class Sidebar {
 
   ];
 
-
   // =======================================================
   // Branch Selector State
   // =======================================================
@@ -399,11 +402,6 @@ export class Sidebar {
   readonly isBranchSelectorOpen = signal(false);
 
   toggleBranchSelector(): void {
-    if (!this.workspace.hasMultipleBranches()) {
-      this.isBranchSelectorOpen.set(false);
-      return;
-    }
-
     this.isBranchSelectorOpen.update(isOpen => !isOpen);
   }
 

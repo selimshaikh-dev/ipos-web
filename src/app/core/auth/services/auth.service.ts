@@ -6,7 +6,8 @@ import {
 
 import {
   Injectable,
-  inject
+  inject,
+  signal
 } from '@angular/core';
 
 import {
@@ -61,30 +62,61 @@ export class AuthService {
     null;
 
   /**
-   * Identifies the current client-side authentication
-   * lifecycle.
+   * Reactive authentication lifecycle version.
    *
-   * Incremented when a new login starts or the
-   * local session is cleared.
+   * Incremented when:
+   *
+   * - A new login attempt starts.
+   * - The local authentication session is cleared.
+   *
+   * Normal access-token refresh does not increment
+   * this generation.
    */
-  private sessionGeneration = 0;
+  private readonly sessionGenerationState = signal(0);
+
+  /**
+   * Read-only session generation signal.
+   *
+   * Angular components can observe this signal
+   * inside computed() or effect().
+   */
+  readonly sessionGenerationSignal =
+    this.sessionGenerationState.asReadonly();
 
   // =========================================================
   // Session Generation Accessor
   // =========================================================
 
   /**
-   * Returns the current authentication lifecycle version.
+   * Preserves the existing public API.
    *
-   * Other services and components may use this value
-   * to reject asynchronous responses that belong to
-   * an older authentication lifecycle.
+   * Other services and components can continue
+   * calling getSessionGeneration().
+   *
+   * Reading this method inside an Angular reactive
+   * context also registers the signal dependency.
    *
    * This is a client-side consistency mechanism,
    * not an authorization token.
    */
   getSessionGeneration(): number {
-    return this.sessionGeneration;
+    return this.sessionGenerationState();
+  }
+
+  /**
+   * Advances the authentication lifecycle version.
+   *
+   * All requests that captured an earlier generation
+   * become obsolete.
+   */
+  private advanceSessionGeneration(): number {
+
+    const nextGeneration =
+      this.sessionGenerationState() + 1;
+
+    this.sessionGenerationState.set(nextGeneration);
+
+    return nextGeneration;
   }
 
   // =========================================================
@@ -101,7 +133,7 @@ export class AuthService {
       // beginning a new login attempt.
 
       const generation =
-        ++this.sessionGeneration;
+        this.advanceSessionGeneration();
 
       this.refreshRequest$ = null;
 
@@ -155,7 +187,7 @@ export class AuthService {
       }
 
       const generation =
-        this.sessionGeneration;
+        this.getSessionGeneration();
 
       let sharedRequest$!: Observable<LoginResponse>;
 
@@ -201,7 +233,7 @@ export class AuthService {
 
             if (
               generation !==
-              this.sessionGeneration
+              this.getSessionGeneration()
             ) {
               return throwError(() => error);
             }
@@ -288,7 +320,7 @@ export class AuthService {
   clearLocalSession(): void {
 
     // Invalidate pending authentication responses.
-    this.sessionGeneration++;
+    this.advanceSessionGeneration();
 
     this.refreshRequest$ = null;
 
@@ -360,7 +392,7 @@ export class AuthService {
 
     if (
       generation !==
-      this.sessionGeneration
+      this.getSessionGeneration()
     ) {
       throw new Error(
         'Authentication session changed while the request was in progress.'

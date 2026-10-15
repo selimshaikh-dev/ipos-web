@@ -1,0 +1,1567 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// =========================================================
+// Design Tokens
+// =========================================================
+
+$color-primary: #2563eb;
+$color-primary-hover: #1d4ed8;
+
+$color-heading: #0f172a;
+$color-text: #334155;
+$color-muted: #64748b;
+
+$color-border: #e2e8f0;
+$color-background: #f8fafc;
+$color-surface: #ffffff;
+
+$color-success: #15803d;
+$color-success-background: #f0fdf4;
+
+$color-danger: #b91c1c;
+$color-danger-background: #fef2f2;
+
+$radius-card: 12px;
+$radius-control: 8px;
+
+// =========================================================
+// Page Layout
+// =========================================================
+
+.branch-management-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+
+  width: 100%;
+  min-width: 0;
+  padding-bottom: 32px;
+
+  color: $color-text;
+}
+
+// =========================================================
+// Background Content Wrapper
+// Keeps the original page spacing when the confirmation
+// dialog is rendered outside the inert background.
+// =========================================================
+
+.branch-page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  min-width: 0;
+}
+
+// =========================================================
+// Page Header
+// =========================================================
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.page-heading {
+  flex: 1 1 320px;
+  min-width: 0;
+
+  h1 {
+    margin: 10px 0 8px;
+
+    color: $color-heading;
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.5px;
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  color: $color-muted;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.breadcrumb-separator {
+  color: #94a3b8;
+}
+
+.page-description {
+  margin: 0;
+
+  color: $color-muted;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+// =========================================================
+// Buttons
+// =========================================================
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  min-height: 40px;
+  padding: 10px 18px;
+
+  border: 1px solid transparent;
+  border-radius: $radius-control;
+
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.4;
+
+  text-align: center;
+  text-decoration: none;
+
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    box-shadow 150ms ease;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 3px;
+  }
+}
+
+.btn-primary {
+  color: #ffffff;
+  background-color: $color-primary;
+
+  &:hover:not(:disabled) {
+    background-color: $color-primary-hover;
+  }
+}
+
+.btn-secondary {
+  color: $color-text;
+  background-color: $color-surface;
+  border-color: $color-border;
+
+  &:hover:not(:disabled) {
+    background-color: $color-background;
+    border-color: #cbd5e1;
+  }
+}
+
+// =========================================================
+// Selected Company
+// =========================================================
+
+.company-summary {
+  display: flex;
+  align-items: center;
+
+  min-height: 94px;
+  padding: 20px 24px;
+
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-card;
+}
+
+.company-summary-content {
+  min-width: 0;
+
+  h2 {
+    margin: 6px 0 0;
+
+    color: $color-heading;
+    font-size: 19px;
+    font-weight: 650;
+    line-height: 1.4;
+
+    overflow-wrap: anywhere;
+  }
+}
+
+.section-label {
+  display: block;
+
+  color: $color-muted;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+// =========================================================
+// Summary Cards
+// =========================================================
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.summary-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+
+  min-width: 0;
+  min-height: 145px;
+  padding: 22px;
+
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-card;
+}
+
+.summary-label {
+  color: $color-muted;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.summary-value {
+  color: $color-heading;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.summary-text {
+  font-size: 17px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.summary-description {
+  margin-top: auto;
+
+  color: $color-muted;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+// =========================================================
+// Content Card
+// =========================================================
+
+.content-card {
+  min-width: 0;
+  overflow: hidden;
+
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-card;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+
+  padding: 22px 24px;
+
+  border-bottom: 1px solid $color-border;
+
+  h2 {
+    margin: 0 0 6px;
+
+    color: $color-heading;
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  p {
+    margin: 0;
+
+    color: $color-muted;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+.record-count {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 6px 12px;
+
+  color: $color-text;
+  background: $color-background;
+
+  border: 1px solid $color-border;
+  border-radius: 999px;
+
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+// =========================================================
+// Branch Table
+// =========================================================
+
+.table-container {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.branch-table {
+  width: 100%;
+  min-width: 820px;
+
+  border-collapse: collapse;
+  border-spacing: 0;
+
+  text-align: left;
+
+  thead {
+    background: $color-background;
+  }
+
+  th {
+    padding: 14px 18px;
+
+    color: $color-muted;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.4;
+
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+
+    border-bottom: 1px solid $color-border;
+  }
+
+  td {
+    padding: 17px 18px;
+
+    color: $color-text;
+    font-size: 13px;
+    line-height: 1.5;
+
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+  }
+
+  tbody tr {
+    transition: background-color 150ms ease;
+
+    &:hover {
+      background: #f8fafc;
+    }
+
+    &:last-child td {
+      border-bottom: 0;
+    }
+  }
+}
+
+.branch-name {
+  color: $color-heading;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.branch-code {
+  display: inline-block;
+
+  padding: 4px 8px;
+
+  color: #475569;
+  background: #f1f5f9;
+
+  border-radius: 5px;
+
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.cell-primary {
+  color: $color-text;
+  overflow-wrap: anywhere;
+}
+
+.cell-secondary {
+  margin-top: 4px;
+
+  color: $color-muted;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+// =========================================================
+// Type Badges
+// =========================================================
+
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding: 5px 10px;
+
+  color: #475569;
+  background: #f1f5f9;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+
+  &.head-office {
+    color: #1d4ed8;
+    background: #eff6ff;
+    border-color: #bfdbfe;
+  }
+}
+
+// =========================================================
+// Status Badges
+// =========================================================
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+
+  padding: 5px 10px;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 650;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+
+    width: 6px;
+    height: 6px;
+
+    flex: 0 0 6px;
+
+    background: currentColor;
+    border-radius: 50%;
+  }
+
+  &.active {
+    color: $color-success;
+    background: $color-success-background;
+    border-color: #bbf7d0;
+  }
+
+  &.inactive {
+    color: $color-danger;
+    background: $color-danger-background;
+    border-color: #fecaca;
+  }
+}
+
+// =========================================================
+// Loading, Error and Empty States
+// =========================================================
+
+.state-panel,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  gap: 12px;
+
+  min-height: 240px;
+  padding: 40px 24px;
+
+  text-align: center;
+
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-card;
+
+  h2,
+  h3 {
+    margin: 0;
+
+    color: $color-heading;
+    font-size: 17px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  p {
+    max-width: 480px;
+    margin: 0;
+
+    color: $color-muted;
+    font-size: 13px;
+    line-height: 1.6;
+  }
+}
+
+.empty-state {
+  min-height: 220px;
+  border: 0;
+  border-radius: 0;
+}
+
+.error-state {
+  background: #fffafa;
+  border-color: #fecaca;
+
+  h2 {
+    color: $color-danger;
+  }
+}
+
+// =========================================================
+// Loading Spinner
+// =========================================================
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+
+  border: 3px solid #dbeafe;
+  border-top-color: $color-primary;
+  border-radius: 50%;
+
+  animation: branch-spinner-rotate 750ms linear infinite;
+}
+
+@keyframes branch-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loading-spinner {
+    animation: none;
+    border-top-color: $color-primary;
+  }
+
+  .btn,
+  .branch-table tbody tr {
+    transition: none;
+  }
+}
+
+// =========================================================
+// Responsive Layout
+// =========================================================
+
+@media (max-width: 1100px) {
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 820px) {
+  .branch-management-page,
+  .branch-page-content {
+    gap: 20px;
+  }
+
+  .page-heading h1 {
+    font-size: 23px;
+  }
+
+  .company-summary {
+    padding: 18px 20px;
+  }
+
+  .card-header {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 600px) {
+  .branch-management-page {
+    gap: 16px;
+    padding-bottom: 24px;
+  }
+
+  .branch-page-content {
+    gap: 16px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .page-heading {
+    flex: 0 1 auto;
+    width: 100%;
+  }
+
+  .page-heading h1 {
+    font-size: 21px;
+  }
+
+  .header-actions {
+    width: 100%;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .company-summary {
+    min-height: 80px;
+    padding: 16px;
+  }
+
+  .company-summary-content h2 {
+    font-size: 17px;
+  }
+
+  .summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .summary-card {
+    min-height: 130px;
+    padding: 16px;
+  }
+
+  .summary-value {
+    font-size: 25px;
+  }
+
+  .summary-text {
+    font-size: 15px;
+  }
+
+  .card-header {
+    align-items: flex-start;
+    padding: 18px 16px;
+  }
+
+  .branch-table {
+    th,
+    td {
+      padding: 13px 14px;
+    }
+  }
+
+  .state-panel,
+  .empty-state {
+    padding: 32px 16px;
+  }
+}
+
+@media (max-width: 380px) {
+  .summary-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+
+ // =========================================================
+ // Branch Management — Create / Edit Form
+ // =========================================================
+
+.branch-form-card {
+  overflow: hidden;
+}
+
+.branch-form {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+// =========================================================
+// Form Sections
+// =========================================================
+
+.form-section {
+  padding: 26px 24px;
+
+  &:not(:last-of-type) {
+    border-bottom: 1px solid $color-border;
+  }
+}
+
+.form-section-heading {
+  margin-bottom: 22px;
+
+  h3 {
+    margin: 0 0 6px;
+
+    color: $color-heading;
+    font-size: 15px;
+    font-weight: 650;
+    line-height: 1.4;
+  }
+
+  p {
+    margin: 0;
+
+    color: $color-muted;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+}
+
+// =========================================================
+// Form Grid
+// =========================================================
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 22px;
+  row-gap: 20px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+
+  min-width: 0;
+
+  > label:not(.checkbox-field) {
+    color: $color-text;
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.5;
+  }
+
+  > input:not([type='checkbox']) {
+    display: block;
+
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+
+    padding: 10px 12px;
+
+    color: $color-heading;
+    background: $color-surface;
+
+    border: 1px solid #cbd5e1;
+    border-radius: $radius-control;
+
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+
+    outline: none;
+
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease,
+      background-color 150ms ease;
+
+    &::placeholder {
+      color: #94a3b8;
+    }
+
+    &:hover:not(:disabled) {
+      border-color: #94a3b8;
+    }
+
+    &:focus-visible {
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    &:disabled {
+      color: $color-muted;
+      background: $color-background;
+      border-color: $color-border;
+      cursor: not-allowed;
+    }
+
+    &[aria-invalid='true'] {
+      border-color: $color-danger;
+
+      &:focus-visible {
+        box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+      }
+    }
+  }
+}
+
+.form-field-full {
+  grid-column: 1 / -1;
+}
+
+// =========================================================
+// Required Fields and Helper Text
+// =========================================================
+
+.required-mark {
+  margin-left: 2px;
+  color: $color-danger;
+}
+
+.field-hint {
+  display: block;
+
+  color: $color-muted;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.field-error {
+  display: block;
+
+  color: $color-danger;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+// =========================================================
+// Checkbox Field
+// =========================================================
+
+.checkbox-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+
+  width: fit-content;
+  max-width: 100%;
+
+  color: $color-text;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.5;
+
+  cursor: pointer;
+
+  input[type='checkbox'] {
+    width: 17px;
+    height: 17px;
+
+    flex: 0 0 17px;
+
+    margin: 0;
+
+    accent-color: $color-primary;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $color-primary;
+      outline-offset: 3px;
+    }
+  }
+
+  &:has(input:disabled) {
+    color: $color-muted;
+    cursor: not-allowed;
+  }
+}
+
+// =========================================================
+// Form Error Panel
+// =========================================================
+
+.form-error {
+  margin: 22px 24px 0;
+  padding: 13px 16px;
+
+  color: $color-danger;
+  background: $color-danger-background;
+
+  border: 1px solid #fecaca;
+  border-radius: $radius-control;
+
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+// =========================================================
+// Form Actions
+// =========================================================
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  padding: 20px 24px;
+
+  background: $color-background;
+  border-top: 1px solid $color-border;
+}
+
+// =========================================================
+// Table Action Buttons
+// =========================================================
+
+.btn-small {
+  min-height: 32px;
+  padding: 6px 12px;
+
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+// =========================================================
+// Form Responsive Layout
+// =========================================================
+
+@media (max-width: 820px) {
+  .form-section {
+    padding: 22px 20px;
+  }
+
+  .form-grid {
+    column-gap: 16px;
+    row-gap: 18px;
+  }
+
+  .form-actions {
+    padding: 18px 20px;
+  }
+
+  .form-error {
+    margin: 20px 20px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-section {
+    padding: 20px 16px;
+  }
+
+  .form-section-heading {
+    margin-bottom: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .form-field-full {
+    grid-column: auto;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+
+    padding: 16px;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+
+  .form-error {
+    margin: 16px 16px 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .form-field > input:not([type='checkbox']) {
+    transition: none;
+  }
+}
+
+// =========================================================
+// Branch Status — Row Actions
+// =========================================================
+
+.branch-row-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+}
+
+.btn-activate {
+  color: #ffffff;
+  background: $color-success;
+  border-color: $color-success;
+
+  &:hover:not(:disabled) {
+    background: #166534;
+    border-color: #166534;
+  }
+}
+
+.btn-deactivate {
+  color: $color-danger;
+  background: $color-danger-background;
+  border-color: #fecaca;
+
+  &:hover:not(:disabled) {
+    color: #991b1b;
+    background: #fee2e2;
+    border-color: #fca5a5;
+  }
+}
+
+// =========================================================
+// Branch Status — Confirmation Overlay
+// =========================================================
+
+.confirmation-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 24px;
+  overflow-y: auto;
+
+  background: rgba(15, 23, 42, 0.6);
+}
+
+.confirmation-dialog {
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  overflow-y: auto;
+
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: $radius-card;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.22);
+}
+
+// =========================================================
+// Branch Status — Dialog Header
+// =========================================================
+
+.confirmation-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+
+  padding: 24px 24px 20px;
+  border-bottom: 1px solid $color-border;
+
+  h2 {
+    margin: 8px 0 0;
+    color: $color-heading;
+    font-size: 19px;
+    font-weight: 700;
+    line-height: 1.4;
+  }
+}
+
+.confirmation-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+
+  width: 32px;
+  height: 32px;
+  padding: 0;
+
+  color: $color-muted;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: $radius-control;
+
+  font: inherit;
+  font-size: 25px;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    color: $color-heading;
+    background: $color-background;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-primary;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+// =========================================================
+// Branch Status — Dialog Body
+// =========================================================
+
+.confirmation-body {
+  padding: 22px 24px;
+
+  > p:first-child {
+    margin: 0;
+    color: $color-text;
+    font-size: 13px;
+    line-height: 1.7;
+
+    strong {
+      color: $color-heading;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+  }
+}
+
+.confirmation-branch-details {
+  display: grid;
+  gap: 0;
+  margin-top: 20px;
+  padding: 4px 16px;
+
+  background: $color-background;
+  border: 1px solid $color-border;
+  border-radius: $radius-control;
+
+  > div {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+
+    &:not(:last-child) {
+      border-bottom: 1px solid $color-border;
+    }
+  }
+
+  span {
+    flex: 0 0 auto;
+    color: $color-muted;
+    font-size: 12px;
+  }
+
+  strong {
+    min-width: 0;
+    color: $color-heading;
+    font-size: 12px;
+    font-weight: 650;
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+}
+
+.confirmation-warning {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+
+  color: #92400e;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: $radius-control;
+
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.confirmation-error {
+  margin: 18px 0 0;
+}
+
+// =========================================================
+// Branch Status — Dialog Actions
+// =========================================================
+
+.confirmation-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  padding: 18px 24px;
+  background: $color-background;
+  border-top: 1px solid $color-border;
+}
+
+// =========================================================
+// Branch Status — Responsive Layout
+// =========================================================
+
+@media (max-width: 600px) {
+  .branch-row-actions {
+    gap: 6px;
+  }
+
+  .confirmation-overlay {
+    padding: 12px;
+  }
+
+  .confirmation-dialog {
+    max-height: calc(100dvh - 24px);
+  }
+
+  .confirmation-header {
+    padding: 18px 16px;
+
+    h2 {
+      font-size: 17px;
+    }
+  }
+
+  .confirmation-body {
+    padding: 18px 16px;
+  }
+
+  .confirmation-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    gap: 10px;
+    padding: 16px;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirmation-close,
+  .btn-activate,
+  .btn-deactivate {
+    transition: none;
+  }
+}
+
+// =========================================================
+// Branch Directory — Search and Filters
+// Uses the existing design tokens and card language.
+// =========================================================
+
+.branch-directory-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 20px 24px;
+  background: $color-surface;
+  border-bottom: 1px solid $color-border;
+
+  .directory-search-field {
+    flex: 2 1 260px;
+  }
+
+  .directory-filter-field {
+    flex: 1 1 190px;
+  }
+
+  .form-field {
+    gap: 7px;
+
+    > label {
+      color: $color-text;
+      font-size: 12px;
+      font-weight: 650;
+    }
+  }
+
+  input[type='search'],
+  select {
+    width: 100%;
+    min-width: 0;
+    min-height: 42px;
+    padding: 10px 13px;
+    border: 1px solid #cbd5e1;
+    border-radius: $radius-control;
+    background-color: $color-surface;
+    color: $color-heading;
+    font: inherit;
+    font-size: 13px;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+
+    &::placeholder { color: #94a3b8; }
+    &:hover:not(:disabled) { border-color: #94a3b8; }
+    &:focus-visible {
+      border-color: $color-primary;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+  }
+
+  input[type='search'] {
+    padding-left: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+    background-position: 13px center;
+    background-repeat: no-repeat;
+    background-size: 16px;
+  }
+
+  select {
+    padding-right: 38px;
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-position: right 13px center;
+    background-repeat: no-repeat;
+  }
+
+  > .btn { min-height: 42px; }
+
+  > .record-count {
+    margin-left: auto;
+    min-height: 34px;
+  }
+}
+
+// =========================================================
+// Read-only Branch Details — Professional Information Grid
+// =========================================================
+
+.branch-details-card {
+  margin-top: 20px;
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.045);
+
+  > .card-header {
+    background: linear-gradient(110deg, #f8fafc, #ffffff 70%);
+  }
+}
+
+.branch-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 8px 24px 24px;
+}
+
+.branch-detail-item {
+  min-width: 0;
+  padding: 19px 18px;
+  border-bottom: 1px solid #f1f5f9;
+
+  .section-label {
+    margin-bottom: 9px;
+    color: $color-muted;
+    font-size: 10px;
+    letter-spacing: 0.65px;
+  }
+
+  .cell-primary {
+    color: $color-heading;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+}
+
+// Refined interaction polish consistent with existing UI.
+.branch-management-page {
+  .summary-card {
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+    &:hover {
+      border-color: #cbd5e1;
+      box-shadow: 0 5px 18px rgba(15, 23, 42, 0.045);
+    }
+  }
+
+  .branch-table tbody tr:focus-within {
+    background: #f8fafc;
+  }
+
+  .branch-row-actions .btn:focus-visible {
+    outline-offset: 2px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .branch-details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 820px) {
+  .branch-directory-toolbar { padding: 18px 20px; }
+  .branch-details-grid { padding: 6px 16px 18px; }
+}
+
+@media (max-width: 600px) {
+  .branch-directory-toolbar {
+    align-items: stretch;
+    gap: 12px;
+    padding: 16px;
+
+    .directory-search-field,
+    .directory-filter-field { flex: 1 1 100%; }
+
+    > .btn { width: 100%; }
+    > .record-count { margin: 0; justify-content: center; }
+  }
+
+  .branch-details-card > .card-header .btn { width: 100%; }
+  .branch-details-grid { grid-template-columns: minmax(0, 1fr); padding: 4px 16px 16px; }
+  .branch-detail-item { padding: 15px 4px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .branch-directory-toolbar input[type='search'],
+  .branch-directory-toolbar select,
+  .branch-management-page .summary-card { transition: none; }
+}
+
+// =========================================================
+// Branch Details — accessible, centered read-only modal
+// =========================================================
+.branch-details-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(3px);
+}
+
+.branch-details-dialog {
+  width: min(100%, 760px);
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: $color-surface;
+  border: 1px solid $color-border;
+  border-radius: 14px;
+  box-shadow: 0 28px 75px rgba(15, 23, 42, 0.25);
+}
+
+.branch-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 24px 28px 20px;
+  border-bottom: 1px solid $color-border;
+
+  h2 {
+    margin: 6px 0 4px;
+    color: $color-heading;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    overflow-wrap: anywhere;
+  }
+
+  p {
+    margin: 0;
+    color: $color-muted;
+    font-size: 13px;
+  }
+}
+
+.branch-details-body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 28px;
+}
+
+.branch-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.branch-detail-item {
+  min-width: 0;
+  padding: 15px 16px;
+  background: $color-background;
+  border: 1px solid $color-border;
+  border-radius: $radius-control;
+
+  .section-label {
+    margin-bottom: 8px;
+    font-size: 10px;
+  }
+
+  .cell-primary {
+    color: $color-heading;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+}
+
+.branch-details-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 28px;
+  background: $color-background;
+  border-top: 1px solid $color-border;
+}
+
+@media (max-width: 600px) {
+  .branch-details-overlay { padding: 12px; }
+  .branch-details-dialog { max-height: calc(100dvh - 24px); }
+  .branch-details-header { padding: 20px 16px 16px; }
+  .branch-details-header h2 { font-size: 19px; }
+  .branch-details-body { padding: 16px; }
+  .branch-details-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .branch-details-footer { padding: 14px 16px; }
+  .branch-details-footer .btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .branch-details-overlay { backdrop-filter: none; }
+}

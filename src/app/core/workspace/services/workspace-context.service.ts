@@ -1,4 +1,3 @@
-
 import {
   computed,
   inject,
@@ -295,6 +294,74 @@ export class WorkspaceContextService {
     ) {
       this.removeSavedBranchId(company.id);
     }
+  }
+
+  // =========================================================
+  // Server-Authorized Branch Synchronization
+  // =========================================================
+
+  /**
+   * Refreshes branch options for the currently selected company.
+   *
+   * Only data returned by the authenticated workspace/options API
+   * should be passed here. Branch-management DTOs are not an
+   * authorization source.
+   *
+   * Returns false when the response is for a different company or
+   * the workspace has not finished initialization.
+   */
+  synchronizeAuthorizedBranches(
+    company: WorkspaceCompanyOption
+  ): boolean {
+
+    if (
+      !this.isInitialized() ||
+      this.companyId() !== company.id
+    ) {
+      return false;
+    }
+
+    const branches = [...company.branches];
+    const currentBranchId = this.branchId();
+    const savedBranchId = this.getSavedBranchId(company.id);
+
+    // Preserve the current selection only while it is still
+    // present in the server-authorized branch options.
+    const retainedBranch = currentBranchId === null
+      ? undefined
+      : branches.find(branch => branch.id === currentBranchId);
+
+    // Match initial configuration behavior when exactly one
+    // authorized branch remains available.
+    const selectedBranch = retainedBranch ??
+      (branches.length === 1 ? branches[0] : null);
+
+    this.branchOptionsState.set(branches);
+
+    this.workspaceState.update(current => ({
+      ...current,
+      branchId: selectedBranch?.id ?? null,
+      branchName: selectedBranch?.name ?? null
+    }));
+
+    // Remove a saved preference that the server no longer permits.
+    if (
+      savedBranchId !== null &&
+      !branches.some(branch => branch.id === savedBranchId)
+    ) {
+      this.removeSavedBranchId(company.id);
+    }
+
+    // If a different branch was auto-selected, keep the saved
+    // preference consistent with the new authorized selection.
+    if (
+      selectedBranch &&
+      selectedBranch.id !== savedBranchId
+    ) {
+      this.saveBranchId(company.id, selectedBranch.id);
+    }
+
+    return true;
   }
 
   // =========================================================

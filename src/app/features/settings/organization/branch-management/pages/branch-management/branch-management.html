@@ -1,0 +1,1197 @@
+<!-- ========================================================= -->
+<!-- Branch Management -->
+<!-- ========================================================= -->
+
+<section class="branch-management-page">
+
+  <!-- ======================================================= -->
+  <!-- Background Content -->
+  <!-- ======================================================= -->
+
+  <div
+    class="branch-page-content"
+    [attr.inert]="isStatusConfirmationOpen() || isDetailsOpen() ? '' : null">
+
+    <!-- ===================================================== -->
+    <!-- Page Header -->
+    <!-- ===================================================== -->
+
+    <header class="page-header">
+
+      <div class="page-heading">
+
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+
+          <span>Settings</span>
+          <span class="breadcrumb-separator">/</span>
+
+          <span>Organization</span>
+          <span class="breadcrumb-separator">/</span>
+
+          <span>Branch Management</span>
+
+        </nav>
+
+        <h1>Branch Management</h1>
+
+        <p class="page-description">
+          Manage branch locations and organizational information.
+        </p>
+
+      </div>
+
+      <div class="header-actions">
+
+        <button
+          type="button"
+          class="btn btn-secondary"
+          [disabled]="
+            isLoading() ||
+            isSaving() ||
+            isChangingStatus() ||
+            isStatusConfirmationOpen()
+          "
+          (click)="reload()">
+          Refresh
+        </button>
+
+        @if (
+          canManageBranches() &&
+          isCurrentCompanyLoaded()
+        ) {
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="
+              isLoading() ||
+              isSaving() ||
+              isChangingStatus() ||
+              isFormOpen() ||
+              isStatusConfirmationOpen()
+            "
+            (click)="openCreate()">
+            Add Branch
+          </button>
+
+        }
+
+      </div>
+
+    </header>
+
+    <!-- ===================================================== -->
+    <!-- Selected Company -->
+    <!-- ===================================================== -->
+
+    <section
+      class="company-summary"
+      aria-label="Selected company">
+
+      <div class="company-summary-content">
+
+        <span class="section-label">
+          Selected Company
+        </span>
+
+        <h2>
+          {{ companyName() || 'No company selected' }}
+        </h2>
+
+      </div>
+
+    </section>
+
+    <!-- ===================================================== -->
+    <!-- Loading State -->
+    <!-- ===================================================== -->
+
+    @if (isLoading()) {
+
+      <div class="state-panel" role="status">
+
+        <div
+          class="loading-spinner"
+          aria-hidden="true">
+        </div>
+
+        <h2>Loading branches</h2>
+
+        <p>
+          Please wait while we retrieve your branch information.
+        </p>
+
+      </div>
+
+    }
+
+    <!-- ===================================================== -->
+    <!-- Error State -->
+    <!-- ===================================================== -->
+
+    @else if (loadError()) {
+
+      <div
+        class="state-panel error-state"
+        role="alert">
+
+        <h2>Unable to display branches</h2>
+
+        <p>{{ loadError() }}</p>
+
+        @if (companyId() !== null) {
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="reload()">
+            Try Again
+          </button>
+
+        }
+
+      </div>
+
+    }
+
+    <!-- ===================================================== -->
+    <!-- Loaded State -->
+    <!-- ===================================================== -->
+
+    @else if (isCurrentCompanyLoaded()) {
+
+      <!-- =================================================== -->
+      <!-- Branch Statistics -->
+      <!-- =================================================== -->
+
+      <div class="summary-grid">
+
+        <article class="summary-card">
+
+          <span class="summary-label">
+            Total Branches
+          </span>
+
+          <strong class="summary-value">
+            {{ totalBranches() }}
+          </strong>
+
+          <span class="summary-description">
+            Registered company branches
+          </span>
+
+        </article>
+
+        <article class="summary-card">
+
+          <span class="summary-label">
+            Active Branches
+          </span>
+
+          <strong class="summary-value">
+            {{ activeBranches() }}
+          </strong>
+
+          <span class="summary-description">
+            Currently active locations
+          </span>
+
+        </article>
+
+        <article class="summary-card">
+
+          <span class="summary-label">
+            Inactive Branches
+          </span>
+
+          <strong class="summary-value">
+            {{ inactiveBranches() }}
+          </strong>
+
+          <span class="summary-description">
+            Currently inactive locations
+          </span>
+
+        </article>
+
+        <article class="summary-card">
+
+          <span class="summary-label">
+            Head Office
+          </span>
+
+          <strong class="summary-value summary-text">
+            {{ headOffice()?.name || 'Not assigned' }}
+          </strong>
+
+          <span class="summary-description">
+            Primary company location
+          </span>
+
+        </article>
+
+      </div>
+
+      <!-- =================================================== -->
+      <!-- Create / Edit Form -->
+      <!-- =================================================== -->
+
+      @if (
+        isFormOpen() &&
+        canManageBranches()
+      ) {
+
+        <section
+          class="content-card branch-form-card"
+          aria-labelledby="branch-form-title">
+
+          <div class="card-header">
+
+            <div>
+
+              <h2 id="branch-form-title">
+                {{
+                  isEditing()
+                    ? 'Edit Branch'
+                    : 'Create Branch'
+                }}
+              </h2>
+
+              <p>
+
+                @if (isEditing()) {
+
+                  Update the selected branch's information.
+
+                } @else {
+
+                  Register a new branch under the selected company.
+
+                }
+
+              </p>
+
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="isSaving()"
+              (click)="closeForm()">
+              Cancel
+            </button>
+
+          </div>
+
+          <form
+            class="branch-form"
+            [formGroup]="form"
+            (ngSubmit)="saveBranch()"
+            novalidate>
+
+            @if (formError()) {
+
+              <div
+                class="form-error"
+                role="alert">
+                {{ formError() }}
+              </div>
+
+            }
+
+            <!-- ============================================= -->
+            <!-- Basic Information -->
+            <!-- ============================================= -->
+
+            <div class="form-section">
+
+              <div class="form-section-heading">
+
+                <h3>Basic Information</h3>
+
+                <p>
+                  Branch identity and organizational classification.
+                </p>
+
+              </div>
+
+              <div class="form-grid">
+
+                @if (isEditing() && selectedBranch()) {
+                  <div class="form-field">
+                    <label>Branch Code</label>
+                    <div class="branch-code" aria-label="Read-only branch code">
+                      {{ selectedBranch()?.code }}
+                    </div>
+                    <span class="field-hint">
+                      Branch code is generated automatically and cannot be changed.
+                    </span>
+                  </div>
+                } @else {
+                  <div class="form-field">
+                    <span class="field-hint">
+                      Branch code will be generated automatically when you create the branch.
+                    </span>
+                  </div>
+                }
+
+                <div class="form-field">
+
+                  <label for="branch-name">
+                    Branch Name
+                    <span class="required-mark">*</span>
+                  </label>
+
+                  <input
+                    id="branch-name"
+                    type="text"
+                    formControlName="name"
+                    maxlength="200"
+                    placeholder="Enter branch name"
+                    [attr.aria-invalid]="
+                      form.controls.name.invalid &&
+                      form.controls.name.touched
+                    " />
+
+                  @if (
+                    form.controls.name.invalid &&
+                    form.controls.name.touched
+                  ) {
+
+                    <span class="field-error">
+                      Branch name is required (maximum 200 characters).
+                    </span>
+
+                  }
+
+                </div>
+
+                <div class="form-field form-field-full">
+
+                  <label class="checkbox-field">
+
+                    <input
+                      type="checkbox"
+                      formControlName="isHeadOffice" />
+
+                    <span>
+                      Designate as Head Office
+                    </span>
+
+                  </label>
+
+                  <span class="field-hint">
+                    A company can have only one head office.
+                    This designation cannot be changed through
+                    branch editing.
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- ============================================= -->
+            <!-- Contact Information -->
+            <!-- ============================================= -->
+
+            <div class="form-section">
+
+              <div class="form-section-heading">
+
+                <h3>Contact Information</h3>
+
+                <p>
+                  Contact details associated with this branch.
+                </p>
+
+              </div>
+
+              <div class="form-grid">
+
+                <div class="form-field">
+
+                  <label for="branch-phone">
+                    Phone
+                  </label>
+
+                  <input
+                    id="branch-phone"
+                    type="tel"
+                    formControlName="phone"
+                    maxlength="50"
+                    placeholder="Enter phone number" />
+
+                  @if (
+                    form.controls.phone.invalid &&
+                    form.controls.phone.touched
+                  ) {
+
+                    <span class="field-error">
+                      Phone number must not exceed 50 characters.
+                    </span>
+
+                  }
+
+                </div>
+
+                <div class="form-field">
+
+                  <label for="branch-email">
+                    Email
+                  </label>
+
+                  <input
+                    id="branch-email"
+                    type="email"
+                    formControlName="email"
+                    maxlength="254"
+                    placeholder="Enter email address"
+                    [attr.aria-invalid]="
+                      form.controls.email.invalid &&
+                      form.controls.email.touched
+                    " />
+
+                  @if (
+                    form.controls.email.invalid &&
+                    form.controls.email.touched
+                  ) {
+
+                    <span class="field-error">
+                      Enter a valid email address.
+                    </span>
+
+                  }
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- ============================================= -->
+            <!-- Address Information -->
+            <!-- ============================================= -->
+
+            <div class="form-section">
+
+              <div class="form-section-heading">
+
+                <h3>Address Information</h3>
+
+                <p>
+                  Physical location and postal details.
+                </p>
+
+              </div>
+
+              <div class="form-grid">
+
+                <div class="form-field form-field-full">
+
+                  <label for="branch-address-line1">
+                    Address Line 1
+                  </label>
+
+                  <input
+                    id="branch-address-line1"
+                    type="text"
+                    formControlName="addressLine1"
+                    maxlength="250"
+                    placeholder="Street address" />
+
+                </div>
+
+                <div class="form-field form-field-full">
+
+                  <label for="branch-address-line2">
+                    Address Line 2
+                  </label>
+
+                  <input
+                    id="branch-address-line2"
+                    type="text"
+                    formControlName="addressLine2"
+                    maxlength="250"
+                    placeholder="Apartment, suite or additional details" />
+
+                </div>
+
+                <div class="form-field">
+
+                  <label for="branch-city">
+                    City
+                  </label>
+
+                  <input
+                    id="branch-city"
+                    type="text"
+                    formControlName="city"
+                    maxlength="100"
+                    placeholder="Enter city" />
+
+                </div>
+
+                <div class="form-field">
+
+                  <label for="branch-state">
+                    State / Province
+                  </label>
+
+                  <input
+                    id="branch-state"
+                    type="text"
+                    formControlName="stateOrProvince"
+                    maxlength="100"
+                    placeholder="Enter state or province" />
+
+                </div>
+
+                <div class="form-field">
+
+                  <label for="branch-postal-code">
+                    Postal Code
+                  </label>
+
+                  <input
+                    id="branch-postal-code"
+                    type="text"
+                    formControlName="postalCode"
+                    maxlength="20"
+                    placeholder="Enter postal code" />
+
+                </div>
+
+                <div class="form-field">
+
+                  <label for="branch-country-code">
+                    Country Code
+                  </label>
+
+                  <input
+                    id="branch-country-code"
+                    type="text"
+                    formControlName="countryCode"
+                    maxlength="2"
+                    autocomplete="off"
+                    placeholder="e.g. BD" />
+
+                  @if (
+                    form.controls.countryCode.invalid &&
+                    form.controls.countryCode.touched
+                  ) {
+
+                    <span class="field-error">
+                      Country code must not exceed 2 characters.
+                    </span>
+
+                  }
+
+                  <span class="field-hint">
+                    Two-letter country code, such as BD.
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- ============================================= -->
+            <!-- Form Actions -->
+            <!-- ============================================= -->
+
+            <div class="form-actions">
+
+              <button
+                type="button"
+                class="btn btn-secondary"
+                [disabled]="isSaving()"
+                (click)="closeForm()">
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="
+                  isSaving() ||
+                  form.invalid ||
+                  (isEditing() && form.pristine)
+                ">
+
+                @if (isSaving()) {
+
+                  Saving...
+
+                } @else {
+
+                  {{
+                    isEditing()
+                      ? 'Save Changes'
+                      : 'Create Branch'
+                  }}
+
+                }
+
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+
+      }
+
+      <!-- =================================================== -->
+      <!-- Branch Directory -->
+      <!-- =================================================== -->
+
+      <section class="content-card">
+
+        <div class="card-header">
+
+          <div>
+
+            <h2>Branch Directory</h2>
+
+            <p>
+              Branches registered under the selected company.
+            </p>
+
+          </div>
+
+          <span class="record-count">
+            {{ totalBranches() }} branches
+          </span>
+
+        </div>
+
+        @if (hasBranches()) {
+
+          <!-- Directory Search and Filter -->
+          <div class="branch-directory-toolbar">
+            <div class="form-field directory-search-field">
+              <label for="branch-directory-search">Search branches</label>
+              <input
+                id="branch-directory-search"
+                type="search"
+                placeholder="Name, code, location, phone or email"
+                [value]="searchTerm()"
+                (input)="setSearchTerm($any($event.target).value)" />
+            </div>
+            <div class="form-field directory-filter-field">
+              <label for="branch-directory-status">Filter by status</label>
+              <select
+                id="branch-directory-status"
+                [value]="statusFilter()"
+                (change)="setStatusFilter($any($event.target).value)">
+                <option value="all">All branches</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="head-office">Head Office</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              class="btn btn-secondary"
+              [disabled]="!searchTerm() && statusFilter() === 'all'"
+              (click)="clearDirectoryFilters()">
+              Clear Filters
+            </button>
+            <span class="record-count" aria-live="polite">
+              Showing {{ filteredBranchCount() }} of {{ totalBranches() }}
+            </span>
+          </div>
+
+          @if (filteredBranchCount() > 0) {
+          <div class="table-container">
+
+            <table class="branch-table">
+
+              <thead>
+
+                <tr>
+
+                  <th scope="col">Branch</th>
+                  <th scope="col">Code</th>
+                  <th scope="col">Location</th>
+                  <th scope="col">Contact</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Details</th>
+
+                  @if (canManageBranches()) {
+
+                    <th scope="col">Actions</th>
+
+                  }
+
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  branch of filteredBranches();
+                  track branch.id
+                ) {
+
+                  <tr>
+
+                    <td>
+
+                      <div class="branch-name">
+                        {{ branch.name }}
+                      </div>
+
+                    </td>
+
+                    <td>
+
+                      <span class="branch-code">
+                        {{ branch.code }}
+                      </span>
+
+                    </td>
+
+                    <td>
+
+                      <div class="cell-primary">
+                        {{ branch.city || 'Not specified' }}
+                      </div>
+
+                      @if (branch.stateOrProvince) {
+
+                        <div class="cell-secondary">
+                          {{ branch.stateOrProvince }}
+                        </div>
+
+                      }
+
+                    </td>
+
+                    <td>
+
+                      <div class="cell-primary">
+                        {{ branch.phone || 'Not provided' }}
+                      </div>
+
+                      @if (branch.email) {
+
+                        <div class="cell-secondary">
+                          {{ branch.email }}
+                        </div>
+
+                      }
+
+                    </td>
+
+                    <td>
+
+                      @if (branch.isHeadOffice) {
+
+                        <span class="type-badge head-office">
+                          Head Office
+                        </span>
+
+                      } @else {
+
+                        <span class="type-badge">
+                          Branch
+                        </span>
+
+                      }
+
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status-badge"
+                        [class.active]="branch.isActive"
+                        [class.inactive]="!branch.isActive">
+
+                        {{
+                          branch.isActive
+                            ? 'Active'
+                            : 'Inactive'
+                        }}
+
+                      </span>
+
+                    </td>
+
+                    <td>
+                      <button
+                        type="button"
+                        class="btn btn-secondary btn-small"
+                        [disabled]="isSaving() || isChangingStatus() || isStatusConfirmationOpen()"
+                        (click)="openDetails(branch)">
+                        View Details
+                      </button>
+                    </td>
+
+                    @if (canManageBranches()) {
+
+                      <td>
+
+                        <div class="branch-row-actions">
+
+                          <button
+                            type="button"
+                            class="btn btn-secondary btn-small"
+                            [disabled]="
+                              isLoading() ||
+                              isSaving() ||
+                              isChangingStatus() ||
+                              isFormOpen() ||
+                              isStatusConfirmationOpen()
+                            "
+                            (click)="openEdit(branch)">
+                            Edit
+                          </button>
+
+                          @if (
+                            !branch.isHeadOffice ||
+                            !branch.isActive
+                          ) {
+
+                            <button
+                              type="button"
+                              class="btn btn-small"
+                              [class.btn-activate]="!branch.isActive"
+                              [class.btn-deactivate]="branch.isActive"
+                              [disabled]="
+                                isLoading() ||
+                                isSaving() ||
+                                isChangingStatus() ||
+                                isFormOpen() ||
+                                isStatusConfirmationOpen()
+                              "
+                              (click)="openStatusConfirmation(branch)">
+
+                              {{
+                                branch.isActive
+                                  ? 'Deactivate'
+                                  : 'Activate'
+                              }}
+
+                            </button>
+
+                          }
+
+                        </div>
+
+                      </td>
+
+                    }
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+          } @else {
+            <div class="empty-state" role="status">
+              <h3>No matching branches</h3>
+              <p>Try another search term or change the status filter.</p>
+              <button type="button" class="btn btn-secondary" (click)="clearDirectoryFilters()">
+                Clear Filters
+              </button>
+            </div>
+          }
+
+        } @else {
+
+          <div class="empty-state">
+
+            <h3>No branches found</h3>
+
+            <p>
+              No branches have been registered for
+              the selected company.
+            </p>
+
+            @if (
+              canManageBranches() &&
+              !isFormOpen() &&
+              !isStatusConfirmationOpen()
+            ) {
+
+              <button
+                type="button"
+                class="btn btn-primary"
+                (click)="openCreate()">
+                Add First Branch
+              </button>
+
+            }
+
+          </div>
+
+        }
+
+      </section>
+
+
+    }
+
+  </div>
+
+  <!-- Branch Details Modal: rendered outside background content -->
+  @if (detailsBranch(); as branch) {
+    <div class="branch-details-overlay" role="presentation" (click)="closeDetails()">
+      <section class="branch-details-dialog" role="dialog" aria-modal="true"
+               aria-labelledby="branch-details-title" tabindex="-1"
+               (click)="$event.stopPropagation()">
+        <div class="branch-details-header">
+          <div>
+            <span class="section-label">Branch Profile</span>
+            <h2 id="branch-details-title">{{ branch.name }}</h2>
+            <p>Complete branch information · {{ branch.code }}</p>
+          </div>
+          <button type="button" class="confirmation-close" aria-label="Close branch details"
+                  (click)="closeDetails()">&times;</button>
+        </div>
+        <div class="branch-details-body">
+          <div class="branch-details-grid">
+            <div class="branch-detail-item"><span class="section-label">Branch Name</span><div class="cell-primary">{{ branch.name }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Branch Code</span><div class="cell-primary">{{ branch.code }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Type</span><div class="cell-primary">{{ branch.isHeadOffice ? 'Head Office' : 'Branch' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Status</span><div class="cell-primary">{{ branch.isActive ? 'Active' : 'Inactive' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Phone</span><div class="cell-primary">{{ branch.phone || 'Not provided' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Email</span><div class="cell-primary">{{ branch.email || 'Not provided' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Address Line 1</span><div class="cell-primary">{{ branch.addressLine1 || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Address Line 2</span><div class="cell-primary">{{ branch.addressLine2 || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">City</span><div class="cell-primary">{{ branch.city || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">State / Province</span><div class="cell-primary">{{ branch.stateOrProvince || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Postal Code</span><div class="cell-primary">{{ branch.postalCode || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Country Code</span><div class="cell-primary">{{ branch.countryCode || 'Not specified' }}</div></div>
+          </div>
+        </div>
+        <div class="branch-details-footer">
+          <button type="button" class="btn btn-primary" (click)="closeDetails()">Done</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  <!-- ======================================================= -->
+  <!-- Status Confirmation Dialog -->
+  <!-- Kept outside the inert background container -->
+  <!-- ======================================================= -->
+
+  @if (
+    isStatusConfirmationOpen() &&
+    canManageBranches()
+  ) {
+
+    <div
+      class="confirmation-overlay"
+      role="presentation">
+
+      <section
+        class="confirmation-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="status-confirmation-title"
+        aria-describedby="status-confirmation-description"
+        tabindex="-1">
+
+        <!-- ================================================= -->
+        <!-- Dialog Header -->
+        <!-- ================================================= -->
+
+        <div class="confirmation-header">
+
+          <div>
+
+            <span class="section-label">
+              Branch Status
+            </span>
+
+            <h2 id="status-confirmation-title">
+
+              @if (
+                pendingStatusAction() === 'activate'
+              ) {
+
+                Activate Branch
+
+              } @else {
+
+                Deactivate Branch
+
+              }
+
+            </h2>
+
+          </div>
+
+          <button
+            type="button"
+            class="confirmation-close"
+            aria-label="Close confirmation"
+            [disabled]="isChangingStatus()"
+            (click)="cancelStatusConfirmation()">
+            &times;
+          </button>
+
+        </div>
+
+        <!-- ================================================= -->
+        <!-- Dialog Body -->
+        <!-- ================================================= -->
+
+        <div class="confirmation-body">
+
+          <p id="status-confirmation-description">
+
+            @if (
+              pendingStatusAction() === 'activate'
+            ) {
+
+              Are you sure you want to activate
+              <strong>
+                {{ pendingStatusBranch()?.name }}
+              </strong>?
+
+            } @else {
+
+              Are you sure you want to deactivate
+              <strong>
+                {{ pendingStatusBranch()?.name }}
+              </strong>?
+
+            }
+
+          </p>
+
+          <div class="confirmation-branch-details">
+
+            <div>
+
+              <span>Branch</span>
+
+              <strong>
+                {{ pendingStatusBranch()?.name }}
+              </strong>
+
+            </div>
+
+            <div>
+
+              <span>Code</span>
+
+              <strong>
+                {{ pendingStatusBranch()?.code }}
+              </strong>
+
+            </div>
+
+            <div>
+
+              <span>Current Status</span>
+
+              <strong>
+
+                {{
+                  pendingStatusBranch()?.isActive
+                    ? 'Active'
+                    : 'Inactive'
+                }}
+
+              </strong>
+
+            </div>
+
+          </div>
+
+          @if (
+            pendingStatusAction() === 'deactivate'
+          ) {
+
+            <p class="confirmation-warning">
+              Deactivating a branch may affect its
+              availability for business operations.
+              The server will verify whether this
+              action is permitted.
+            </p>
+
+          }
+
+          @if (statusError()) {
+
+            <div
+              class="form-error confirmation-error"
+              role="alert">
+
+              {{ statusError() }}
+
+            </div>
+
+          }
+
+        </div>
+
+        <!-- ================================================= -->
+        <!-- Dialog Actions -->
+        <!-- ================================================= -->
+
+        <div class="confirmation-actions">
+
+          <button
+            type="button"
+            class="btn btn-secondary"
+            [disabled]="isChangingStatus()"
+            (click)="cancelStatusConfirmation()">
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="btn"
+            [class.btn-activate]="
+              pendingStatusAction() === 'activate'
+            "
+            [class.btn-deactivate]="
+              pendingStatusAction() === 'deactivate'
+            "
+            [disabled]="isChangingStatus()"
+            (click)="confirmStatusChange()">
+
+            @if (isChangingStatus()) {
+
+              Processing...
+
+            } @else if (
+              pendingStatusAction() === 'activate'
+            ) {
+
+              Confirm Activation
+
+            } @else {
+
+              Confirm Deactivation
+
+            }
+
+          </button>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  }
+
+</section>
