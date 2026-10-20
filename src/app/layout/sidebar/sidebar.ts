@@ -1,3 +1,4 @@
+
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { WorkspaceContextService } from '../../core/workspace/services/workspace-context.service';
@@ -301,8 +302,8 @@ export class Sidebar {
           label: 'Organization',
           children: [
             {
-              label: 'Company Profile',
-              route: '/settings/organization/company-profile',
+              label: 'Company Management',
+              route: '/settings/organization/company-management',
               implemented: true
             },
             {

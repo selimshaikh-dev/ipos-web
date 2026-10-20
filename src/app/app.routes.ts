@@ -92,23 +92,23 @@ export const routes: Routes = [
       },
 
       // ===================================================
-      // Organization / Company Profile
+      // Organization / Company Management
       // ===================================================
 
       {
-        path: 'settings/organization/company-profile',
+        path: 'settings/organization/company-management',
 
         loadComponent: () =>
           import(
-            './features/settings/organization/company-profile/pages/company-profile/company-profile'
+            './features/settings/organization/company-management/pages/company-management/company-management'
           )
-            .then(m => m.CompanyProfile),
+            .then(m => m.CompanyManagement),
 
         data: {
           workspaceScope: 'company' satisfies WorkspaceRouteScope
         },
 
-        title: 'Company Profile | iPOS'
+        title: 'Company Management | iPOS'
       },
 
       // ===================================================
