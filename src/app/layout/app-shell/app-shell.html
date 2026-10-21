@@ -23,7 +23,7 @@
            Workspace Loading
            ================================================ -->
 
-      @if (isWorkspaceLoading()) {
+      @if (isWorkspaceLoading() && !isPlatformRoute()) {
 
         <section
           class="workspace-state workspace-state-loading"
@@ -57,7 +57,7 @@
            Workspace Initialization Error
            ================================================ -->
 
-      @else if (hasWorkspaceError()) {
+      @else if (hasWorkspaceError() && !isPlatformRoute()) {
 
         <section
           class="workspace-state workspace-state-error"
@@ -89,7 +89,37 @@
       }
 
       <!-- ================================================
-           Branch Selection Required
+            Explicit Company Selection
+            ================================================ -->
+
+      @else if (requiresCompanySelection()) {
+        <section class="workspace-state workspace-state-selection"
+                 aria-labelledby="company-selection-title">
+          <div class="workspace-state-content">
+            <span class="material-symbols-rounded workspace-state-icon"
+                  aria-hidden="true">domain</span>
+            <h2 id="company-selection-title">Choose your company</h2>
+            <p>Select the organization you want to work with. You can only
+               choose companies assigned to your account.</p>
+            <div class="workspace-selection-list">
+              @for (company of availableCompanies(); track company.id) {
+                <button type="button" class="workspace-selection-option"
+                        (click)="selectCompany(company.id)">
+                  <span class="material-symbols-rounded" aria-hidden="true">business</span>
+                  <span class="workspace-selection-details">
+                    <strong>{{ company.name }}</strong>
+                    <small>{{ company.code }} · {{ company.branches.length }} branches</small>
+                  </span>
+                  <span class="material-symbols-rounded" aria-hidden="true">arrow_forward</span>
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- ================================================
+            Branch Selection Required
            ================================================ -->
 
       @else if (requiresBranchSelection()) {
@@ -116,6 +146,13 @@
               Choose an authorized branch to continue
               working on this page.
             </p>
+
+            @if (workspaceContext.branchOptions().length === 0) {
+              <p class="workspace-empty-branches">
+                This company has no authorized branches yet. Ask an administrator
+                to create or assign a branch before using branch-level features.
+              </p>
+            }
 
             <div class="workspace-selection-list">
 

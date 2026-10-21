@@ -818,3 +818,47 @@ button.company[aria-expanded='true'] .context-arrow {
     transition: none;
   }
 }
+.platform-workspace-link {display:block;margin:9px 4px 4px;padding:9px 10px;border-radius:8px;background:rgba(37,99,235,.12);color:#a9c8ff;font-size:11px;font-weight:600;text-decoration:none}
+.platform-workspace-link:hover,.platform-workspace-link:focus-visible {background:rgba(37,99,235,.22)}
+
+/* Platform-only navigation and workspace identity */
+.platform-context-card {
+  display:flex;align-items:center;gap:10px;margin-top:9px;
+  padding:12px 10px;border-radius:9px;
+  background:rgba(37,99,235,.12);border:1px solid rgba(132,173,255,.16);
+  color:#dbe7ff;
+}
+.platform-context-card > .material-symbols-rounded {color:#84adff;font-size:22px}
+.platform-context-card > span:last-child {display:flex;min-width:0;flex-direction:column;gap:3px}
+.platform-context-card strong {font-size:12px;line-height:17px}
+.platform-context-card small {font-size:10px;color:#98a2b3;line-height:15px}
+.platform-workspace-link {display:flex;align-items:center;gap:5px}
+.platform-workspace-link .material-symbols-rounded {font-size:15px}
+.platform-nav-hint {margin:15px 8px;padding:12px;border-left:2px solid #475467;
+  font-size:11px;line-height:1.7;color:#98a2b3}
+
+/* Organization third-level icons: shared alignment and states */
+.navigation-third-icon {
+  display: inline-flex;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  align-items: center;
+  justify-content: center;
+  margin-right: 9px;
+  color: #98a2b3;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.navigation-third-item.active .navigation-third-icon {
+  color: #84adff;
+}
+
+.navigation-third-item:not(.navigation-disabled):hover .navigation-third-icon {
+  color: #dbe7ff;
+}
+
+.navigation-third-item.navigation-disabled .navigation-third-icon {
+  color: #667085;
+}

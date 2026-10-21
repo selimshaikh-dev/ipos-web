@@ -509,3 +509,19 @@ app-footer {
   }
 
 }
+
+/* Explicit company and branch selection: responsive and keyboard accessible */
+.workspace-empty-branches {
+  margin-top: 24px !important;
+  padding: 16px;
+  border: 1px solid var(--ipos-border-color, #e2e8f0);
+  border-radius: 10px;
+  background: var(--ipos-card-bg, #fff);
+}
+
+.workspace-selection-option { font: inherit; }
+.workspace-selection-option:disabled { cursor: not-allowed; opacity: .6; }
+@media (max-width: 575px) {
+  .workspace-selection-details strong { white-space: normal; overflow-wrap: anywhere; }
+  .workspace-selection-details small { overflow-wrap: anywhere; }
+}

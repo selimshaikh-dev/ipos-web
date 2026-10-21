@@ -1,251 +1,181 @@
-<!-- ========================================================= -->
-<!-- Branch Management -->
-<!-- ========================================================= -->
-
-<section class="branch-management-page">
-
-  <!-- ======================================================= -->
-  <!-- Background Content -->
-  <!-- ======================================================= -->
-
-  <div
-    class="branch-page-content"
-    [attr.inert]="isStatusConfirmationOpen() || isDetailsOpen() ? '' : null">
-
-    <!-- ===================================================== -->
-    <!-- Page Header -->
-    <!-- ===================================================== -->
-
+<!-- Branch Management — Company Management-aligned directory and profile navigation -->
+<section class="branch-management-page company-profile-page" aria-labelledby="branch-page-title">
+  <div class="branch-page-content" [attr.inert]="isStatusConfirmationOpen() ? '' : null">
     <header class="page-header">
-
       <div class="page-heading">
-
         <nav class="breadcrumb" aria-label="Breadcrumb">
-
-          <span>Settings</span>
-          <span class="breadcrumb-separator">/</span>
-
-          <span>Organization</span>
-          <span class="breadcrumb-separator">/</span>
-
-          <span>Branch Management</span>
-
+          <span>Settings</span><span class="breadcrumb-separator">/</span>
+          <span>Organization</span><span class="breadcrumb-separator">/</span>
+          <span class="breadcrumb-current">Branch Management</span>
         </nav>
-
-        <h1>Branch Management</h1>
-
-        <p class="page-description">
-          Manage branch locations and organizational information.
-        </p>
-
+        <h1 id="branch-page-title">Branch Management</h1>
+        <p class="page-description">Manage branch locations and organizational information.</p>
       </div>
-
-      <div class="header-actions">
-
-        <button
-          type="button"
-          class="btn btn-secondary"
-          [disabled]="
-            isLoading() ||
-            isSaving() ||
-            isChangingStatus() ||
-            isStatusConfirmationOpen()
-          "
-          (click)="reload()">
-          Refresh
-        </button>
-
-        @if (
-          canManageBranches() &&
-          isCurrentCompanyLoaded()
-        ) {
-
-          <button
-            type="button"
-            class="btn btn-primary"
-            [disabled]="
-              isLoading() ||
-              isSaving() ||
-              isChangingStatus() ||
-              isFormOpen() ||
-              isStatusConfirmationOpen()
-            "
+      <div class="header-actions page-actions page-header-actions">
+        <button type="button" class="btn btn-secondary button button-secondary"
+          [disabled]="isLoading() || isSaving() || isChangingStatus() || isStatusConfirmationOpen()"
+          (click)="reload()">Refresh</button>
+        @if (canManageBranches() && isCurrentCompanyLoaded() && !detailsBranch()) {
+          <button type="button" class="btn btn-primary button button-primary company-add-button"
+            [disabled]="isLoading() || isSaving() || isChangingStatus() || isFormOpen() || isStatusConfirmationOpen()"
             (click)="openCreate()">
-            Add Branch
+            <span class="material-symbols-rounded company-add-icon" aria-hidden="true">add</span>
+            <span class="company-add-label">New Branch</span>
           </button>
-
         }
-
       </div>
-
     </header>
 
-    <!-- ===================================================== -->
-    <!-- Selected Company -->
-    <!-- ===================================================== -->
+    <div class="company-view-switch" aria-label="Branch navigation">
+      <button type="button" [class.is-active]="!detailsBranch()"
+        (click)="closeDetails()" [disabled]="isStatusConfirmationOpen()">
+        <span class="material-symbols-rounded" aria-hidden="true">list_alt</span>
+        Branches <span class="view-count">{{ totalBranches() }}</span>
+      </button>
+      <button type="button" [class.is-active]="!!detailsBranch()"
+        [disabled]="!detailsBranch() || isStatusConfirmationOpen()">
+        <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
+        Branch Profile
+      </button>
+    </div>
 
-    <section
-      class="company-summary"
-      aria-label="Selected company">
-
+    <section class="company-summary organization-summary" aria-label="Selected company">
+      <div class="company-avatar" aria-hidden="true">{{ (companyName() || 'C').charAt(0) }}</div>
       <div class="company-summary-content">
-
-        <span class="section-label">
-          Selected Company
-        </span>
-
-        <h2>
-          {{ companyName() || 'No company selected' }}
-        </h2>
-
+        <span class="section-label company-selection-label">SELECTED COMPANY</span>
+        <h2>{{ companyName() || 'No company selected' }}</h2>
+        <span class="company-selection-meta">Branches are created under the current workspace company.</span>
       </div>
-
     </section>
 
-    <!-- ===================================================== -->
-    <!-- Loading State -->
-    <!-- ===================================================== -->
-
     @if (isLoading()) {
+      <div class="state-panel state-card" role="status">
+        <div class="loading-spinner" aria-hidden="true"></div>
+        <div><h2>Loading branches</h2><p>Please wait while we retrieve your branch information.</p></div>
+      </div>
+    } @else if (loadError()) {
+      <div class="state-panel state-card state-card-error" role="alert">
+        <div><h2>Unable to display branches</h2><p>{{ loadError() }}</p>
+          @if (companyId() !== null) {
+            <button type="button" class="btn btn-primary button button-primary" (click)="reload()">Try Again</button>
+          }
+        </div>
+      </div>
+    } @else if (isCurrentCompanyLoaded()) {
+    @if (detailsBranch(); as branch) {
+      <div class="profile-toolbar">
+        <button type="button" class="back-link" (click)="closeDetails()">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          Back to Branches
+        </button>
+        <span class="profile-toolbar-caption">BRANCH PROFILE</span>
+      </div>
 
-      <div class="state-panel" role="status">
+      <section class="company-selection-bar" aria-label="Selected branch">
+        <div class="company-selection-details">
+          <span class="company-selection-label">SELECTED BRANCH</span>
+          <strong>{{ branch.name }}</strong>
+          <span class="company-selection-meta">{{ branch.code }} · {{ companyName() || 'Selected company' }}</span>
+        </div>
+        @if (canManageBranches()) {
+          <button type="button" class="btn btn-secondary button button-secondary"
+            [disabled]="isSaving() || isChangingStatus() || isFormOpen()"
+            (click)="closeDetails(); openEdit(branch)">Edit Branch</button>
+        }
+      </section>
 
-        <div
-          class="loading-spinner"
-          aria-hidden="true">
+      <section class="organization-summary" aria-labelledby="branch-profile-name">
+        <div class="company-avatar" aria-hidden="true">{{ branch.name.charAt(0) }}</div>
+        <div class="company-summary-content">
+          <div class="company-summary-heading">
+            <h2 id="branch-profile-name">{{ branch.name }}</h2>
+            <span class="status-badge" [class.active]="branch.isActive" [class.inactive]="!branch.isActive">
+              {{ branch.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="company-meta">
+            <span><strong>Code:</strong> {{ branch.code }}</span>
+            <span class="meta-divider" aria-hidden="true"></span>
+            <span>{{ branch.isHeadOffice ? 'Head Office' : 'Branch' }}</span>
+            <span class="meta-divider" aria-hidden="true"></span>
+            <span>{{ companyName() }}</span>
+          </div>
+        </div>
+      </section>
+
+      <nav class="profile-section-nav" aria-label="Branch profile sections">
+        <span class="is-active">Branch Information</span>
+        <span>Contact &amp; Address</span>
+      </nav>
+
+      <div class="profile-form">
+        <section class="form-card profile-section" aria-labelledby="branch-basic-title">
+          <div class="form-card-header"><div>
+            <h2 id="branch-basic-title">Branch Information</h2>
+            <p>Identity and organizational details of this branch.</p>
+          </div></div>
+          <div class="form-card-body branch-details-grid">
+            <div class="branch-detail-item"><span class="section-label">Branch Name</span><div class="cell-primary">{{ branch.name }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Branch Code</span><div class="cell-primary">{{ branch.code }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Type</span><div class="cell-primary">{{ branch.isHeadOffice ? 'Head Office' : 'Branch' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Status</span><div class="cell-primary">{{ branch.isActive ? 'Active' : 'Inactive' }}</div></div>
+          </div>
+        </section>
+        <section class="form-card profile-section" aria-labelledby="branch-contact-title">
+          <div class="form-card-header"><div>
+            <h2 id="branch-contact-title">Contact &amp; Address</h2>
+            <p>Contact information and physical location.</p>
+          </div></div>
+          <div class="form-card-body branch-details-grid">
+            <div class="branch-detail-item"><span class="section-label">Phone</span><div class="cell-primary">{{ branch.phone || 'Not provided' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Email</span><div class="cell-primary">{{ branch.email || 'Not provided' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Address Line 1</span><div class="cell-primary">{{ branch.addressLine1 || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Address Line 2</span><div class="cell-primary">{{ branch.addressLine2 || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">City</span><div class="cell-primary">{{ branch.city || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">State / Province</span><div class="cell-primary">{{ branch.stateOrProvince || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Postal Code</span><div class="cell-primary">{{ branch.postalCode || 'Not specified' }}</div></div>
+            <div class="branch-detail-item"><span class="section-label">Country Code</span><div class="cell-primary">{{ branch.countryCode || 'Not specified' }}</div></div>
+          </div>
+        </section>
+      </div>
+    } @else {
+      <div class="directory-intro">
+        <div><span class="eyebrow">ORGANIZATION DIRECTORY</span>
+          <h2>Branch Directory</h2>
+          <p>Manage locations for the selected company.</p>
+        </div>
+        <div class="directory-count"><strong>{{ totalBranches() }}</strong><span>Total branches</span></div>
+      </div>
+      <section class="content-card form-card company-directory branch-directory" aria-labelledby="branch-directory-title">
+
+        <div class="card-header form-card-header">
+
+          <div>
+
+            <h2 id="branch-directory-title">Branch Directory</h2>
+
+            <p>
+              Branches registered under the selected company.
+            </p>
+
+          </div>
+
+          <span class="record-count">
+            {{ totalBranches() }} branches
+          </span>
+
         </div>
 
-        <h2>Loading branches</h2>
-
-        <p>
-          Please wait while we retrieve your branch information.
-        </p>
-
-      </div>
-
-    }
-
-    <!-- ===================================================== -->
-    <!-- Error State -->
-    <!-- ===================================================== -->
-
-    @else if (loadError()) {
-
-      <div
-        class="state-panel error-state"
-        role="alert">
-
-        <h2>Unable to display branches</h2>
-
-        <p>{{ loadError() }}</p>
-
-        @if (companyId() !== null) {
-
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="reload()">
-            Try Again
-          </button>
-
-        }
-
-      </div>
-
-    }
-
-    <!-- ===================================================== -->
-    <!-- Loaded State -->
-    <!-- ===================================================== -->
-
-    @else if (isCurrentCompanyLoaded()) {
-
-      <!-- =================================================== -->
-      <!-- Branch Statistics -->
-      <!-- =================================================== -->
-
-      <div class="summary-grid">
-
-        <article class="summary-card">
-
-          <span class="summary-label">
-            Total Branches
-          </span>
-
-          <strong class="summary-value">
-            {{ totalBranches() }}
-          </strong>
-
-          <span class="summary-description">
-            Registered company branches
-          </span>
-
-        </article>
-
-        <article class="summary-card">
-
-          <span class="summary-label">
-            Active Branches
-          </span>
-
-          <strong class="summary-value">
-            {{ activeBranches() }}
-          </strong>
-
-          <span class="summary-description">
-            Currently active locations
-          </span>
-
-        </article>
-
-        <article class="summary-card">
-
-          <span class="summary-label">
-            Inactive Branches
-          </span>
-
-          <strong class="summary-value">
-            {{ inactiveBranches() }}
-          </strong>
-
-          <span class="summary-description">
-            Currently inactive locations
-          </span>
-
-        </article>
-
-        <article class="summary-card">
-
-          <span class="summary-label">
-            Head Office
-          </span>
-
-          <strong class="summary-value summary-text">
-            {{ headOffice()?.name || 'Not assigned' }}
-          </strong>
-
-          <span class="summary-description">
-            Primary company location
-          </span>
-
-        </article>
-
-      </div>
-
-      <!-- =================================================== -->
-      <!-- Create / Edit Form -->
-      <!-- =================================================== -->
-
-      @if (
+@if (
         isFormOpen() &&
         canManageBranches()
       ) {
 
         <section
-          class="content-card branch-form-card"
+          class="content-card branch-form-card company-create-panel"
           aria-labelledby="branch-form-title">
 
-          <div class="card-header">
+          <div class="card-header form-card-header">
 
             <div>
 
@@ -275,7 +205,7 @@
 
             <button
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-secondary button button-secondary button button-secondary"
               [disabled]="isSaving()"
               (click)="closeForm()">
               Cancel
@@ -284,7 +214,7 @@
           </div>
 
           <form
-            class="branch-form"
+            class="branch-form company-create-form"
             [formGroup]="form"
             (ngSubmit)="saveBranch()"
             novalidate>
@@ -602,11 +532,11 @@
             <!-- Form Actions -->
             <!-- ============================================= -->
 
-            <div class="form-actions">
+            <div class="form-actions company-create-actions">
 
               <button
                 type="button"
-                class="btn btn-secondary"
+                class="btn btn-secondary button button-secondary button button-secondary"
                 [disabled]="isSaving()"
                 (click)="closeForm()">
                 Cancel
@@ -614,7 +544,7 @@
 
               <button
                 type="submit"
-                class="btn btn-primary"
+                class="btn btn-primary button button-primary"
                 [disabled]="
                   isSaving() ||
                   form.invalid ||
@@ -645,34 +575,11 @@
 
       }
 
-      <!-- =================================================== -->
-      <!-- Branch Directory -->
-      <!-- =================================================== -->
-
-      <section class="content-card">
-
-        <div class="card-header">
-
-          <div>
-
-            <h2>Branch Directory</h2>
-
-            <p>
-              Branches registered under the selected company.
-            </p>
-
-          </div>
-
-          <span class="record-count">
-            {{ totalBranches() }} branches
-          </span>
-
-        </div>
 
         @if (hasBranches()) {
 
           <!-- Directory Search and Filter -->
-          <div class="branch-directory-toolbar">
+          <div class="branch-directory-toolbar form-card-body">
             <div class="form-field directory-search-field">
               <label for="branch-directory-search">Search branches</label>
               <input
@@ -696,7 +603,7 @@
             </div>
             <button
               type="button"
-              class="btn btn-secondary"
+              class="btn btn-secondary button button-secondary"
               [disabled]="!searchTerm() && statusFilter() === 'all'"
               (click)="clearDirectoryFilters()">
               Clear Filters
@@ -707,9 +614,9 @@
           </div>
 
           @if (filteredBranchCount() > 0) {
-          <div class="table-container">
+          <div class="table-container company-list-scroll">
 
-            <table class="branch-table">
+            <table class="branch-table company-list-table" aria-label="Branch directory">
 
               <thead>
 
@@ -828,10 +735,10 @@
                     <td>
                       <button
                         type="button"
-                        class="btn btn-secondary btn-small"
+                        class="btn btn-secondary button button-secondary btn-small"
                         [disabled]="isSaving() || isChangingStatus() || isStatusConfirmationOpen()"
                         (click)="openDetails(branch)">
-                        View Details
+                        View Profile
                       </button>
                     </td>
 
@@ -843,7 +750,7 @@
 
                           <button
                             type="button"
-                            class="btn btn-secondary btn-small"
+                            class="btn btn-secondary button button-secondary btn-small"
                             [disabled]="
                               isLoading() ||
                               isSaving() ||
@@ -903,7 +810,7 @@
             <div class="empty-state" role="status">
               <h3>No matching branches</h3>
               <p>Try another search term or change the status filter.</p>
-              <button type="button" class="btn btn-secondary" (click)="clearDirectoryFilters()">
+              <button type="button" class="btn btn-secondary button button-secondary" (click)="clearDirectoryFilters()">
                 Clear Filters
               </button>
             </div>
@@ -928,7 +835,7 @@
 
               <button
                 type="button"
-                class="btn btn-primary"
+                class="btn btn-primary button button-primary"
                 (click)="openCreate()">
                 Add First Branch
               </button>
@@ -942,48 +849,10 @@
       </section>
 
 
+
     }
-
+    }
   </div>
-
-  <!-- Branch Details Modal: rendered outside background content -->
-  @if (detailsBranch(); as branch) {
-    <div class="branch-details-overlay" role="presentation" (click)="closeDetails()">
-      <section class="branch-details-dialog" role="dialog" aria-modal="true"
-               aria-labelledby="branch-details-title" tabindex="-1"
-               (click)="$event.stopPropagation()">
-        <div class="branch-details-header">
-          <div>
-            <span class="section-label">Branch Profile</span>
-            <h2 id="branch-details-title">{{ branch.name }}</h2>
-            <p>Complete branch information · {{ branch.code }}</p>
-          </div>
-          <button type="button" class="confirmation-close" aria-label="Close branch details"
-                  (click)="closeDetails()">&times;</button>
-        </div>
-        <div class="branch-details-body">
-          <div class="branch-details-grid">
-            <div class="branch-detail-item"><span class="section-label">Branch Name</span><div class="cell-primary">{{ branch.name }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Branch Code</span><div class="cell-primary">{{ branch.code }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Type</span><div class="cell-primary">{{ branch.isHeadOffice ? 'Head Office' : 'Branch' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Status</span><div class="cell-primary">{{ branch.isActive ? 'Active' : 'Inactive' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Phone</span><div class="cell-primary">{{ branch.phone || 'Not provided' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Email</span><div class="cell-primary">{{ branch.email || 'Not provided' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Address Line 1</span><div class="cell-primary">{{ branch.addressLine1 || 'Not specified' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Address Line 2</span><div class="cell-primary">{{ branch.addressLine2 || 'Not specified' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">City</span><div class="cell-primary">{{ branch.city || 'Not specified' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">State / Province</span><div class="cell-primary">{{ branch.stateOrProvince || 'Not specified' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Postal Code</span><div class="cell-primary">{{ branch.postalCode || 'Not specified' }}</div></div>
-            <div class="branch-detail-item"><span class="section-label">Country Code</span><div class="cell-primary">{{ branch.countryCode || 'Not specified' }}</div></div>
-          </div>
-        </div>
-        <div class="branch-details-footer">
-          <button type="button" class="btn btn-primary" (click)="closeDetails()">Done</button>
-        </div>
-      </section>
-    </div>
-  }
-
   <!-- ======================================================= -->
   <!-- Status Confirmation Dialog -->
   <!-- Kept outside the inert background container -->

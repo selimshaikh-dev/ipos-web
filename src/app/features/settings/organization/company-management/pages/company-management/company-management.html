@@ -1,4 +1,3 @@
-
 <div class="company-profile-page">
 
   <header class="page-header">
@@ -9,59 +8,342 @@
         <span class="breadcrumb-separator">/</span>
         <span>Organization</span>
         <span class="breadcrumb-separator">/</span>
-        <span class="breadcrumb-current">Company Profile</span>
+        <span class="breadcrumb-current">Company Management</span>
       </div>
 
-      <h1>Company Profile</h1>
+      <h1>Company Management</h1>
 
       <p>
-        Manage your organization's identity, contact information,
-        business address and regional settings.
+        Your organization directory, profiles and settings — all in one place.
       </p>
     </div>
 
-    <div class="page-actions">
-
-      <button
-        type="button"
-        class="button button-secondary"
-        [disabled]="isLoading() || isSaving()"
-        (click)="reload()">
-
-        <span class="button-icon material-symbols-rounded" aria-hidden="true">
-          refresh
-        </span>
-
-        Refresh
-      </button>
-
-      <button
-        type="button"
-        class="button button-primary"
-        [disabled]="
-          isLoading() ||
-          isSaving() ||
-          form.invalid ||
-          form.pristine
-        "
-        (click)="save()">
-
-        @if (isSaving()) {
-          <span
-            class="button-spinner"
-            aria-hidden="true">
-          </span>
-
-          Saving...
-        } @else {
-          Save Changes
-        }
-      </button>
-
+    <div class="page-actions page-header-actions">
+      @if (activeView() === 'directory') {
+        <button
+          type="button"
+          class="button button-primary company-add-button"
+          (click)="openCreateCompany()"
+          [disabled]="isCreating()">
+          <span class="material-symbols-rounded company-add-icon" aria-hidden="true">add</span>
+          <span class="company-add-label">New Company</span>
+        </button>
+      } @else {
+        <button type="button" class="button button-secondary" (click)="reload()" [disabled]="isLoading() || isSaving()">Refresh profile</button>
+        <button type="button" class="button button-primary" (click)="save()" [disabled]="isLoading() || isSaving() || form.invalid || form.pristine">
+          @if (isSaving()) { Saving... } @else { Save changes }
+        </button>
+      }
     </div>
 
   </header>
 
+  <nav class="company-view-switch" aria-label="Company management views">
+    <button type="button" [class.is-active]="activeView() === 'directory'" [attr.aria-current]="activeView() === 'directory' ? 'page' : null" (click)="showDirectory()">
+      <span class="material-symbols-rounded" aria-hidden="true">domain</span> Companies
+      <span class="view-count">{{ totalCompanies() }}</span>
+    </button>
+    <button type="button" [class.is-active]="activeView() === 'profile'" [attr.aria-current]="activeView() === 'profile' ? 'page' : null" [disabled]="selectedCompanyId() === null" (click)="showProfile()">
+      <span class="material-symbols-rounded" aria-hidden="true">badge</span> Company profile
+    </button>
+  </nav>
+
+  @if (activeView() === 'directory') {
+    <div class="directory-intro">
+      <div><span class="eyebrow">ORGANIZATION DIRECTORY</span><h2>All companies</h2><p>Find a company, review its status or open its profile.</p></div>
+      <div class="directory-count"><strong>{{ totalCompanies() }}</strong><span>Total companies</span></div>
+    </div>
+
+  <!-- Company directory. List access requires SuperAdmin. -->
+  <section class="form-card company-directory" aria-label="Company directory">
+    <div class="form-card-header">
+      <div>
+        <h2>Companies</h2>
+        <p>Find companies, review their status and browse the directory.</p>
+      </div>
+      <div class="page-actions">
+        <button type="button" class="button button-secondary"
+          [disabled]="isListLoading()" (click)="reloadCompanies()">
+          Refresh List
+        </button>
+      </div>
+    </div>
+
+    @if (isCreateOpen()) {
+      <div class="form-card-body company-create-panel">
+        <form
+          class="company-create-form"
+          [formGroup]="createForm"
+          (ngSubmit)="createCompany()"
+          novalidate>
+
+          <div class="company-create-heading">
+            <div>
+              <h3>Create New Company</h3>
+              <p>Complete the details below. A unique company code will be assigned automatically.</p>
+            </div>
+            <button
+              type="button"
+              class="button button-secondary"
+              [disabled]="isCreating()"
+              (click)="cancelCreateCompany()">
+              Cancel
+            </button>
+          </div>
+
+          @if (createError()) {
+            <div class="alert alert-error" role="alert">
+              <div class="alert-icon">!</div>
+              <div class="alert-content">
+                <strong>Unable to create company</strong>
+                <span>{{ createError() }}</span>
+              </div>
+            </div>
+          }
+
+          <div class="company-auto-code-note" role="note"><span class="material-symbols-rounded" aria-hidden="true">verified</span><span><strong>Company code is automatic</strong><small>The system assigns a unique code after creation. No manual entry is needed.</small></span></div>
+
+          <div class="form-grid">
+            <div class="form-field">
+              <label for="newCompanyName">Company Name <span class="required">*</span></label>
+              <input id="newCompanyName" type="text" formControlName="name"
+                maxlength="200" placeholder="Registered company name" autocomplete="organization">
+              @if (createForm.controls.name.touched && createForm.controls.name.invalid) {
+                <span class="field-error">Enter a company name (maximum 200 characters).</span>
+              }
+            </div>
+
+            <div class="form-field">
+              <label for="newCompanyCountry">Country Code <span class="required">*</span></label>
+              <input id="newCompanyCountry" type="text" formControlName="countryCode"
+                minlength="2" maxlength="2" placeholder="BD" autocomplete="off">
+              @if (createForm.controls.countryCode.touched && createForm.controls.countryCode.invalid) {
+                <span class="field-error">Enter a valid 2-letter country code.</span>
+              }
+            </div>
+
+            <div class="form-field">
+              <label for="newCompanyCurrency">Currency Code <span class="required">*</span></label>
+              <input id="newCompanyCurrency" type="text" formControlName="currencyCode"
+                minlength="3" maxlength="3" placeholder="BDT" autocomplete="off">
+              @if (createForm.controls.currencyCode.touched && createForm.controls.currencyCode.invalid) {
+                <span class="field-error">Enter a valid 3-letter currency code.</span>
+              }
+            </div>
+
+            <div class="form-field form-field-full">
+              <label for="newCompanyTimeZone">Time Zone <span class="required">*</span></label>
+              <input id="newCompanyTimeZone" type="text" formControlName="timeZoneId"
+                maxlength="100" placeholder="Bangladesh Standard Time" autocomplete="off">
+              @if (createForm.controls.timeZoneId.touched && createForm.controls.timeZoneId.invalid) {
+                <span class="field-error">Time zone is required (maximum 100 characters).</span>
+              }
+            </div>
+          </div>
+
+          <div class="company-create-actions">
+            <button
+              type="submit"
+              class="button button-primary"
+              [disabled]="isCreating()">
+              @if (isCreating()) {
+                <span class="button-spinner" aria-hidden="true"></span>
+                Creating...
+              } @else {
+                Create Company
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (pendingStatusCompany(); as selectedCompany) {
+      <section class="form-card-body company-status-confirmation"
+        role="group" aria-label="Confirm company status change">
+        <h3>Confirm Status Change</h3>
+        <p>
+          Are you sure you want to
+          <strong>{{ selectedCompany.isActive ? 'deactivate' : 'activate' }}</strong>
+          <strong>{{ selectedCompany.name }}</strong>
+          ({{ selectedCompany.code }})?
+        </p>
+        @if (selectedCompany.isActive) {
+          <p>Deactivating a company may prevent access to its operations.</p>
+        }
+        @if (statusError()) {
+          <div class="alert alert-error" role="alert">
+            <span class="alert-content">{{ statusError() }}</span>
+          </div>
+        }
+        <div class="page-actions">
+          <button type="button" class="button button-secondary"
+            [disabled]="isStatusUpdating()"
+            (click)="cancelStatusChange()">Cancel</button>
+          <button type="button" class="button button-primary"
+            [disabled]="isStatusUpdating()"
+            (click)="confirmStatusChange()">
+            @if (isStatusUpdating()) {
+              <span class="button-spinner" aria-hidden="true"></span>
+              Updating...
+            } @else {
+              Confirm {{ selectedCompany.isActive ? 'Deactivation' : 'Activation' }}
+            }
+          </button>
+        </div>
+      </section>
+    }
+
+    <div class="form-card-body">
+      <form class="form-grid" (submit)="$event.preventDefault(); searchCompanies(codeSearch.value, nameSearch.value)">
+        <div class="form-field">
+          <label for="companySearchCode">Company Code</label>
+          <input #codeSearch id="companySearchCode" type="text"
+            [value]="searchCode()" placeholder="Search code" maxlength="100">
+        </div>
+        <div class="form-field">
+          <label for="companySearchName">Company Name</label>
+          <input #nameSearch id="companySearchName" type="text"
+            [value]="searchName()" placeholder="Search name" maxlength="200">
+        </div>
+        <div class="form-field">
+          <label for="companyStatusFilter">Status</label>
+          <select #statusSelect id="companyStatusFilter" [value]="statusFilter()"
+            (change)="filterCompanies(statusSelect.value === 'active' ? 'active' : statusSelect.value === 'inactive' ? 'inactive' : 'all')">
+            <option value="all">All</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="companyPageSize">Rows per page</label>
+          <select #pageSizeSelect id="companyPageSize" [value]="pageSize()"
+            (change)="changePageSize(+pageSizeSelect.value)">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <button type="submit" class="button button-primary" [disabled]="isListLoading()">Search</button>
+        </div>
+      </form>
+
+      @if (isListLoading()) {
+        <p role="status" aria-live="polite">Loading companies...</p>
+      } @else if (listError()) {
+        <div class="state-card state-card-error" role="alert">
+          <p>{{ listError() }}</p>
+          <button type="button" class="button button-secondary" (click)="reloadCompanies()">Try Again</button>
+        </div>
+      } @else if (companies().length === 0) {
+        <div class="company-empty-state"><span class="material-symbols-rounded" aria-hidden="true">domain_disabled</span><strong>No matching companies</strong><p>Try adjusting your search terms or status filter.</p></div>
+      } @else {
+        <div class="company-list-scroll" role="region" aria-label="Company directory results" tabindex="0">
+          <table class="company-list-table">
+            <thead>
+              <tr>
+                <th scope="col"><button type="button" class="button button-secondary" (click)="sortCompanies('code')">Code @if (sortBy() === 'code') { {{ sortDirection() === 'asc' ? '↑' : '↓' }} }</button></th>
+                <th scope="col"><button type="button" class="button button-secondary" (click)="sortCompanies('name')">Name @if (sortBy() === 'name') { {{ sortDirection() === 'asc' ? '↑' : '↓' }} }</button></th>
+                <th scope="col">Country</th>
+                <th scope="col">Currency</th>
+                <th scope="col">Time Zone</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (company of companies(); track company.id) {
+                <tr>
+                  <td>{{ company.code }}</td>
+                  <td>{{ company.name }}</td>
+                  <td>{{ company.countryCode }}</td>
+                  <td>{{ company.currencyCode }}</td>
+                  <td>{{ company.timeZoneId }}</td>
+                  <td>
+                    <span class="status-badge" [class.status-active]="company.isActive"
+                      [class.status-inactive]="!company.isActive">
+                      <span class="status-dot"></span>
+                      {{ company.isActive ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="company-row-actions">
+                      <button
+                        type="button"
+                        class="button button-secondary"
+                        [disabled]="isLoading() || isSaving() || isStatusUpdating()"
+                        [attr.aria-label]="'View profile of ' + company.name"
+                        (click)="selectCompany(company)">
+                        {{ selectedCompanyId() === company.id ? 'Open profile' : 'View profile' }}
+                      </button>
+                    <button
+                      type="button"
+                      class="button button-secondary"
+                      [disabled]="isStatusUpdating() || isSaving()"
+                      [attr.aria-label]="(company.isActive ? 'Deactivate ' : 'Activate ') + company.name"
+                      (click)="requestStatusChange(company)">
+                      {{ company.isActive ? 'Deactivate' : 'Activate' }}
+                    </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="form-footer">
+          <span>Page {{ pageNumber() }} of {{ totalPages() }} · {{ totalCompanies() }} companies</span>
+          <div class="page-actions">
+            <button type="button" class="button button-secondary"
+              [disabled]="!hasPreviousPage() || isListLoading()"
+              (click)="changePage(pageNumber() - 1)">Previous</button>
+            <button type="button" class="button button-secondary"
+              [disabled]="!hasNextPage() || isListLoading()"
+              (click)="changePage(pageNumber() + 1)">Next</button>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  }
+
+  @if (activeView() === 'profile') {
+    <div class="profile-toolbar">
+      <button type="button" class="back-link" (click)="showDirectory()"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to companies</button>
+      <span class="profile-toolbar-caption">COMPANY PROFILE</span>
+    </div>
+  <!-- Profile selection is local to Company Management and does not switch workspaces. -->
+  <section class="company-selection-bar" aria-label="Selected company profile">
+    <div class="company-selection-details">
+      <span class="company-selection-label">Profile Selection</span>
+      <strong>
+        @if (isManualSelection()) {
+          Selected company profile
+        } @else {
+          Workspace company profile
+        }
+      </strong>
+      @if (selectedCompanyId() !== null) {
+        <span class="company-selection-meta">
+          Company ID: {{ selectedCompanyId() }}
+          @if (!isLoading() && !loadError() && companyCode()) {
+            · Code: {{ companyCode() }}
+          }
+        </span>
+      } @else {
+        <span class="company-selection-meta">No company selected</span>
+      }
+    </div>
+    @if (isManualSelection()) {
+      <button type="button" class="button button-secondary"
+        [disabled]="isLoading() || isSaving() || isStatusUpdating()"
+        (click)="selectWorkspaceCompany()">
+        Back to Workspace Company
+      </button>
+    }
+  </section>
   @if (isLoading()) {
 
     <section
@@ -163,13 +445,21 @@
 
     </section>
 
+    <div class="profile-section-nav" role="group" aria-label="Profile sections">
+      <button type="button" [class.is-active]="activeSection() === 'business'" (click)="setProfileSection('business')">Business</button>
+      <button type="button" [class.is-active]="activeSection() === 'contact'" (click)="setProfileSection('contact')">Contact</button>
+      <button type="button" [class.is-active]="activeSection() === 'address'" (click)="setProfileSection('address')">Address</button>
+      <button type="button" [class.is-active]="activeSection() === 'regional'" (click)="setProfileSection('regional')">Regional</button>
+      <button type="button" [class.is-active]="activeSection() === 'branding'" (click)="setProfileSection('branding')">Branding</button>
+    </div>
+
     <form
       class="profile-form"
       [formGroup]="form"
       (ngSubmit)="save()"
       novalidate>
 
-      <section class="form-card">
+      <section class="form-card profile-section" [class.section-hidden]="activeSection() !== 'business'">
 
         <div class="form-card-header">
           <div>
@@ -261,7 +551,7 @@
 
       </section>
 
-      <section class="form-card">
+      <section class="form-card profile-section" [class.section-hidden]="activeSection() !== 'contact'">
 
         <div class="form-card-header">
           <div>
@@ -339,7 +629,7 @@
 
       </section>
 
-      <section class="form-card">
+      <section class="form-card profile-section" [class.section-hidden]="activeSection() !== 'address'">
 
         <div class="form-card-header">
           <div>
@@ -467,7 +757,7 @@
 
       </section>
 
-      <section class="form-card">
+      <section class="form-card profile-section" [class.section-hidden]="activeSection() !== 'regional'">
 
         <div class="form-card-header">
           <div>
@@ -539,7 +829,7 @@
 
       </section>
 
-      <section class="form-card">
+      <section class="form-card profile-section" [class.section-hidden]="activeSection() !== 'branding'">
 
         <div class="form-card-header">
           <div>
@@ -620,6 +910,7 @@
 
     </form>
 
+  }
   }
 
 </div>

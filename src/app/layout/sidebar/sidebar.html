@@ -21,109 +21,69 @@
        ===================================================== -->
 
   <div class="business-context">
-
     <span class="context-label">WORKSPACE</span>
-
-      <!-- Always clickable; options remain server-authorized. -->
-
-      <button
-        type="button"
-        class="company"
+    @if (isPlatformMode()) {
+      <div class="platform-context-card">
+        <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
+        <span>
+          <strong>Platform Administration</strong>
+          <small>System-wide administration</small>
+        </span>
+      </div>
+      <a routerLink="/platform" class="platform-workspace-link">
+        Manage / switch company
+      </a>
+    } @else {
+      @if (isSuperAdmin()) {
+        <a routerLink="/platform" class="platform-workspace-link">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          Back to Platform
+        </a>
+      }
+      <button type="button" class="company"
         [attr.aria-expanded]="isBranchSelectorOpen()"
         aria-controls="workspace-branch-options"
         aria-label="Select active branch"
-        (click)="toggleBranchSelector()"
-      >
-
-        <span class="company-avatar">
-          {{ workspace.companyInitials() }}
-        </span>
-
+        (click)="toggleBranchSelector()">
+        <span class="company-avatar">{{ workspace.companyInitials() }}</span>
         <span class="company-details">
           <strong>{{ workspace.companyDisplayName() }}</strong>
           <span>{{ workspace.branchDisplayName() }}</span>
         </span>
-
-        <span
-          class="material-symbols-rounded context-arrow"
-          aria-hidden="true"
-        >
+        <span class="material-symbols-rounded context-arrow" aria-hidden="true">
           {{ isBranchSelectorOpen() ? 'expand_less' : 'unfold_more' }}
         </span>
-
       </button>
-
       @if (isBranchSelectorOpen()) {
-
-        <div
-          id="workspace-branch-options"
-          class="workspace-branch-options"
-          aria-label="Available branches"
-        >
-
-          <span class="workspace-branch-heading">
-            SELECT BRANCH
-          </span>
-
-          @for (
-            branch of workspace.branchOptions();
-            track branch.id
-          ) {
-
-            <button
-              type="button"
-              class="workspace-branch-option"
-              [class.workspace-branch-option-active]="
-                workspace.branchId() === branch.id
-              "
-              [attr.aria-pressed]="
-                workspace.branchId() === branch.id
-              "
-              (click)="selectBranch(branch.id)"
-            >
-
-              <span
-                class="material-symbols-rounded workspace-branch-icon"
-                aria-hidden="true"
-              >
-                store
-              </span>
-
+        <div id="workspace-branch-options" class="workspace-branch-options"
+          aria-label="Available branches">
+          <span class="workspace-branch-heading">SELECT BRANCH</span>
+          @for (branch of workspace.branchOptions(); track branch.id) {
+            <button type="button" class="workspace-branch-option"
+              [class.workspace-branch-option-active]="workspace.branchId() === branch.id"
+              [attr.aria-pressed]="workspace.branchId() === branch.id"
+              (click)="selectBranch(branch.id)">
+              <span class="material-symbols-rounded workspace-branch-icon"
+                aria-hidden="true">store</span>
               <span class="workspace-branch-details">
-
                 <strong>{{ branch.name }}</strong>
-
                 <span>{{ branch.code }}</span>
-
               </span>
-
               @if (workspace.branchId() === branch.id) {
-
-                <span
-                  class="material-symbols-rounded workspace-branch-check"
-                  aria-hidden="true"
-                >
-                  check_circle
-                </span>
-
+                <span class="material-symbols-rounded workspace-branch-check"
+                  aria-hidden="true">check_circle</span>
               }
-
             </button>
-
           }
-
           @if (workspace.branchOptions().length === 0) {
             <p class="workspace-branch-heading" role="status">
               No authorized branches available.
             </p>
           }
-
         </div>
-
       }
-
+    }
   </div>
-
 
   <!-- =====================================================
        Enterprise Navigation
@@ -132,7 +92,23 @@
   <nav class="navigation" aria-label="Main navigation">
 
     <span class="navigation-title">MAIN MENU</span>
-
+    @if (isPlatformMode()) {
+      <a class="navigation-item" routerLink="/platform"
+        routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+        <span class="material-symbols-rounded navigation-icon">dashboard</span>
+        <span class="navigation-label">Platform Dashboard</span>
+      </a>
+      <a class="navigation-item"
+        routerLink="/settings/organization/company-management"
+        routerLinkActive="active">
+        <span class="material-symbols-rounded navigation-icon">domain</span>
+        <span class="navigation-label">Companies</span>
+      </a>
+      <div class="platform-nav-hint">
+        Select an authorized company on the Platform Dashboard
+        to access business modules.
+      </div>
+    } @else {
     @for (item of navigation; track item.label) {
 
       <!-- =================================================
@@ -253,7 +229,13 @@
                               routerLinkActive="active"
                               [routerLinkActiveOptions]="{ exact: true }"
                             >
-                              <span class="navigation-third-dot"></span>
+                              @if (child.label === 'Organization') {
+                                <span class="material-symbols-rounded navigation-third-icon" aria-hidden="true">
+                                  {{ grandchild.label === 'Companies' ? 'domain' : grandchild.label === 'Branches' ? 'account_tree' : grandchild.label === 'Warehouses' ? 'warehouse' : grandchild.label === 'POS Counters' ? 'point_of_sale' : 'radio_button_unchecked' }}
+                                </span>
+                              } @else {
+                                <span class="navigation-third-dot"></span>
+                              }
 
                               <span>{{ grandchild.label }}</span>
                             </a>
@@ -264,7 +246,13 @@
                               class="navigation-third-item navigation-disabled"
                               aria-disabled="true"
                             >
-                              <span class="navigation-third-dot"></span>
+                              @if (child.label === 'Organization') {
+                                <span class="material-symbols-rounded navigation-third-icon" aria-hidden="true">
+                                  {{ grandchild.label === 'Companies' ? 'domain' : grandchild.label === 'Branches' ? 'account_tree' : grandchild.label === 'Warehouses' ? 'warehouse' : grandchild.label === 'POS Counters' ? 'point_of_sale' : 'radio_button_unchecked' }}
+                                </span>
+                              } @else {
+                                <span class="navigation-third-dot"></span>
+                              }
 
                               <span>{{ grandchild.label }}</span>
                             </span>
@@ -370,6 +358,8 @@
         }
 
       }
+
+    }
 
     }
 

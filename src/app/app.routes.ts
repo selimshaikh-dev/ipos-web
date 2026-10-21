@@ -6,6 +6,7 @@ import { Dashboard } from './features/dashboard/pages/dashboard/dashboard';
 
 import { authGuard } from './core/auth/guards/auth.guard';
 import { guestGuard } from './core/auth/guards/guest.guard';
+import { platformGuard } from './core/auth/guards/platform.guard';
 
 // =========================================================
 // Workspace Route Scope
@@ -13,6 +14,9 @@ import { guestGuard } from './core/auth/guards/guest.guard';
 
 /**
  * Defines the workspace context required by a route.
+ *
+ * platform:
+ *   Platform administration context.
  *
  * company:
  *   Requires an authorized company.
@@ -24,7 +28,8 @@ import { guestGuard } from './core/auth/guards/guest.guard';
  * Route metadata is not an authorization mechanism.
  * Guards and backend policies must enforce access.
  */
-export type WorkspaceRouteScope = 'company' | 'branch';
+export type WorkspaceRouteScope =
+  'platform' | 'company' | 'branch';
 
 // =========================================================
 // Application Routes
@@ -76,6 +81,28 @@ export const routes: Routes = [
     children: [
 
       // ===================================================
+      // Platform Administration
+      // ===================================================
+
+      {
+        path: 'platform',
+
+        loadComponent: () =>
+          import('./features/platform/platform-dashboard')
+            .then(m => m.PlatformDashboard),
+
+        canActivate: [
+          platformGuard
+        ],
+
+        data: {
+          workspaceScope: 'platform' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Platform Administration | iPOS'
+      },
+
+      // ===================================================
       // Dashboard
       // ===================================================
 
@@ -104,8 +131,12 @@ export const routes: Routes = [
           )
             .then(m => m.CompanyManagement),
 
+        canActivate: [
+          platformGuard
+        ],
+
         data: {
-          workspaceScope: 'company' satisfies WorkspaceRouteScope
+          workspaceScope: 'platform' satisfies WorkspaceRouteScope
         },
 
         title: 'Company Management | iPOS'
@@ -129,6 +160,46 @@ export const routes: Routes = [
         },
 
         title: 'Branch Management | iPOS'
+      },
+
+      // ===================================================
+      // Organization / POS Counter Management
+      // ===================================================
+
+      {
+        path: 'settings/organization/pos-counter-management',
+
+        loadComponent: () =>
+          import(
+            './features/settings/organization/pos-counter-management/pages/pos-counter-management/pos-counter-management'
+          )
+            .then(m => m.PosCounterManagement),
+
+        data: {
+          workspaceScope: 'branch' satisfies WorkspaceRouteScope
+        },
+
+        title: 'POS Counter Management | iPOS'
+      },
+
+      // ===================================================
+      // Organization / Warehouse Management
+      // ===================================================
+
+      {
+        path: 'settings/organization/warehouse-management',
+
+        loadComponent: () =>
+          import(
+            './features/settings/organization/warehouse-management/pages/warehouse-management/warehouse-management'
+          )
+            .then(m => m.WarehouseManagement),
+
+        data: {
+          workspaceScope: 'branch' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Warehouse Management | iPOS'
       }
 
     ]

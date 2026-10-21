@@ -335,6 +335,7 @@ export class BranchManagement {
       '',
       [
         Validators.required,
+        Validators.pattern(/\S/),
         Validators.maxLength(200)
       ]
     ],

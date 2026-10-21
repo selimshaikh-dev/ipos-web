@@ -1,7 +1,10 @@
-
 import { Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { filter } from 'rxjs';
+
 import { WorkspaceContextService } from '../../core/workspace/services/workspace-context.service';
+import { AuthService } from '../../core/auth/services/auth.service';
 
 /**
  * iPOS Enterprise Navigation
@@ -30,8 +33,53 @@ export interface NavigationItem {
 })
 export class Sidebar {
 
-  // Active company and branch display state.
+  // =======================================================
+  // Dependencies and Navigation State
+  // =======================================================
+
   readonly workspace = inject(WorkspaceContextService);
+
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+
+  private readonly activeUrl = signal(this.router.url);
+
+  readonly isPlatformMode = () =>
+    this.isSuperAdmin() && (
+      this.activeUrl() === '/platform' ||
+      this.activeUrl().startsWith('/platform?') ||
+      this.activeUrl().startsWith(
+        '/settings/organization/company-management'
+      )
+    );
+
+  constructor() {
+    this.router.events.pipe(
+      filter(
+        (event): event is NavigationEnd =>
+          event instanceof NavigationEnd
+      ),
+      takeUntilDestroyed()
+    ).subscribe(
+      event => this.activeUrl.set(event.urlAfterRedirects)
+    );
+  }
+
+  // =======================================================
+  // Authorization Display State
+  // =======================================================
+
+  readonly isSuperAdmin = () => {
+    this.auth.sessionGenerationSignal();
+
+    return this.auth.getCurrentUser()?.roles?.some(
+      role => role.toLowerCase() === 'superadmin'
+    ) ?? false;
+  };
+
+  // =======================================================
+  // Expanded Navigation Menus
+  // =======================================================
 
   /**
    * Tracks expanded parent navigation groups.
@@ -42,6 +90,10 @@ export class Sidebar {
   readonly expandedMenus = signal<ReadonlySet<string>>(
     new Set<string>()
   );
+
+  // =======================================================
+  // Enterprise Navigation Definition
+  // =======================================================
 
   readonly navigation: readonly NavigationItem[] = [
 
@@ -298,11 +350,15 @@ export class Sidebar {
       icon: 'settings',
       children: [
 
+        // =================================================
+        // Organization
+        // =================================================
+
         {
           label: 'Organization',
           children: [
             {
-              label: 'Company Management',
+              label: 'Companies',
               route: '/settings/organization/company-management',
               implemented: true
             },
@@ -311,10 +367,22 @@ export class Sidebar {
               route: '/settings/organization/branch-management',
               implemented: true
             },
-            { label: 'Warehouses' },
-            { label: 'POS Counters' }
+            {
+              label: 'Warehouses',
+              route: '/settings/organization/warehouse-management',
+              implemented: true
+            },
+            {
+              label: 'POS Counters',
+              route: '/settings/organization/pos-counter-management',
+              implemented: true
+            }
           ]
         },
+
+        // =================================================
+        // Users & Access Control
+        // =================================================
 
         {
           label: 'Users & Access Control',
@@ -326,6 +394,10 @@ export class Sidebar {
           ]
         },
 
+        // =================================================
+        // POS Configuration
+        // =================================================
+
         {
           label: 'POS Configuration',
           children: [
@@ -336,6 +408,10 @@ export class Sidebar {
           ]
         },
 
+        // =================================================
+        // Tax Configuration
+        // =================================================
+
         {
           label: 'Tax Configuration',
           children: [
@@ -344,6 +420,10 @@ export class Sidebar {
             { label: 'Tax Rules' }
           ]
         },
+
+        // =================================================
+        // Document Configuration
+        // =================================================
 
         {
           label: 'Document Configuration',
@@ -354,6 +434,10 @@ export class Sidebar {
           ]
         },
 
+        // =================================================
+        // Regional Settings
+        // =================================================
+
         {
           label: 'Regional Settings',
           children: [
@@ -362,6 +446,10 @@ export class Sidebar {
             { label: 'Time Zone' }
           ]
         },
+
+        // =================================================
+        // Notifications
+        // =================================================
 
         {
           label: 'Notifications',
@@ -403,7 +491,9 @@ export class Sidebar {
   readonly isBranchSelectorOpen = signal(false);
 
   toggleBranchSelector(): void {
-    this.isBranchSelectorOpen.update(isOpen => !isOpen);
+    this.isBranchSelectorOpen.update(
+      isOpen => !isOpen
+    );
   }
 
   closeBranchSelector(): void {
@@ -411,12 +501,16 @@ export class Sidebar {
   }
 
   selectBranch(branchId: number): void {
-    if (!Number.isSafeInteger(branchId) || branchId <= 0) {
+
+    if (
+      !Number.isSafeInteger(branchId) ||
+      branchId <= 0
+    ) {
       return;
     }
 
-    // The workspace service accepts only branches returned by
-    // the authorized workspace options API.
+    // The workspace service accepts only branches returned
+    // by the authorized workspace options API.
     if (this.workspace.selectBranch(branchId)) {
       this.closeBranchSelector();
     }
@@ -427,7 +521,9 @@ export class Sidebar {
   // =======================================================
 
   toggleMenu(menuKey: string): void {
+
     this.expandedMenus.update(current => {
+
       const next = new Set(current);
 
       if (next.has(menuKey)) {
@@ -449,6 +545,7 @@ export class Sidebar {
    * different modules use the same submenu label.
    */
   getMenuKey(parentKey: string, label: string): string {
+
     return parentKey
       ? `${parentKey}/${label}`
       : label;

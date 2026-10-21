@@ -1,0 +1,752 @@
+<div class="company-profile-page warehouse-management-page">
+
+  <!-- =====================================================
+       Page Header
+       ===================================================== -->
+
+  <header class="page-header">
+
+    <div class="page-heading">
+
+      <div class="breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Organization</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Warehouse Management</span>
+      </div>
+
+      <h1>Warehouse Management</h1>
+
+      <p>
+        Manage your branch warehouses, inventory locations
+        and operational settings — all in one place.
+      </p>
+
+    </div>
+
+    <div class="page-actions page-header-actions">
+
+      @if (activeView() === 'directory') {
+
+        <button
+          type="button"
+          class="button button-primary company-add-button"
+          [disabled]="isCreating() || branchId() === null"
+          (click)="openCreateWarehouse()">
+
+          <span
+            class="material-symbols-rounded company-add-icon"
+            aria-hidden="true">add</span>
+
+          <span class="company-add-label">New Warehouse</span>
+
+        </button>
+
+      } @else {
+
+        <button
+          type="button"
+          class="button button-secondary"
+          [disabled]="isCreating()"
+          (click)="showDirectory()">
+          Back to warehouses
+        </button>
+
+      }
+
+    </div>
+
+  </header>
+
+  <!-- =====================================================
+       View Navigation
+       ===================================================== -->
+
+  <nav
+    class="company-view-switch"
+    aria-label="Warehouse management views">
+
+    <button
+      type="button"
+      [class.is-active]="activeView() === 'directory'"
+      [attr.aria-current]="activeView() === 'directory' ? 'page' : null"
+      (click)="showDirectory()">
+
+      <span
+        class="material-symbols-rounded"
+        aria-hidden="true">warehouse</span>
+
+      Warehouses
+
+    </button>
+
+    <button
+      type="button"
+      [class.is-active]="activeView() === 'details'"
+      [attr.aria-current]="activeView() === 'details' ? 'page' : null"
+      [disabled]="lastCreatedWarehouse() === null"
+      (click)="showDetails()">
+
+      <span
+        class="material-symbols-rounded"
+        aria-hidden="true">inventory_2</span>
+
+      Warehouse details
+
+    </button>
+
+  </nav>
+
+  <!-- =====================================================
+       Directory View
+       ===================================================== -->
+
+  @if (activeView() === 'directory') {
+
+    <div class="directory-intro">
+
+      <div>
+        <span class="eyebrow">ORGANIZATION DIRECTORY</span>
+        <h2>Branch warehouses</h2>
+        <p>
+          Create and manage warehouse locations
+          within your selected branch.
+        </p>
+      </div>
+
+    </div>
+
+    <section
+      class="form-card company-directory"
+      aria-label="Warehouse directory">
+
+      <div class="form-card-header">
+
+        <div>
+          <h2>Warehouses</h2>
+          <p>
+            Warehouse records are managed independently
+            for each branch.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Create Warehouse Panel -->
+
+      @if (isCreateOpen()) {
+
+        <div class="form-card-body company-create-panel">
+
+          <form
+            class="company-create-form"
+            [formGroup]="createForm"
+            (ngSubmit)="createWarehouse()"
+            novalidate>
+
+            <div class="company-create-heading">
+
+              <div>
+                <h3>Create New Warehouse</h3>
+                <p>
+                  Enter warehouse details. A unique warehouse
+                  code will be assigned automatically.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isCreating()"
+                (click)="cancelCreateWarehouse()">
+                Cancel
+              </button>
+
+            </div>
+
+            @if (createError()) {
+
+              <div class="alert alert-error" role="alert">
+
+                <div class="alert-icon">!</div>
+
+                <div class="alert-content">
+                  <strong>Unable to create warehouse</strong>
+                  <span>{{ createError() }}</span>
+                </div>
+
+              </div>
+
+            }
+
+            <div class="company-auto-code-note" role="note">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">verified</span>
+
+              <span>
+                <strong>Warehouse code is automatic</strong>
+                <small>
+                  The system assigns a branch-specific warehouse
+                  code after creation. No manual entry is needed.
+                </small>
+              </span>
+
+            </div>
+
+            <div class="form-grid">
+
+              <!-- Warehouse Name -->
+
+              <div class="form-field form-field-wide">
+
+                <label for="newWarehouseName">
+                  Warehouse Name
+                  <span class="required">*</span>
+                </label>
+
+                <input
+                  id="newWarehouseName"
+                  type="text"
+                  formControlName="name"
+                  maxlength="200"
+                  placeholder="Enter warehouse name"
+                  autocomplete="off">
+
+                @if (
+                  createForm.controls.name.touched &&
+                  createForm.controls.name.invalid
+                ) {
+
+                  <span class="field-error">
+                    Enter a warehouse name
+                    (maximum 200 characters).
+                  </span>
+
+                }
+
+              </div>
+
+              <!-- Warehouse Type -->
+
+              <div class="form-field">
+
+                <label for="newWarehouseType">
+                  Warehouse Type
+                  <span class="required">*</span>
+                </label>
+
+                <select
+                  id="newWarehouseType"
+                  formControlName="type">
+
+                  @for (type of warehouseTypes; track type.value) {
+
+                    <option [ngValue]="type.value">
+                      {{ type.label }}
+                    </option>
+
+                  }
+
+                </select>
+
+              </div>
+
+              <!-- Default Warehouse -->
+
+              <div class="form-field warehouse-option-field">
+
+                <label for="newWarehouseDefault">
+                  Default Warehouse
+                </label>
+
+                <label class="warehouse-checkbox-label">
+
+                  <input
+                    id="newWarehouseDefault"
+                    type="checkbox"
+                    formControlName="isDefault">
+
+                  <span>
+                    Set as the branch's default warehouse
+                  </span>
+
+                </label>
+
+                <small class="warehouse-field-hint">
+                  The first warehouse becomes the default
+                  automatically.
+                </small>
+
+              </div>
+
+              <!-- Allow Sales -->
+
+              <div class="form-field warehouse-option-field">
+
+                <label for="newWarehouseAllowSales">
+                  Sales Operations
+                </label>
+
+                <label class="warehouse-checkbox-label">
+
+                  <input
+                    id="newWarehouseAllowSales"
+                    type="checkbox"
+                    formControlName="allowSales">
+
+                  <span>
+                    Allow sales from this warehouse
+                  </span>
+
+                </label>
+
+                <small class="warehouse-field-hint">
+                  This setting is independent of
+                  the default warehouse selection.
+                </small>
+
+              </div>
+
+            </div>
+
+            <div class="company-create-actions">
+
+              <button
+                type="submit"
+                class="button button-primary"
+                [disabled]="isCreating()">
+
+                @if (isCreating()) {
+
+                  <span
+                    class="button-spinner"
+                    aria-hidden="true"></span>
+
+                  Creating...
+
+                } @else {
+
+                  Create Warehouse
+
+                }
+
+              </button>
+
+            </div>
+
+          </form>
+
+        </div>
+
+      }
+
+      <!-- Live Warehouse Directory -->
+
+      <div class="form-card-body warehouse-directory-body">
+
+        @if (branchId() === null) {
+
+          <div class="state-card" role="status">
+            <div class="state-content">
+              <h2>Select a branch</h2>
+              <p>Select an authorized branch from the workspace to manage its warehouses.</p>
+            </div>
+          </div>
+
+        } @else {
+
+          <div class="warehouse-directory-toolbar">
+            <div class="warehouse-search-fields">
+              <div class="form-field">
+                <label for="warehouseSearchCode">Warehouse code</label>
+                <input
+                  #warehouseSearchCode
+                  id="warehouseSearchCode"
+                  type="search"
+                  maxlength="20"
+                  [value]="searchCode()"
+                  placeholder="Search by code"
+                  (keyup.enter)="searchWarehouses(warehouseSearchCode.value, warehouseSearchName.value)">
+              </div>
+
+              <div class="form-field">
+                <label for="warehouseSearchName">Warehouse name</label>
+                <input
+                  #warehouseSearchName
+                  id="warehouseSearchName"
+                  type="search"
+                  maxlength="200"
+                  [value]="searchName()"
+                  placeholder="Search by name"
+                  (keyup.enter)="searchWarehouses(warehouseSearchCode.value, warehouseSearchName.value)">
+              </div>
+
+              <button
+                type="button"
+                class="button button-primary"
+                [disabled]="isLoadingWarehouses()"
+                (click)="searchWarehouses(warehouseSearchCode.value, warehouseSearchName.value)">
+                Search
+              </button>
+            </div>
+
+            <div class="warehouse-filter-fields">
+              <div class="form-field">
+                <label for="warehouseFilterType">Warehouse type</label>
+                <select
+                  id="warehouseFilterType"
+                  [value]="selectedWarehouseType() ?? ''"
+                  [disabled]="isLoadingWarehouses()"
+                  (change)="filterByType($any($event.target).value === '' ? null : $any($event.target).value * 1)">
+                  <option value="">All types</option>
+                  @for (type of warehouseTypes; track type.value) {
+                    <option [value]="type.value">{{ type.label }}</option>
+                  }
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="warehouseFilterStatus">Status</label>
+                <select
+                  id="warehouseFilterStatus"
+                  [value]="selectedIsActive() === null ? '' : (selectedIsActive() ? 'true' : 'false')"
+                  [disabled]="isLoadingWarehouses()"
+                  (change)="filterByStatus($any($event.target).value === '' ? null : $any($event.target).value === 'true')">
+                  <option value="">All visible statuses</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+
+              <label class="warehouse-checkbox-label warehouse-directory-checkbox">
+                <input
+                  type="checkbox"
+                  [checked]="includeInactive()"
+                  [disabled]="isLoadingWarehouses()"
+                  (change)="setIncludeInactive($any($event.target).checked)">
+                <span>Include inactive</span>
+              </label>
+
+              <div class="form-field">
+                <label for="warehouseSortBy">Sort by</label>
+                <select
+                  id="warehouseSortBy"
+                  [value]="sortBy()"
+                  [disabled]="isLoadingWarehouses()"
+                  (change)="changeSorting($any($event.target).value, sortDirection())">
+                  <option value="name">Name</option>
+                  <option value="code">Code</option>
+                  <option value="type">Type</option>
+                  <option value="isdefault">Default</option>
+                  <option value="allowsales">Sales allowed</option>
+                  <option value="isactive">Status</option>
+                  <option value="id">ID</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="warehouseSortDirection">Direction</label>
+                <select
+                  id="warehouseSortDirection"
+                  [value]="sortDirection()"
+                  [disabled]="isLoadingWarehouses()"
+                  (change)="changeSorting(sortBy(), $any($event.target).value)">
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="warehouse-directory-actions">
+              <button type="button" class="button button-secondary"
+                [disabled]="isLoadingWarehouses()"
+                (click)="clearFilters()">Reset filters</button>
+              <button type="button" class="button button-secondary"
+                [disabled]="isLoadingWarehouses()"
+                (click)="refreshDirectory()">Refresh</button>
+            </div>
+          </div>
+
+          @if (directoryError(); as message) {
+            <div class="alert alert-error" role="alert">
+              <div class="alert-icon">!</div>
+              <div class="alert-content">
+                <strong>Unable to load warehouses</strong>
+                <span>{{ message }}</span>
+              </div>
+              <button type="button" class="button button-secondary"
+                (click)="refreshDirectory()">Try again</button>
+            </div>
+          }
+
+          @if (isLoadingWarehouses()) {
+            <div class="warehouse-directory-state" role="status" aria-live="polite">
+              <span class="button-spinner" aria-hidden="true"></span>
+              <span>Loading warehouses...</span>
+            </div>
+          } @else if (!directoryError() && warehouses().length === 0) {
+            <div class="company-empty-state" role="status">
+              <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+              <strong>No warehouses found</strong>
+              <p>There are no warehouses matching the current filters for this branch.</p>
+              <button type="button" class="button button-secondary"
+                (click)="clearFilters()">Clear filters</button>
+            </div>
+          } @else if (!directoryError()) {
+            <div class="warehouse-table-scroll">
+              <table class="warehouse-directory-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Code</th>
+                    <th scope="col">Warehouse name</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Default</th>
+                    <th scope="col">Sales</th>
+                    <th scope="col">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (warehouse of warehouses(); track warehouse.id) {
+                    <tr>
+                      <td><strong>{{ warehouse.code }}</strong></td>
+                      <td>{{ warehouse.name }}</td>
+                      <td>
+                        @for (type of warehouseTypes; track type.value) {
+                          @if (type.value === warehouse.type) {
+                            {{ type.label }}
+                          }
+                        }
+                      </td>
+                      <td>{{ warehouse.isDefault ? 'Yes' : 'No' }}</td>
+                      <td>{{ warehouse.allowSales ? 'Allowed' : 'Not allowed' }}</td>
+                      <td>
+                        <span class="status-badge"
+                          [class.status-active]="warehouse.isActive"
+                          [class.status-inactive]="!warehouse.isActive">
+                          <span class="status-dot"></span>
+                          {{ warehouse.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          @if (!directoryError() && !isLoadingWarehouses()) {
+            <div class="warehouse-directory-pagination">
+              <span class="warehouse-directory-count">
+                {{ totalCount() }} warehouse(s) found
+              </span>
+
+              <div class="warehouse-directory-page-controls">
+                <label for="warehousePageSize">Rows per page</label>
+                <select
+                  id="warehousePageSize"
+                  [value]="pageSize()"
+                  (change)="changePageSize($any($event.target).value * 1)">
+                  <option [value]="10">10</option>
+                  <option [value]="20">20</option>
+                  <option [value]="50">50</option>
+                  <option [value]="100">100</option>
+                </select>
+
+                <span>
+                  Page {{ pageNumber() }} of {{ totalPages() || 1 }}
+                </span>
+
+                <button type="button" class="button button-secondary"
+                  [disabled]="!hasPreviousPage()"
+                  (click)="previousPage()">Previous</button>
+                <button type="button" class="button button-secondary"
+                  [disabled]="!hasNextPage()"
+                  (click)="nextPage()">Next</button>
+              </div>
+            </div>
+          }
+
+        }
+
+      </div>
+
+    </section>
+
+  }
+
+  <!-- =====================================================
+       Warehouse Details View
+       ===================================================== -->
+
+  @if (activeView() === 'details') {
+
+    @if (lastCreatedWarehouse(); as warehouse) {
+
+      <div class="profile-toolbar">
+
+        <button
+          type="button"
+          class="back-link"
+          (click)="showDirectory()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">arrow_back</span>
+
+          Back to warehouses
+
+        </button>
+
+        <span class="profile-toolbar-caption">
+          WAREHOUSE DETAILS
+        </span>
+
+      </div>
+
+      <section class="organization-summary">
+
+        <div class="company-avatar">
+          {{ warehouse.name.charAt(0).toUpperCase() || 'W' }}
+        </div>
+
+        <div class="company-summary-content">
+
+          <div class="company-summary-heading">
+
+            <h2>{{ warehouse.name }}</h2>
+
+            <span
+              class="status-badge"
+              [class.status-active]="warehouse.isActive"
+              [class.status-inactive]="!warehouse.isActive">
+
+              <span class="status-dot"></span>
+
+              {{ warehouse.isActive ? 'Active' : 'Inactive' }}
+
+            </span>
+
+          </div>
+
+          <div class="company-meta">
+
+            <span>
+              Warehouse Code
+              <strong>{{ warehouse.code }}</strong>
+            </span>
+
+            <span class="meta-divider"></span>
+
+            <span>
+              Branch ID
+              <strong>{{ warehouse.branchId }}</strong>
+            </span>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <section
+        class="form-card profile-section"
+        aria-label="Warehouse information">
+
+        <div class="form-card-header">
+
+          <div>
+            <h2>Warehouse Information</h2>
+            <p>
+              Server-confirmed details of the
+              newly created warehouse.
+            </p>
+          </div>
+
+        </div>
+
+        <div class="form-card-body">
+
+          <div class="form-grid">
+
+            <div class="form-field">
+
+              <label>Warehouse Code</label>
+
+              <div class="warehouse-readonly-value">
+                {{ warehouse.code }}
+              </div>
+
+            </div>
+
+            <div class="form-field">
+
+              <label>Warehouse Name</label>
+
+              <div class="warehouse-readonly-value">
+                {{ warehouse.name }}
+              </div>
+
+            </div>
+
+            <div class="form-field">
+
+              <label>Warehouse Type</label>
+
+              <div class="warehouse-readonly-value">
+
+                @for (type of warehouseTypes; track type.value) {
+
+                  @if (type.value === warehouse.type) {
+                    {{ type.label }}
+                  }
+
+                }
+
+              </div>
+
+            </div>
+
+            <div class="form-field">
+
+              <label>Default Warehouse</label>
+
+              <div class="warehouse-readonly-value">
+                {{ warehouse.isDefault ? 'Yes' : 'No' }}
+              </div>
+
+            </div>
+
+            <div class="form-field">
+
+              <label>Allow Sales</label>
+
+              <div class="warehouse-readonly-value">
+                {{ warehouse.allowSales ? 'Yes' : 'No' }}
+              </div>
+
+            </div>
+
+            <div class="form-field">
+
+              <label>Status</label>
+
+              <div class="warehouse-readonly-value">
+                {{ warehouse.isActive ? 'Active' : 'Inactive' }}
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+  }
+
+</div>

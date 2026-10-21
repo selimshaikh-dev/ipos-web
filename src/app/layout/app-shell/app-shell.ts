@@ -1,4 +1,3 @@
-
 import {
   Component,
   DestroyRef,
@@ -29,6 +28,7 @@ import { AuthService } from '../../core/auth/services/auth.service';
 import { WorkspaceContextService } from '../../core/workspace/services/workspace-context.service';
 
 import { WorkspaceOptionsService } from '../../core/workspace/services/workspace-options.service';
+import type { WorkspaceCompanyOption } from '../../core/workspace/models/workspace-options.model';
 
 import type { WorkspaceRouteScope } from '../../app.routes';
 
@@ -78,6 +78,15 @@ export class AppShell {
   readonly routeScope =
     this.routeScopeState.asReadonly();
 
+  readonly isSuperAdmin = computed(() => {
+    this.authService.sessionGenerationSignal();
+    return this.authService.getCurrentUser()?.roles?.some(
+      role => role.toLowerCase() === 'superadmin'
+    ) ?? false;
+  });
+
+  readonly isPlatformRoute = computed(() => this.routeScope() === 'platform');
+
   readonly isBranchScopedRoute = computed(
     () => this.routeScope() === 'branch'
   );
@@ -85,6 +94,14 @@ export class AppShell {
   // =========================================================
   // Shared Workspace Initialization State
   // =========================================================
+
+  private readonly availableCompaniesState = signal<readonly WorkspaceCompanyOption[]>([]);
+
+  readonly availableCompanies = this.availableCompaniesState.asReadonly();
+
+  readonly requiresCompanySelection = computed(() =>
+    !this.isPlatformRoute() && this.availableCompanies().length > 1 && !this.workspaceContext.hasCompany()
+  );
 
   readonly initializationStatus =
     this.workspaceContext.initializationStatus;
@@ -114,6 +131,9 @@ export class AppShell {
    */
   readonly canAccessCurrentRoute = computed(() => {
 
+    if (this.isPlatformRoute()) {
+      return this.isSuperAdmin() && !this.isWorkspaceLoading();
+    }
     if (this.isBranchScopedRoute()) {
       return this.canAccessBranchRoutes();
     }
@@ -126,10 +146,11 @@ export class AppShell {
    * current route is branch-scoped and no authorized
    * branch has been selected.
    */
-  readonly requiresBranchSelection = computed(
-    () =>
-      this.isBranchScopedRoute() &&
-      this.workspaceContext.requiresBranchSelection()
+  readonly requiresBranchSelection = computed(() =>
+    this.isBranchScopedRoute() &&
+    this.workspaceContext.isInitialized() &&
+    this.workspaceContext.hasCompany() &&
+    !this.workspaceContext.hasBranch()
   );
 
   /**
@@ -147,7 +168,7 @@ export class AppShell {
       return 'loading' as const;
     }
 
-    if (this.hasWorkspaceError()) {
+    if (this.hasWorkspaceError() && !this.isPlatformRoute()) {
       return 'error' as const;
     }
 
@@ -228,9 +249,8 @@ export class AppShell {
     // declare workspaceScope: 'branch'.
 
     const scope: WorkspaceRouteScope =
-      configuredScope === 'branch'
-        ? 'branch'
-        : 'company';
+      configuredScope === 'platform' ? 'platform' :
+      configuredScope === 'branch' ? 'branch' : 'company';
 
     this.routeScopeState.set(scope);
   }
@@ -247,6 +267,7 @@ export class AppShell {
     // server-authorized restoration.
 
     this.workspaceContext.clear();
+    this.availableCompaniesState.set([]);
 
     // Publish loading state.
 
@@ -291,25 +312,35 @@ export class AppShell {
             return;
           }
 
-          // iPOS currently supports a single
-          // authorized company workspace.
+          const companies = response.companies ?? [];
+          this.availableCompaniesState.set(companies);
 
-          const companies = response.companies;
+          if (this.isSuperAdmin()) {
+            // Platform access does not depend on company/branch selection.
+            // Keep the options for explicit company selection later.
+            this.workspaceContext.clear();
+            if (this.router.url === '/dashboard' && !this.workspaceContext.hasCompany()) {
+              void this.router.navigateByUrl('/platform');
+            }
+            return;
+          }
 
-          if (companies.length !== 1) {
+          if (companies.length === 0) {
             this.workspaceContext.failInitialization();
+            return;
+          }
+
+          if (companies.length > 1) {
+            // No implicit cross-company selection. The user chooses.
+            this.workspaceContext.clear();
             return;
           }
 
           const company = companies[0];
 
-          // The current multi-branch workspace
-          // requires at least one authorized branch.
-
-          if (company.branches.length === 0) {
-            this.workspaceContext.failInitialization();
-            return;
-          }
+          // Company-scoped routes do not require a branch.
+          // configureCompany() accepts zero authorized branches;
+          // branch-scoped routes remain protected by route scope.
 
           // Configure the authorized company and
           // branches.
@@ -338,6 +369,19 @@ export class AppShell {
           this.workspaceContext.failInitialization();
         }
       });
+  }
+
+  // =========================================================
+  // Explicit, server-authorized Company Selection
+  // =========================================================
+
+  selectCompany(companyId: number): void {
+    const company = this.availableCompanies().find(option => option.id === companyId);
+    if (!company || !this.authService.isAuthenticated()) {
+      return;
+    }
+
+    this.workspaceContext.configureCompany(company);
   }
 
   // =========================================================

@@ -1,4 +1,3 @@
-
 <header class="topbar">
 
   <div class="topbar-left">
@@ -15,11 +14,11 @@
 
     <div class="page-context">
       <span class="page-title">
-        Dashboard
+        {{ pageContext().title }}
       </span>
 
       <span class="breadcrumb">
-        Business Overview
+        {{ pageContext().subtitle }}
       </span>
     </div>
 
@@ -51,6 +50,7 @@
 
   <div class="topbar-actions">
 
+    @if (showNewSale()) {
     <button
       class="pos-button"
       type="button"
@@ -63,6 +63,8 @@
         New Sale
       </span>
     </button>
+    }
+
 
 
     <button

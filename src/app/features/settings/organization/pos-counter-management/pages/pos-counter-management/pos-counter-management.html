@@ -1,0 +1,604 @@
+
+<!-- ========================================================= -->
+<!-- POS Counter Management                                   -->
+<!-- ========================================================= -->
+
+<section
+  class="pos-counter-management-page company-profile-page"
+  aria-labelledby="pos-counter-page-title">
+
+  <!-- ======================================================= -->
+  <!-- Page Header -->
+  <!-- ======================================================= -->
+
+  <header class="page-header">
+
+    <div class="page-heading">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Organization</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">POS Counter Management</span>
+      </nav>
+
+      <h1 id="pos-counter-page-title">
+        POS Counter Management
+      </h1>
+
+      <p class="page-description">
+        Configure and manage sales counters for the selected branch.
+      </p>
+
+    </div>
+
+    <div class="header-actions page-actions page-header-actions">
+
+      @if (canManageCounters() && hasSelectedBranch()) {
+
+        <button
+          type="button"
+          class="btn btn-primary button button-primary company-add-button"
+          [disabled]="isSaving() || isFormOpen()"
+          (click)="openCreate()">
+
+          <span
+            class="material-symbols-rounded company-add-icon"
+            aria-hidden="true">
+            add
+          </span>
+
+          <span class="company-add-label">
+            New POS Counter
+          </span>
+
+        </button>
+
+      }
+
+    </div>
+
+  </header>
+
+  <!-- ======================================================= -->
+  <!-- Selected Workspace -->
+  <!-- ======================================================= -->
+
+  <section
+    class="company-summary organization-summary"
+    aria-label="Selected workspace">
+
+    <div class="company-avatar" aria-hidden="true">
+      {{ (branchName() || 'P').charAt(0) }}
+    </div>
+
+    <div class="company-summary-content">
+
+      <span class="section-label company-selection-label">
+        SELECTED BRANCH
+      </span>
+
+      <h2>
+        {{ branchName() || 'No branch selected' }}
+      </h2>
+
+      <span class="company-selection-meta">
+        {{ companyName() || 'No company selected' }}
+      </span>
+
+      <p class="page-description">
+        POS counters are registered under the currently selected branch.
+      </p>
+
+    </div>
+
+  </section>
+
+  <!-- ======================================================= -->
+  <!-- No Branch Selected -->
+  <!-- ======================================================= -->
+
+  @if (!hasSelectedBranch()) {
+
+    <div class="state-panel state-card" role="status">
+
+      <div>
+
+        <h2>Select a Branch</h2>
+
+        <p>
+          Select a company and branch from your workspace
+          before managing POS counters.
+        </p>
+
+      </div>
+
+    </div>
+
+  } @else {
+
+    <!-- ===================================================== -->
+    <!-- Directory Introduction -->
+    <!-- ===================================================== -->
+
+    <div class="directory-intro">
+
+      <div>
+
+        <span class="eyebrow">
+          ORGANIZATION DIRECTORY
+        </span>
+
+        <h2>POS Counter Directory</h2>
+
+        <p>
+          View counters created during this session
+          for the selected branch.
+        </p>
+
+      </div>
+
+      <div class="directory-count">
+
+        <strong>
+          {{ totalCounters() }}
+        </strong>
+
+        <span>
+          Session counters
+        </span>
+
+      </div>
+
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- Counter Directory Card -->
+    <!-- ===================================================== -->
+
+    <section
+      class="content-card form-card company-directory pos-counter-directory"
+      aria-labelledby="pos-counter-directory-title">
+
+      <div class="card-header form-card-header">
+
+        <div>
+
+          <h2 id="pos-counter-directory-title">
+            POS Counter Directory
+          </h2>
+
+          <p>
+            Counters created in the current session.
+            Full directory synchronization will be available
+            when the Counter List API is implemented.
+          </p>
+
+        </div>
+
+        <span class="record-count">
+          {{ totalCounters() }} session counters
+        </span>
+
+      </div>
+
+      <!-- =================================================== -->
+      <!-- Create Counter Form -->
+      <!-- =================================================== -->
+
+      @if (isFormOpen() && canManageCounters()) {
+
+        <section
+          class="content-card pos-counter-form-card company-create-panel"
+          aria-labelledby="pos-counter-form-title">
+
+          <div class="card-header form-card-header">
+
+            <div>
+
+              <h2 id="pos-counter-form-title">
+                Create POS Counter
+              </h2>
+
+              <p>
+                Register a new sales counter under
+                {{ branchName() || 'the selected branch' }}.
+              </p>
+
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-secondary button button-secondary"
+              [disabled]="isSaving()"
+              (click)="closeForm()">
+              Cancel
+            </button>
+
+          </div>
+
+          <form
+            class="pos-counter-form company-create-form"
+            [formGroup]="form"
+            (ngSubmit)="saveCounter()"
+            novalidate>
+
+            @if (formError()) {
+
+              <div class="form-error" role="alert">
+                {{ formError() }}
+              </div>
+
+            }
+
+            <!-- =============================================== -->
+            <!-- Basic Information -->
+            <!-- =============================================== -->
+
+            <div class="form-section">
+
+              <div class="form-section-heading">
+
+                <h3>Basic Information</h3>
+
+                <p>
+                  Enter the counter name and optional device identifier.
+                </p>
+
+              </div>
+
+              <div class="form-grid">
+
+                <!-- Counter Code -->
+
+                <div class="form-field form-field-full">
+
+                  <span class="section-label">
+                    COUNTER CODE
+                  </span>
+
+                  <span class="field-hint">
+                    The counter code is generated automatically
+                    by the backend when the counter is created.
+                  </span>
+
+                </div>
+
+                <!-- Counter Name -->
+
+                <div class="form-field">
+
+                  <label for="pos-counter-name">
+                    Counter Name
+                    <span class="required-mark">*</span>
+                  </label>
+
+                  <input
+                    id="pos-counter-name"
+                    type="text"
+                    formControlName="name"
+                    maxlength="200"
+                    autocomplete="off"
+                    placeholder="e.g. Main Sales Counter"
+                    [attr.aria-invalid]="
+                      form.controls.name.invalid &&
+                      form.controls.name.touched
+                    " />
+
+                  @if (
+                    form.controls.name.invalid &&
+                    form.controls.name.touched
+                  ) {
+
+                    <span class="field-error" role="alert">
+                      Counter name is required
+                      (maximum 200 characters).
+                    </span>
+
+                  }
+
+                </div>
+
+                <!-- Device Identifier -->
+
+                <div class="form-field">
+
+                  <label for="pos-counter-device">
+                    Device Identifier
+                  </label>
+
+                  <input
+                    id="pos-counter-device"
+                    type="text"
+                    formControlName="deviceIdentifier"
+                    maxlength="200"
+                    autocomplete="off"
+                    placeholder="e.g. POS-DEVICE-001"
+                    [attr.aria-invalid]="
+                      form.controls.deviceIdentifier.invalid &&
+                      form.controls.deviceIdentifier.touched
+                    " />
+
+                  @if (
+                    form.controls.deviceIdentifier.invalid &&
+                    form.controls.deviceIdentifier.touched
+                  ) {
+
+                    <span class="field-error" role="alert">
+                      Device identifier must use ASCII characters
+                      and cannot exceed 200 characters.
+                    </span>
+
+                  }
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- =============================================== -->
+            <!-- Warehouse Assignment -->
+            <!-- =============================================== -->
+
+            <div class="form-section">
+
+              <div class="form-section-heading">
+
+                <h3>Default Warehouse</h3>
+
+                <p>
+                  Optionally assign a warehouse belonging
+                  to the selected branch.
+                </p>
+
+              </div>
+
+              <div class="form-grid">
+
+                <div class="form-field">
+
+                  <label for="pos-counter-warehouse">
+                    Default Warehouse ID
+                  </label>
+
+                  <input
+                    id="pos-counter-warehouse"
+                    type="number"
+                    formControlName="defaultWarehouseId"
+                    min="1"
+                    step="1"
+                    inputmode="numeric"
+                    placeholder="Optional warehouse ID" />
+
+                  <span class="field-hint">
+                    Leave empty to create the counter without
+                    a default warehouse. The server validates
+                    warehouse ownership.
+                  </span>
+
+                </div>
+
+              </div>
+
+            </div>
+
+            <!-- =============================================== -->
+            <!-- Form Actions -->
+            <!-- =============================================== -->
+
+            <div class="form-actions company-create-actions">
+
+              <button
+                type="button"
+                class="btn btn-secondary button button-secondary"
+                [disabled]="isSaving()"
+                (click)="closeForm()">
+                Cancel
+              </button>
+
+              <button
+                type="submit"
+                class="btn btn-primary button button-primary"
+                [disabled]="isSaving() || form.invalid">
+
+                @if (isSaving()) {
+                  Creating Counter...
+                } @else {
+                  Create POS Counter
+                }
+
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+
+      }
+
+      <!-- =================================================== -->
+      <!-- Session Counter List -->
+      <!-- =================================================== -->
+
+      @if (totalCounters() > 0) {
+
+        <div class="pos-counter-directory-toolbar form-card-body">
+
+          <div class="form-field directory-search-field">
+
+            <label for="pos-counter-directory-search">
+              Search counters
+            </label>
+
+            <input
+              id="pos-counter-directory-search"
+              type="search"
+              placeholder="Search by name, code or device"
+              [value]="searchTerm()"
+              (input)="setSearchTerm($any($event.target).value)" />
+
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-secondary button button-secondary"
+            [disabled]="!searchTerm()"
+            (click)="clearSearch()">
+            Clear Search
+          </button>
+
+          <span class="record-count" aria-live="polite">
+            Showing {{ filteredCounters().length }}
+            of {{ totalCounters() }}
+          </span>
+
+        </div>
+
+        @if (filteredCounters().length > 0) {
+
+          <div class="table-container company-list-scroll">
+
+            <table
+              class="pos-counter-table company-list-table"
+              aria-label="POS counter directory">
+
+              <thead>
+
+                <tr>
+                  <th scope="col">Counter</th>
+                  <th scope="col">Code</th>
+                  <th scope="col">Device</th>
+                  <th scope="col">Default Warehouse</th>
+                  <th scope="col">Status</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (
+                  counter of filteredCounters();
+                  track counter.id
+                ) {
+
+                  <tr>
+
+                    <td>
+                      <div class="cell-primary">
+                        {{ counter.name }}
+                      </div>
+                    </td>
+
+                    <td>
+                      <span class="branch-code">
+                        {{ counter.code }}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="cell-primary">
+                        {{ counter.deviceIdentifier || 'Not assigned' }}
+                      </div>
+                    </td>
+
+                    <td>
+                      <div class="cell-primary">
+                        {{
+                          counter.defaultWarehouseId === null
+                            ? 'Not assigned'
+                            : counter.defaultWarehouseId
+                        }}
+                      </div>
+                    </td>
+
+                    <td>
+
+                      <span
+                        class="status-badge"
+                        [class.active]="counter.isActive"
+                        [class.inactive]="!counter.isActive">
+
+                        {{
+                          counter.isActive
+                            ? 'Active'
+                            : 'Inactive'
+                        }}
+
+                      </span>
+
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        } @else {
+
+          <div class="empty-state" role="status">
+
+            <h3>No matching counters</h3>
+
+            <p>
+              Try searching with a different counter name,
+              code or device identifier.
+            </p>
+
+            <button
+              type="button"
+              class="btn btn-secondary button button-secondary"
+              (click)="clearSearch()">
+              Clear Search
+            </button>
+
+          </div>
+
+        }
+
+      } @else {
+
+        <!-- ================================================= -->
+        <!-- Empty State -->
+        <!-- ================================================= -->
+
+        <div class="empty-state">
+
+          <h3>No counters created in this session</h3>
+
+          <p>
+            You can create a POS counter for the selected branch.
+            Existing database counters will appear when
+            the Counter List API is available.
+          </p>
+
+          @if (
+            canManageCounters() &&
+            !isFormOpen()
+          ) {
+
+            <button
+              type="button"
+              class="btn btn-primary button button-primary"
+              (click)="openCreate()">
+              Create First Counter
+            </button>
+
+          }
+
+        </div>
+
+      }
+
+    </section>
+
+  }
+
+</section>
