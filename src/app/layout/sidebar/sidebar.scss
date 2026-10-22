@@ -1,4 +1,8 @@
 
+/* ==========================================================
+   iPOS | Premium Enterprise Sidebar
+   ========================================================== */
+
 :host {
   display: block;
   width: 100%;
@@ -7,119 +11,137 @@
 }
 
 .sidebar {
+  --sidebar-bg: #0c1729;
+  --sidebar-surface: #15263f;
+  --sidebar-surface-hover: #1b3252;
+  --sidebar-text: #d2def0;
+  --sidebar-muted: #94a9c7;
+  --sidebar-accent: #60a5fa;
+  --sidebar-border: rgba(164, 190, 229, 0.12);
+
   display: flex;
   width: 100%;
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  padding: 0 14px 16px;
+  padding: 0 12px 14px;
   overflow: hidden;
-  color: var(--ipos-sidebar-text);
-  background: var(--ipos-sidebar-bg);
+  color: var(--sidebar-text);
+  background: var(--sidebar-bg);
 }
 
-/* =========================================
+/* ==========================================================
    Brand
-   ========================================= */
+   ========================================================== */
 
 .brand {
   display: flex;
-  min-height: 76px;
+  min-height: 78px;
   flex-shrink: 0;
   align-items: center;
-  padding: 0 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  gap: 12px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--sidebar-border);
 }
 
 .brand-mark {
   display: grid;
-  width: 38px;
-  height: 38px;
-  flex: 0 0 38px;
-  margin-right: 11px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   place-items: center;
-  border-radius: 10px;
-  background: var(--ipos-primary);
-  color: #ffffff;
-  font-size: 23px;
+  border: 1px solid rgba(147, 197, 253, 0.24);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.24);
+  color: #fff;
+  font-size: 25px;
   font-weight: 800;
   font-style: italic;
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.16);
 }
 
 .brand-copy {
   display: flex;
   min-width: 0;
   flex-direction: column;
+  gap: 3px;
 }
 
 .brand-name {
-  color: #ffffff;
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 22px;
-  letter-spacing: -0.3px;
+  color: #fff;
+  font-size: 21px;
+  font-weight: 750;
+  line-height: 24px;
+  letter-spacing: -0.5px;
 }
 
 .brand-caption {
-  margin-top: 2px;
-  color: var(--ipos-sidebar-muted);
+  color: var(--sidebar-muted);
   font-size: 10px;
   line-height: 14px;
-  letter-spacing: 0.2px;
+  letter-spacing: 0.15px;
 }
 
-/* =========================================
-   Workspace / Company
-   ========================================= */
+/* ==========================================================
+   Workspace Context
+   ========================================================== */
 
 .business-context {
   flex-shrink: 0;
-  padding: 20px 4px 16px;
+  padding: 18px 3px 15px;
 }
 
 .context-label,
 .navigation-title {
   display: block;
-  padding: 0 8px;
-  color: #667085;
+  padding: 0 9px;
+  color: #86a2c7;
   font-size: 10px;
   font-weight: 700;
-  line-height: 14px;
-  letter-spacing: 0.7px;
+  line-height: 15px;
+  letter-spacing: 1px;
 }
 
 .company {
+  appearance: none;
   display: flex;
+  width: 100%;
   min-width: 0;
   align-items: center;
-  margin-top: 9px;
-  padding: 9px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.025);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.04);
+  margin-top: 10px;
+  padding: 11px 9px;
+  border: 1px solid var(--sidebar-border);
+  border-radius: 11px;
+  background: var(--sidebar-surface);
+  color: var(--sidebar-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   transition:
-    background-color 140ms ease,
-    border-color 140ms ease;
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
 }
 
-.company:hover {
-  border-color: rgba(255, 255, 255, 0.06);
-  background: rgba(255, 255, 255, 0.06);
+.company:hover,
+.company[aria-expanded='true'] {
+  border-color: rgba(96, 165, 250, 0.38);
+  background: var(--sidebar-surface-hover);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 
 .company-avatar {
   display: grid;
-  width: 32px;
-  height: 32px;
-  flex: 0 0 32px;
-  margin-right: 9px;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  margin-right: 10px;
   place-items: center;
-  border-radius: 8px;
-  background: rgba(37, 99, 235, 0.18);
-  color: #84adff;
-  font-size: 11px;
-  font-weight: 700;
+  border-radius: 9px;
+  background: rgba(59, 130, 246, 0.22);
+  color: #bfdbfe;
+  font-size: 12px;
+  font-weight: 750;
 }
 
 .company-details {
@@ -127,24 +149,24 @@
   flex: 1;
   min-width: 0;
   flex-direction: column;
+  gap: 3px;
 }
 
 .company-details strong {
   overflow: hidden;
-  color: #f2f4f7;
+  color: #f8fbff;
   font-size: 12px;
-  font-weight: 600;
-  line-height: 16px;
+  font-weight: 650;
+  line-height: 17px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.company-details span {
+.company-details > span {
   overflow: hidden;
-  margin-top: 1px;
-  color: var(--ipos-sidebar-muted);
+  color: var(--sidebar-muted);
   font-size: 10px;
-  line-height: 14px;
+  line-height: 15px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -152,29 +174,99 @@
 .context-arrow {
   flex-shrink: 0;
   margin-left: 6px;
-  color: #667085;
-  font-size: 18px;
+  color: #a7c1e4;
+  font-size: 20px;
 }
 
-/* =========================================
+/* ==========================================================
+   Platform Workspace
+   ========================================================== */
+
+.platform-context-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 12px 10px;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: 11px;
+  background: var(--sidebar-surface);
+  color: #e8f1ff;
+}
+
+.platform-context-card > .material-symbols-rounded {
+  flex-shrink: 0;
+  color: #93c5fd;
+  font-size: 23px;
+}
+
+.platform-context-card > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.platform-context-card strong {
+  font-size: 12px;
+  line-height: 17px;
+}
+
+.platform-context-card small {
+  color: var(--sidebar-muted);
+  font-size: 10px;
+  line-height: 15px;
+}
+
+.platform-workspace-link {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 9px 3px 3px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.12);
+  color: #bfdbfe;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 180ms ease;
+}
+
+.platform-workspace-link:hover {
+  background: rgba(59, 130, 246, 0.23);
+}
+
+.platform-workspace-link .material-symbols-rounded {
+  font-size: 17px;
+}
+
+.platform-nav-hint {
+  margin: 15px 8px;
+  padding: 12px;
+  border-left: 2px solid #5275a7;
+  color: var(--sidebar-muted);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+/* ==========================================================
    Navigation Container
-   ========================================= */
+   ========================================================== */
 
 .navigation {
   flex: 1;
   min-height: 0;
+  padding: 0 2px 8px 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding-right: 2px;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 
 .navigation:hover {
-  scrollbar-color:
-    rgba(152, 162, 179, 0.28)
-    transparent;
+  scrollbar-color: #385475 transparent;
 }
 
 .navigation::-webkit-scrollbar {
@@ -186,80 +278,39 @@
 }
 
 .navigation::-webkit-scrollbar-thumb {
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
 }
 
 .navigation:hover::-webkit-scrollbar-thumb {
-  background: rgba(152, 162, 179, 0.28);
+  background: #385475;
 }
 
 .navigation-title {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
-/* =========================================
-   Level 1: Main Navigation
-   ========================================= */
+/* ==========================================================
+   Shared Navigation Styles
+   ========================================================== */
 
-.navigation-group {
-  min-width: 0;
-}
-
-.navigation-item {
+.navigation-item,
+.navigation-subitem,
+.navigation-third-item {
   display: flex;
   width: 100%;
   min-width: 0;
-  min-height: 42px;
   align-items: center;
-  margin: 0 0 3px;
-  padding: 0 11px;
   border: 1px solid transparent;
-  border-radius: 8px;
   background: transparent;
-  color: var(--ipos-sidebar-text);
+  color: var(--sidebar-text);
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 18px;
   text-align: left;
   text-decoration: none;
-  cursor: pointer;
   transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease,
-    transform 140ms ease;
-}
-
-.navigation-item:hover {
-  background: var(--ipos-sidebar-hover);
-  color: #ffffff;
-}
-
-.navigation-item:active {
-  transform: translateY(1px);
-}
-
-.navigation-item.active,
-.navigation-item.navigation-expanded {
-  background: #1d2939;
-  color: #ffffff;
-}
-
-.navigation-item.active .navigation-icon,
-.navigation-item.navigation-expanded .navigation-icon {
-  color: #84adff;
-}
-
-.navigation-icon {
-  width: 21px;
-  flex: 0 0 21px;
-  margin-right: 11px;
-  color: #98a2b3;
-  font-size: 19px;
-  line-height: 1;
-  transition: color 140ms ease;
+    background-color 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease;
 }
 
 .navigation-label {
@@ -270,337 +321,238 @@
   white-space: nowrap;
 }
 
-.navigation-parent {
+.navigation-group,
+.navigation-subgroup {
+  min-width: 0;
+}
+
+/* ==========================================================
+   Level 1: Main Menu
+   ========================================================== */
+
+.navigation-item {
+  position: relative;
+  min-height: 43px;
+  gap: 11px;
+  margin: 0 0 3px;
+  padding: 0 11px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  font-weight: 550;
+  line-height: 19px;
+}
+
+button.navigation-item,
+button.navigation-subitem {
   appearance: none;
+  cursor: pointer;
+}
+
+a.navigation-item {
+  cursor: pointer;
+}
+
+.navigation-item:not(.navigation-disabled):hover {
+  background: var(--sidebar-surface-hover);
+  color: #fff;
+}
+
+.navigation-item.active,
+.navigation-item.navigation-expanded {
+  border-color: rgba(96, 165, 250, 0.17);
+  background: #1c3966;
+  color: #fff;
+}
+
+.navigation-item.active::before {
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: #60a5fa;
+  content: '';
+}
+
+.navigation-icon {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  align-items: center;
+  justify-content: center;
+  color: #a2b9d8;
+  font-size: 20px;
+  line-height: 1;
+  transition: color 160ms ease;
+}
+
+.navigation-item.active .navigation-icon,
+.navigation-item.navigation-expanded .navigation-icon,
+.navigation-item:not(.navigation-disabled):hover .navigation-icon {
+  color: #93c5fd;
 }
 
 .navigation-chevron {
+  display: inline-flex;
   width: 18px;
+  height: 18px;
   flex: 0 0 18px;
-  margin-left: 5px;
-  color: #667085;
-  font-size: 18px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  color: #819ab9;
+  font-size: 19px;
   line-height: 1;
-  text-align: center;
   transition:
-    color 140ms ease,
+    color 160ms ease,
     transform 180ms ease;
 }
 
 .navigation-chevron-open {
   transform: rotate(180deg);
-  color: #98a2b3;
+  color: #bfdbfe;
 }
 
-/* =========================================
-   Level 2: Submenu
-   ========================================= */
+/* ==========================================================
+   Level 2: Submenu Tree
+   ========================================================== */
 
 .navigation-submenu {
-  margin: 1px 0 7px 20px;
+  margin: 3px 0 9px 21px;
   padding: 3px 0 3px 10px;
-  border-left: 1px solid rgba(152, 162, 179, 0.17);
-}
-
-.navigation-subgroup {
-  min-width: 0;
+  border-left: 1px solid rgba(139, 174, 218, 0.22);
 }
 
 .navigation-subitem {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  min-height: 35px;
-  align-items: center;
-  margin: 1px 0;
-  padding: 6px 9px;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  background: transparent;
-  color: #98a2b3;
-  font-family: inherit;
-  font-size: 12px;
+  position: relative;
+  min-height: 37px;
+  gap: 10px;
+  margin: 2px 0;
+  padding: 7px 9px;
+  border-radius: 8px;
+  color: #b8c9e1;
+  font-size: 11.5px;
   font-weight: 500;
   line-height: 17px;
-  text-align: left;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    background-color 140ms ease,
-    color 140ms ease;
 }
 
-.navigation-subitem:hover {
-  background: rgba(255, 255, 255, 0.055);
-  color: #f2f4f7;
+.navigation-subitem:not(.navigation-disabled):hover {
+  background: rgba(96, 165, 250, 0.11);
+  color: #fff;
 }
 
 .navigation-subitem.active,
 .navigation-subitem.navigation-expanded {
-  background: rgba(37, 99, 235, 0.12);
-  color: #dbe7ff;
+  border-color: rgba(96, 165, 250, 0.12);
+  background: rgba(59, 130, 246, 0.18);
+  color: #e8f1ff;
 }
 
-.navigation-subparent {
-  appearance: none;
+.navigation-subicon {
+  display: inline-flex;
+  width: 19px;
+  height: 19px;
+  flex: 0 0 19px;
+  align-items: center;
+  justify-content: center;
+  color: #9db8dc;
+  font-size: 18px;
+  line-height: 1;
 }
 
-.navigation-subitem-indicator {
-  width: 5px;
-  height: 5px;
-  flex: 0 0 5px;
-  margin-right: 12px;
-  border-radius: 50%;
-  background: #667085;
-  transition: background-color 140ms ease;
+.navigation-subitem.active .navigation-subicon,
+.navigation-subitem.navigation-expanded .navigation-subicon,
+.navigation-subitem:not(.navigation-disabled):hover .navigation-subicon {
+  color: #93c5fd;
 }
 
-.navigation-subitem.active .navigation-subitem-indicator,
-.navigation-subitem.navigation-expanded .navigation-subitem-indicator {
-  background: #84adff;
-}
-
-/* =========================================
-   Level 3: Nested Navigation
-   ========================================= */
+/* ==========================================================
+   Level 3: Nested Submenu Tree
+   ========================================================== */
 
 .navigation-third-level {
-  margin: 2px 0 6px 10px;
-  padding: 2px 0 2px 11px;
-  border-left: 1px solid rgba(152, 162, 179, 0.13);
+  margin: 3px 0 7px 12px;
+  padding: 2px 0 2px 10px;
+  border-left: 1px solid rgba(139, 174, 218, 0.17);
 }
 
 .navigation-third-item {
-  display: flex;
-  width: 100%;
-  min-width: 0;
-  min-height: 32px;
-  align-items: center;
-  margin: 1px 0;
-  padding: 6px 8px;
-  border-radius: 6px;
-  color: #98a2b3;
-  font-size: 11.5px;
+  position: relative;
+  min-height: 35px;
+  gap: 9px;
+  margin: 2px 0;
+  padding: 7px 8px;
+  border-radius: 7px;
+  color: #afc2dd;
+  font-size: 11px;
   font-weight: 500;
   line-height: 16px;
-  text-decoration: none;
-  cursor: pointer;
-  transition:
-    background-color 140ms ease,
-    color 140ms ease;
 }
 
-.navigation-third-item > span:last-child {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.navigation-third-item:hover {
-  background: rgba(255, 255, 255, 0.055);
-  color: #ffffff;
+.navigation-third-item:not(.navigation-disabled):hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: #fff;
 }
 
 .navigation-third-item.active {
-  background: rgba(37, 99, 235, 0.18);
-  color: #ffffff;
-  font-weight: 600;
+  border-color: rgba(96, 165, 250, 0.18);
+  background: rgba(37, 99, 235, 0.28);
+  color: #fff;
+  font-weight: 650;
 }
 
-.navigation-third-dot {
-  width: 5px;
-  height: 5px;
-  flex: 0 0 5px;
-  margin-right: 10px;
-  border-radius: 50%;
-  background: #667085;
+.navigation-third-item.active::before {
+  position: absolute;
+  top: 7px;
+  bottom: 7px;
+  left: 0;
+  width: 2px;
+  border-radius: 3px;
+  background: #60a5fa;
+  content: '';
 }
 
-.navigation-third-item.active .navigation-third-dot {
-  background: #84adff;
+.navigation-third-icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  align-items: center;
+  justify-content: center;
+  color: #98b3d6;
+  font-size: 17px;
+  line-height: 1;
 }
 
-/* =========================================
-   Planned / Non-interactive Features
-   ========================================= */
+.navigation-third-item.active .navigation-third-icon,
+.navigation-third-item:not(.navigation-disabled):hover .navigation-third-icon {
+  color: #93c5fd;
+}
+
+/* ==========================================================
+   Planned Features
+   ========================================================== */
 
 .navigation-disabled {
+  color: #a5b9d3;
   cursor: default;
 }
 
 .navigation-disabled:hover {
   background: transparent;
-  color: #98a2b3;
+  color: #a5b9d3;
 }
 
-.navigation-disabled:active {
-  transform: none;
+.navigation-disabled .navigation-subicon,
+.navigation-disabled .navigation-third-icon {
+  color: #91a8c7;
 }
 
-/* =========================================
-   Keyboard Accessibility
-   ========================================= */
-
-.navigation-item:focus-visible,
-.navigation-subitem:focus-visible,
-.navigation-third-item:focus-visible {
-  outline: 2px solid #84adff;
-  outline-offset: -2px;
-}
-
-/* =========================================
-   Sidebar Footer
-   ========================================= */
-
-.sidebar-footer {
-  flex-shrink: 0;
-  padding-top: 14px;
-  background: var(--ipos-sidebar-bg);
-}
-
-.support-card {
-  display: flex;
-  align-items: center;
-  padding: 11px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 9px;
-  background: rgba(255, 255, 255, 0.025);
-  transition:
-    background-color 140ms ease,
-    border-color 140ms ease;
-}
-
-.support-card:hover {
-  border-color: rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.045);
-}
-
-.support-card > span {
-  flex-shrink: 0;
-  margin-right: 10px;
-  color: #98a2b3;
-  font-size: 19px;
-}
-
-.support-card div {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.support-card strong {
-  color: #e4e7ec;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 15px;
-}
-
-.support-card div span {
-  margin-top: 1px;
-  color: #667085;
-  font-size: 10px;
-  line-height: 14px;
-}
-
-.version {
-  padding-top: 13px;
-  text-align: center;
-  color: #475467;
-  font-size: 10px;
-  line-height: 14px;
-}
-
-/* =========================================
-   Compact Height Handling
-   ========================================= */
-
-@media (max-height: 760px) {
-  .brand {
-    min-height: 66px;
-  }
-
-  .business-context {
-    padding-top: 14px;
-    padding-bottom: 12px;
-  }
-
-  .navigation-item {
-    min-height: 38px;
-  }
-
-  .navigation-subitem {
-    min-height: 32px;
-  }
-
-  .navigation-third-item {
-    min-height: 30px;
-  }
-
-  .sidebar-footer {
-    padding-top: 10px;
-  }
-
-  .support-card {
-    padding: 9px;
-  }
-
-  .version {
-    padding-top: 9px;
-  }
-}
-
-/* =========================================
-   Reduced Motion
-   ========================================= */
-
-@media (prefers-reduced-motion: reduce) {
-  .navigation-item,
-  .navigation-subitem,
-  .navigation-third-item,
-  .navigation-icon,
-  .navigation-chevron {
-    transition: none;
-  }
-}
-
-
-/* =========================================
+/* ==========================================================
    Workspace Branch Selector
-   ========================================= */
-
-/*
- * The workspace selector extends the existing
- * sidebar design system without changing
- * navigation styles or layout structure.
- */
-
-button.company {
-  appearance: none;
-  width: 100%;
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-button.company:focus-visible {
-  outline: 2px solid #84adff;
-  outline-offset: 2px;
-}
-
-button.company[aria-expanded='true'] {
-  border-color: rgba(132, 173, 255, 0.25);
-  background: rgba(37, 99, 235, 0.12);
-}
-
-button.company[aria-expanded='true'] .context-arrow {
-  color: #84adff;
-}
-
-/* =========================================
-   Branch Options Container
-   ========================================= */
+   ========================================================== */
 
 .workspace-branch-options {
   display: flex;
@@ -608,59 +560,40 @@ button.company[aria-expanded='true'] .context-arrow {
   max-height: min(260px, 35vh);
   flex-direction: column;
   gap: 3px;
-  margin-top: 8px;
+  margin-top: 9px;
   padding: 8px 5px;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-
-  border: 1px solid rgba(152, 162, 179, 0.14);
-  border-radius: 9px;
-
-  background: #1d2939;
-
+  border: 1px solid var(--sidebar-border);
+  border-radius: 10px;
+  background: #14243c;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14);
   scrollbar-width: thin;
-  scrollbar-color:
-    rgba(152, 162, 179, 0.28)
-    transparent;
+  scrollbar-color: #385475 transparent;
 }
 
 .workspace-branch-options::-webkit-scrollbar {
   width: 4px;
 }
 
-.workspace-branch-options::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 .workspace-branch-options::-webkit-scrollbar-thumb {
   border-radius: 8px;
-  background: rgba(152, 162, 179, 0.28);
+  background: #385475;
 }
-
-/* =========================================
-   Branch Section Heading
-   ========================================= */
 
 .workspace-branch-heading {
   display: block;
   padding: 5px 8px 7px;
-
-  color: #98a2b3;
-
+  color: #98b2d4;
   font-size: 10px;
   font-weight: 700;
   line-height: 14px;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.7px;
 }
-
-/* =========================================
-   Individual Branch Option
-   ========================================= */
 
 .workspace-branch-option {
   appearance: none;
-
   display: flex;
   width: 100%;
   min-width: 0;
@@ -668,197 +601,213 @@ button.company[aria-expanded='true'] .context-arrow {
   flex-shrink: 0;
   align-items: center;
   gap: 9px;
-
   padding: 8px;
-
   border: 1px solid transparent;
-  border-radius: 7px;
-
+  border-radius: 8px;
   background: transparent;
-  color: var(--ipos-sidebar-text);
-
+  color: var(--sidebar-text);
   font-family: inherit;
   text-align: left;
-
   cursor: pointer;
-
   transition:
-    background-color 140ms ease,
-    border-color 140ms ease,
-    color 140ms ease;
+    background-color 160ms ease,
+    border-color 160ms ease;
 }
 
 .workspace-branch-option:hover {
-  border-color: rgba(255, 255, 255, 0.05);
-  background: rgba(255, 255, 255, 0.055);
+  background: rgba(96, 165, 250, 0.1);
 }
-
-.workspace-branch-option:focus-visible {
-  outline: 2px solid #84adff;
-  outline-offset: -2px;
-}
-
-/* =========================================
-   Selected Branch
-   ========================================= */
 
 .workspace-branch-option-active {
-  border-color: rgba(37, 99, 235, 0.22);
-  background: rgba(37, 99, 235, 0.14);
-  color: #ffffff;
+  border-color: rgba(96, 165, 250, 0.2);
+  background: rgba(59, 130, 246, 0.17);
 }
 
 .workspace-branch-option-active:hover {
-  border-color: rgba(132, 173, 255, 0.3);
-  background: rgba(37, 99, 235, 0.2);
+  background: rgba(59, 130, 246, 0.24);
 }
-
-/* =========================================
-   Branch Icon
-   ========================================= */
 
 .workspace-branch-icon {
   display: grid;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
-
+  width: 31px;
+  height: 31px;
+  flex: 0 0 31px;
   place-items: center;
-
-  border-radius: 7px;
-  background: rgba(152, 162, 179, 0.1);
-  color: #98a2b3;
-
-  font-size: 18px;
+  border-radius: 8px;
+  background: rgba(96, 165, 250, 0.11);
+  color: #aac6ea;
+  font-size: 19px;
 }
 
 .workspace-branch-option-active .workspace-branch-icon {
-  background: rgba(37, 99, 235, 0.2);
-  color: #84adff;
+  background: rgba(59, 130, 246, 0.25);
+  color: #bfdbfe;
 }
-
-/* =========================================
-   Branch Name and Code
-   ========================================= */
 
 .workspace-branch-details {
   display: flex;
   flex: 1;
   min-width: 0;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .workspace-branch-details strong {
   overflow: hidden;
-
-  color: #e4e7ec;
-
+  color: #f1f6ff;
   font-size: 11px;
   font-weight: 600;
-  line-height: 15px;
-
+  line-height: 16px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .workspace-branch-details > span {
   overflow: hidden;
-
-  color: var(--ipos-sidebar-muted);
-
+  color: var(--sidebar-muted);
   font-size: 10px;
-  font-weight: 400;
   line-height: 14px;
-
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.workspace-branch-option-active .workspace-branch-details strong {
-  color: #ffffff;
-}
-
-/* =========================================
-   Selected Branch Indicator
-   ========================================= */
-
 .workspace-branch-check {
-  flex: 0 0 auto;
+  flex-shrink: 0;
   margin-left: auto;
-
-  color: #84adff;
-  font-size: 18px;
-  line-height: 1;
+  color: #93c5fd;
+  font-size: 19px;
 }
 
-/* =========================================
-   Compact Height Handling
-   ========================================= */
+/* ==========================================================
+   Sidebar Footer
+   ========================================================== */
+
+.sidebar-footer {
+  flex-shrink: 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--sidebar-border);
+  background: var(--sidebar-bg);
+}
+
+.support-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px;
+  border: 1px solid var(--sidebar-border);
+  border-radius: 10px;
+  background: var(--sidebar-surface);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.support-card:hover {
+  border-color: rgba(96, 165, 250, 0.24);
+  background: var(--sidebar-surface-hover);
+}
+
+.support-card > .material-symbols-rounded {
+  flex-shrink: 0;
+  color: #93c5fd;
+  font-size: 22px;
+}
+
+.support-card > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.support-card strong {
+  color: #f1f6ff;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 15px;
+}
+
+.support-card div span {
+  color: var(--sidebar-muted);
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.version {
+  padding-top: 12px;
+  color: #718aaa;
+  font-size: 10px;
+  line-height: 14px;
+  text-align: center;
+}
+
+/* ==========================================================
+   Accessibility
+   ========================================================== */
+
+.navigation-item:focus-visible,
+.navigation-subitem:focus-visible,
+.navigation-third-item:focus-visible,
+.company:focus-visible,
+.workspace-branch-option:focus-visible,
+.platform-workspace-link:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: -2px;
+}
+
+/* ==========================================================
+   Compact Screens
+   ========================================================== */
 
 @media (max-height: 760px) {
+  .brand {
+    min-height: 66px;
+  }
+
+  .business-context {
+    padding-top: 12px;
+    padding-bottom: 11px;
+  }
+
+  .navigation-item {
+    min-height: 39px;
+  }
+
+  .navigation-subitem {
+    min-height: 33px;
+  }
+
+  .navigation-third-item {
+    min-height: 31px;
+  }
+
   .workspace-branch-options {
     max-height: min(200px, 30vh);
-    padding: 6px 4px;
   }
 
-  .workspace-branch-option {
-    min-height: 40px;
-    padding: 6px 7px;
+  .sidebar-footer {
+    padding-top: 9px;
+  }
+
+  .support-card {
+    padding: 9px;
   }
 }
 
-/* =========================================
+/* ==========================================================
    Reduced Motion
-   ========================================= */
+   ========================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  button.company,
-  .workspace-branch-option {
+  .company,
+  .platform-workspace-link,
+  .navigation-item,
+  .navigation-subitem,
+  .navigation-third-item,
+  .navigation-icon,
+  .navigation-chevron,
+  .workspace-branch-option,
+  .support-card {
     transition: none;
   }
-}
-.platform-workspace-link {display:block;margin:9px 4px 4px;padding:9px 10px;border-radius:8px;background:rgba(37,99,235,.12);color:#a9c8ff;font-size:11px;font-weight:600;text-decoration:none}
-.platform-workspace-link:hover,.platform-workspace-link:focus-visible {background:rgba(37,99,235,.22)}
-
-/* Platform-only navigation and workspace identity */
-.platform-context-card {
-  display:flex;align-items:center;gap:10px;margin-top:9px;
-  padding:12px 10px;border-radius:9px;
-  background:rgba(37,99,235,.12);border:1px solid rgba(132,173,255,.16);
-  color:#dbe7ff;
-}
-.platform-context-card > .material-symbols-rounded {color:#84adff;font-size:22px}
-.platform-context-card > span:last-child {display:flex;min-width:0;flex-direction:column;gap:3px}
-.platform-context-card strong {font-size:12px;line-height:17px}
-.platform-context-card small {font-size:10px;color:#98a2b3;line-height:15px}
-.platform-workspace-link {display:flex;align-items:center;gap:5px}
-.platform-workspace-link .material-symbols-rounded {font-size:15px}
-.platform-nav-hint {margin:15px 8px;padding:12px;border-left:2px solid #475467;
-  font-size:11px;line-height:1.7;color:#98a2b3}
-
-/* Organization third-level icons: shared alignment and states */
-.navigation-third-icon {
-  display: inline-flex;
-  width: 17px;
-  height: 17px;
-  flex: 0 0 17px;
-  align-items: center;
-  justify-content: center;
-  margin-right: 9px;
-  color: #98a2b3;
-  font-size: 16px;
-  line-height: 1;
-}
-
-.navigation-third-item.active .navigation-third-icon {
-  color: #84adff;
-}
-
-.navigation-third-item:not(.navigation-disabled):hover .navigation-third-icon {
-  color: #dbe7ff;
-}
-
-.navigation-third-item.navigation-disabled .navigation-third-icon {
-  color: #667085;
 }

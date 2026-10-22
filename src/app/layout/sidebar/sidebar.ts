@@ -1,5 +1,11 @@
+
 import { Component, inject, signal } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import {
+  NavigationEnd,
+  Router,
+  RouterLink,
+  RouterLinkActive
+} from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { filter } from 'rxjs';
 
@@ -11,8 +17,10 @@ import { AuthService } from '../../core/auth/services/auth.service';
  *
  * Navigation definitions are presentation metadata.
  * They do not grant permissions or bypass backend authorization.
+ *
+ * Planned features remain visible but non-navigable until
+ * their routes and functionality are implemented.
  */
-
 export interface NavigationItem {
   readonly label: string;
   readonly icon?: string;
@@ -81,12 +89,6 @@ export class Sidebar {
   // Expanded Navigation Menus
   // =======================================================
 
-  /**
-   * Tracks expanded parent navigation groups.
-   *
-   * Angular Signals ensure predictable UI updates
-   * in Angular 22 and OnPush environments.
-   */
   readonly expandedMenus = signal<ReadonlySet<string>>(
     new Set<string>()
   );
@@ -97,388 +99,370 @@ export class Sidebar {
 
   readonly navigation: readonly NavigationItem[] = [
 
-    // =====================================================
     // 01. Dashboard
-    // =====================================================
-
     {
       label: 'Dashboard',
-      icon: 'grid_view',
+      icon: 'dashboard',
       route: '/dashboard',
       implemented: true,
       children: [
-        { label: 'Business Overview' },
-        { label: 'Sales Analytics' },
-        { label: 'Financial Overview' },
-        { label: 'Inventory Overview' },
-        { label: 'Operational Alerts' }
+        { label: 'Business Overview', icon: 'space_dashboard' },
+        { label: 'Sales Analytics', icon: 'monitoring' },
+        { label: 'Financial Overview', icon: 'account_balance' },
+        { label: 'Inventory Overview', icon: 'inventory_2' },
+        { label: 'Operational Alerts', icon: 'notification_important' }
       ]
     },
 
-    // =====================================================
     // 02. Point of Sale
-    // =====================================================
-
     {
       label: 'Point of Sale',
       icon: 'point_of_sale',
       children: [
-        { label: 'POS Terminal' },
-        { label: 'Open / Close Shift' },
-        { label: 'Cash Register' },
-        { label: 'Held Sales' },
-        { label: 'POS Transactions' },
-        { label: 'Shift Reconciliation' }
+        { label: 'POS Terminal', icon: 'desktop_windows' },
+        { label: 'Open / Close Shift', icon: 'schedule' },
+        { label: 'Cash Register', icon: 'payments' },
+        { label: 'Cash In / Out', icon: 'currency_exchange' },
+        { label: 'Held Sales', icon: 'pause_circle' },
+        { label: 'Split Payments', icon: 'call_split' },
+        { label: 'Offline Sales', icon: 'wifi_off' },
+        { label: 'POS Transactions', icon: 'receipt_long' },
+        { label: 'Shift Reconciliation', icon: 'fact_check' },
+        { label: 'Day Closing / Z-Report', icon: 'summarize' }
       ]
     },
 
-    // =====================================================
     // 03. Sales
-    // =====================================================
-
     {
       label: 'Sales',
-      icon: 'receipt_long',
+      icon: 'shopping_bag',
       children: [
-        { label: 'Sales Invoices' },
-        { label: 'Sales Orders' },
-        { label: 'Quotations' },
-        { label: 'Sales Returns & Refunds' },
-        { label: 'Customer Payments' },
-        { label: 'Discounts & Promotions' },
-        { label: 'Sales Price Lists' }
+        { label: 'Sales Invoices', icon: 'receipt_long' },
+        { label: 'Sales Orders', icon: 'shopping_cart' },
+        { label: 'Quotations', icon: 'request_quote' },
+        { label: 'Sales Returns & Refunds', icon: 'assignment_return' },
+        { label: 'Customer Payments', icon: 'payments' },
+        { label: 'Discounts & Promotions', icon: 'local_offer' },
+        { label: 'Sales Price Lists', icon: 'sell' },
+        { label: 'Delivery Management', icon: 'local_shipping' },
+        { label: 'Sales Commissions', icon: 'percent' }
       ]
     },
 
-    // =====================================================
     // 04. Purchases
-    // =====================================================
-
     {
       label: 'Purchases',
       icon: 'shopping_cart',
       children: [
-        { label: 'Purchase Requisitions' },
-        { label: 'Purchase Orders' },
-        { label: 'Goods Receiving' },
-        { label: 'Purchase Invoices' },
-        { label: 'Purchase Returns' },
-        { label: 'Supplier Payments' },
-        { label: 'Purchase History' }
+        { label: 'Purchase Requisitions', icon: 'assignment' },
+        { label: 'Supplier Quotations', icon: 'request_quote' },
+        { label: 'Purchase Orders', icon: 'shopping_basket' },
+        { label: 'Purchase Approvals', icon: 'approval' },
+        { label: 'Goods Receiving', icon: 'move_to_inbox' },
+        { label: 'Purchase Invoices', icon: 'description' },
+        { label: 'Purchase Returns', icon: 'assignment_return' },
+        { label: 'Supplier Payments', icon: 'payments' },
+        { label: 'Purchase History', icon: 'history' }
       ]
     },
 
-    // =====================================================
     // 05. Inventory
-    // =====================================================
-
     {
       label: 'Inventory',
       icon: 'inventory_2',
       children: [
-        { label: 'Stock Overview' },
-        { label: 'Warehouse Stock' },
-        { label: 'Stock Movements' },
-        { label: 'Stock Transfers' },
-        { label: 'Stock Adjustments' },
-        { label: 'Stock Counts' },
-        { label: 'Damage & Expiry' },
-        { label: 'Batch / Serial Tracking' },
-        { label: 'Reorder Management' },
-        { label: 'Inventory Valuation' }
+        { label: 'Stock Overview', icon: 'inventory' },
+        { label: 'Warehouse Stock', icon: 'warehouse' },
+        { label: 'Stock Movements', icon: 'swap_horiz' },
+        { label: 'Stock Transfers', icon: 'move_up' },
+        { label: 'Inter-Branch Transfers', icon: 'multiple_stop' },
+        { label: 'Stock Reservations', icon: 'bookmark_added' },
+        { label: 'Stock Adjustments', icon: 'tune' },
+        { label: 'Stock Counts', icon: 'fact_check' },
+        { label: 'Damage & Expiry', icon: 'warning' },
+        { label: 'Batch / Serial Tracking', icon: 'qr_code_2' },
+        { label: 'Reorder Management', icon: 'autorenew' },
+        { label: 'Low Stock Alerts', icon: 'notification_important' },
+        { label: 'Inventory Valuation', icon: 'price_check' }
       ]
     },
 
-    // =====================================================
     // 06. Products
-    // =====================================================
-
     {
       label: 'Products',
-      icon: 'sell',
+      icon: 'category',
       children: [
-        { label: 'Product Catalog' },
-        { label: 'Categories' },
-        { label: 'Brands' },
-        { label: 'Units of Measurement' },
-        { label: 'Attributes & Variations' },
-        { label: 'Barcodes & Labels' },
-        { label: 'Product Bundles' },
-        { label: 'Product Import / Export' }
+        { label: 'Product Catalog', icon: 'view_list' },
+        { label: 'Categories', icon: 'category' },
+        { label: 'Brands', icon: 'branding_watermark' },
+        { label: 'Units of Measurement', icon: 'straighten' },
+        { label: 'Attributes & Variations', icon: 'tune' },
+        { label: 'Barcodes & Labels', icon: 'qr_code' },
+        { label: 'Barcode Bulk Printing', icon: 'print' },
+        { label: 'Product Bundles', icon: 'all_inbox' },
+        { label: 'Product Price History', icon: 'history' },
+        { label: 'Product Import / Export', icon: 'import_export' }
       ]
     },
 
-    // =====================================================
     // 07. Customers
-    // =====================================================
-
     {
       label: 'Customers',
-      icon: 'group',
+      icon: 'groups',
       children: [
-        { label: 'Customer Directory' },
-        { label: 'Customer Groups' },
-        { label: 'Customer Ledger' },
-        { label: 'Credit Management' },
-        { label: 'Loyalty & Rewards' },
-        { label: 'Customer Statements' }
+        { label: 'Customer Directory', icon: 'contacts' },
+        { label: 'Customer Groups', icon: 'group_work' },
+        { label: 'Customer Ledger', icon: 'menu_book' },
+        { label: 'Credit Management', icon: 'credit_score' },
+        { label: 'Loyalty & Rewards', icon: 'loyalty' },
+        { label: 'Gift Cards', icon: 'redeem' },
+        { label: 'Customer Feedback', icon: 'reviews' },
+        { label: 'Customer Statements', icon: 'description' }
       ]
     },
 
-    // =====================================================
     // 08. Suppliers
-    // =====================================================
-
     {
       label: 'Suppliers',
       icon: 'local_shipping',
       children: [
-        { label: 'Supplier Directory' },
-        { label: 'Supplier Groups' },
-        { label: 'Supplier Ledger' },
-        { label: 'Outstanding Payables' },
-        { label: 'Supplier Statements' }
+        { label: 'Supplier Directory', icon: 'contacts' },
+        { label: 'Supplier Groups', icon: 'groups' },
+        { label: 'Supplier Ledger', icon: 'menu_book' },
+        { label: 'Outstanding Payables', icon: 'pending_actions' },
+        { label: 'Supplier Statements', icon: 'description' }
       ]
     },
 
-    // =====================================================
     // 09. Expenses
-    // =====================================================
-
     {
       label: 'Expenses',
       icon: 'payments',
       children: [
-        { label: 'Expense Entries' },
-        { label: 'Expense Categories' },
-        { label: 'Expense Approvals' },
-        { label: 'Recurring Expenses' },
-        { label: 'Expense Analysis' }
+        { label: 'Expense Entries', icon: 'receipt' },
+        { label: 'Expense Categories', icon: 'category' },
+        { label: 'Expense Approvals', icon: 'approval' },
+        { label: 'Recurring Expenses', icon: 'event_repeat' },
+        { label: 'Expense Analysis', icon: 'analytics' }
       ]
     },
 
-    // =====================================================
     // 10. Accounting & Finance
-    // =====================================================
-
     {
       label: 'Accounting & Finance',
       icon: 'account_balance',
       children: [
-        { label: 'Financial Dashboard' },
-        { label: 'Chart of Accounts' },
-        { label: 'Journal Entries' },
-        { label: 'General Ledger' },
-        { label: 'Cash & Bank Accounts' },
-        { label: 'Bank Reconciliation' },
-        { label: 'Accounts Receivable' },
-        { label: 'Accounts Payable' },
-        { label: 'Fiscal Periods' },
-        { label: 'Trial Balance' },
-        { label: 'Profit & Loss' },
-        { label: 'Balance Sheet' },
-        { label: 'Cash Flow Statement' }
+        { label: 'Financial Dashboard', icon: 'dashboard' },
+        { label: 'Chart of Accounts', icon: 'account_tree' },
+        { label: 'Journal Entries', icon: 'edit_note' },
+        { label: 'General Ledger', icon: 'menu_book' },
+        { label: 'Cash & Bank Accounts', icon: 'account_balance_wallet' },
+        { label: 'Petty Cash', icon: 'wallet' },
+        { label: 'Bank Reconciliation', icon: 'fact_check' },
+        { label: 'Mobile Banking Reconciliation', icon: 'phone_android' },
+        { label: 'Accounts Receivable', icon: 'call_received' },
+        { label: 'Accounts Payable', icon: 'call_made' },
+        { label: 'Fiscal Periods', icon: 'date_range' },
+        { label: 'Trial Balance', icon: 'balance' },
+        { label: 'Profit & Loss', icon: 'trending_up' },
+        { label: 'Balance Sheet', icon: 'account_balance' },
+        { label: 'Cash Flow Statement', icon: 'waterfall_chart' }
       ]
     },
 
-    // =====================================================
     // 11. HR & Payroll
-    // =====================================================
-
     {
       label: 'HR & Payroll',
       icon: 'badge',
       children: [
-        { label: 'Employee Directory' },
-        { label: 'Departments & Designations' },
-        { label: 'Attendance' },
-        { label: 'Leave Management' },
-        { label: 'Salary Structures' },
-        { label: 'Payroll Processing' },
-        { label: 'Payslips' },
-        { label: 'Employee Advances' }
+        { label: 'Employee Directory', icon: 'badge' },
+        { label: 'Departments & Designations', icon: 'account_tree' },
+        { label: 'Employee Shifts', icon: 'schedule' },
+        { label: 'Attendance', icon: 'how_to_reg' },
+        { label: 'Overtime Management', icon: 'more_time' },
+        { label: 'Leave Management', icon: 'event_available' },
+        { label: 'Salary Structures', icon: 'payments' },
+        { label: 'Payroll Processing', icon: 'calculate' },
+        { label: 'Payslips', icon: 'receipt_long' },
+        { label: 'Employee Advances', icon: 'request_quote' }
       ]
     },
 
-    // =====================================================
     // 12. Reports & Analytics
-    // =====================================================
-
     {
       label: 'Reports & Analytics',
       icon: 'bar_chart',
       children: [
-        { label: 'Executive Reports' },
-        { label: 'Sales Reports' },
-        { label: 'Purchase Reports' },
-        { label: 'Inventory Reports' },
-        { label: 'Product Reports' },
-        { label: 'Customer Reports' },
-        { label: 'Supplier Reports' },
-        { label: 'Expense Reports' },
-        { label: 'Tax Reports' },
-        { label: 'HR & Payroll Reports' },
-        { label: 'Branch Performance' },
-        { label: 'Report Export / Scheduling' }
+        { label: 'Executive Reports', icon: 'analytics' },
+        { label: 'Sales Reports', icon: 'trending_up' },
+        { label: 'Purchase Reports', icon: 'shopping_cart' },
+        { label: 'Inventory Reports', icon: 'inventory_2' },
+        { label: 'Product Reports', icon: 'category' },
+        { label: 'Customer Reports', icon: 'groups' },
+        { label: 'Supplier Reports', icon: 'local_shipping' },
+        { label: 'Expense Reports', icon: 'payments' },
+        { label: 'Tax Reports', icon: 'receipt_long' },
+        { label: 'VAT / Mushak Reports', icon: 'description' },
+        { label: 'HR & Payroll Reports', icon: 'badge' },
+        { label: 'Branch Performance', icon: 'store' },
+        { label: 'Cashier Performance', icon: 'point_of_sale' },
+        { label: 'Profit Margin Reports', icon: 'percent' },
+        { label: 'Report Export / Scheduling', icon: 'file_download' }
       ]
     },
 
-    // =====================================================
     // 13. Integrations
-    // =====================================================
-
     {
       label: 'Integrations',
       icon: 'hub',
       children: [
-        { label: 'Integration Overview' },
-        { label: 'Payment Gateways' },
-        { label: 'SMS & Email Providers' },
-        { label: 'E-commerce Channels' },
-        { label: 'External APIs' },
-        { label: 'Webhooks' },
-        { label: 'Integration Logs' }
+        { label: 'Integration Overview', icon: 'hub' },
+        { label: 'Payment Gateways', icon: 'credit_card' },
+        { label: 'bKash / Nagad Integration', icon: 'account_balance_wallet' },
+        { label: 'SMS & Email Providers', icon: 'forward_to_inbox' },
+        { label: 'E-commerce Channels', icon: 'storefront' },
+        { label: 'E-commerce Order Sync', icon: 'sync' },
+        { label: 'External APIs', icon: 'api' },
+        { label: 'Webhooks', icon: 'webhook' },
+        { label: 'Integration Logs', icon: 'history' }
       ]
     },
 
-    // =====================================================
     // 14. Settings
-    // =====================================================
-
     {
       label: 'Settings',
       icon: 'settings',
       children: [
 
-        // =================================================
-        // Organization
-        // =================================================
-
         {
           label: 'Organization',
+          icon: 'corporate_fare',
           children: [
             {
               label: 'Companies',
+              icon: 'domain',
               route: '/settings/organization/company-management',
               implemented: true
             },
             {
               label: 'Branches',
+              icon: 'account_tree',
               route: '/settings/organization/branch-management',
               implemented: true
             },
             {
               label: 'Warehouses',
+              icon: 'warehouse',
               route: '/settings/organization/warehouse-management',
               implemented: true
             },
             {
               label: 'POS Counters',
+              icon: 'point_of_sale',
               route: '/settings/organization/pos-counter-management',
               implemented: true
             }
           ]
         },
 
-        // =================================================
-        // Users & Access Control
-        // =================================================
-
         {
           label: 'Users & Access Control',
+          icon: 'admin_panel_settings',
           children: [
-            { label: 'Users' },
-            { label: 'Roles & Permissions' },
-            { label: 'Company / Branch Access' },
-            { label: 'User Sessions' }
+            { label: 'Users', icon: 'group' },
+            { label: 'Roles & Permissions', icon: 'verified_user' },
+            { label: 'Company / Branch Access', icon: 'account_tree' },
+            { label: 'User Sessions', icon: 'devices' }
           ]
         },
-
-        // =================================================
-        // POS Configuration
-        // =================================================
 
         {
           label: 'POS Configuration',
+          icon: 'tune',
           children: [
-            { label: 'Terminal Settings' },
-            { label: 'Receipt Printers' },
-            { label: 'Payment Methods' },
-            { label: 'Shift Policies' }
+            { label: 'Terminal Settings', icon: 'desktop_windows' },
+            { label: 'Receipt Printers', icon: 'print' },
+            { label: 'Payment Methods', icon: 'payments' },
+            { label: 'Shift Policies', icon: 'schedule' },
+            { label: 'Device Management', icon: 'devices' }
           ]
         },
-
-        // =================================================
-        // Tax Configuration
-        // =================================================
 
         {
           label: 'Tax Configuration',
+          icon: 'receipt_long',
           children: [
-            { label: 'Tax Rates' },
-            { label: 'Tax Groups' },
-            { label: 'Tax Rules' }
+            { label: 'Tax Rates', icon: 'percent' },
+            { label: 'Tax Groups', icon: 'category' },
+            { label: 'Tax Rules', icon: 'rule' }
           ]
         },
-
-        // =================================================
-        // Document Configuration
-        // =================================================
 
         {
           label: 'Document Configuration',
+          icon: 'description',
           children: [
-            { label: 'Invoice & Receipt Templates' },
-            { label: 'Document Numbering' },
-            { label: 'Print Settings' }
+            { label: 'Invoice & Receipt Templates', icon: 'receipt' },
+            { label: 'Document Numbering', icon: 'format_list_numbered' },
+            { label: 'Print Settings', icon: 'print' }
           ]
         },
-
-        // =================================================
-        // Regional Settings
-        // =================================================
 
         {
           label: 'Regional Settings',
+          icon: 'language',
           children: [
-            { label: 'Currency & Localization' },
-            { label: 'Date & Time Formats' },
-            { label: 'Time Zone' }
+            { label: 'Currency & Localization', icon: 'currency_exchange' },
+            { label: 'Date & Time Formats', icon: 'calendar_month' },
+            { label: 'Time Zone', icon: 'schedule' }
           ]
         },
-
-        // =================================================
-        // Notifications
-        // =================================================
 
         {
           label: 'Notifications',
+          icon: 'notifications',
           children: [
-            { label: 'Notification Templates' },
-            { label: 'Notification Rules' }
+            { label: 'Notification Templates', icon: 'drafts' },
+            { label: 'Notification Rules', icon: 'rule' }
           ]
         },
 
-        { label: 'System Preferences' },
-        { label: 'Backup & Restore' },
-        { label: 'Audit Logs' },
-        { label: 'System Health' }
+        {
+          label: 'Approval Workflows',
+          icon: 'approval',
+          children: [
+            { label: 'Approval Rules', icon: 'rule' },
+            { label: 'Approval Levels', icon: 'account_tree' },
+            { label: 'Approval History', icon: 'history' }
+          ]
+        },
+
+        {
+          label: 'Data Management',
+          icon: 'database',
+          children: [
+            { label: 'Data Import / Export', icon: 'import_export' },
+            { label: 'Data Validation', icon: 'fact_check' }
+          ]
+        },
+
+        { label: 'System Preferences', icon: 'settings_suggest' },
+        { label: 'Backup & Restore', icon: 'backup' },
+        { label: 'Audit Logs', icon: 'history' },
+        { label: 'System Health', icon: 'monitor_heart' }
       ]
     },
 
-    // =====================================================
     // 15. Help & Support
-    // =====================================================
-
     {
       label: 'Help & Support',
       icon: 'help_outline',
       children: [
-        { label: 'User Guide' },
-        { label: 'Knowledge Base' },
-        { label: 'Support Requests' },
-        { label: 'Release Notes' },
-        { label: 'About iPOS' }
+        { label: 'User Guide', icon: 'menu_book' },
+        { label: 'Knowledge Base', icon: 'school' },
+        { label: 'Support Requests', icon: 'support_agent' },
+        { label: 'Release Notes', icon: 'new_releases' },
+        { label: 'About iPOS', icon: 'info' }
       ]
     }
 

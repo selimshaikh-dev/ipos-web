@@ -1,3 +1,4 @@
+
 <div class="sidebar">
 
   <!-- =====================================================
@@ -10,7 +11,7 @@
 
     <div class="brand-copy">
       <div class="brand-name">iPOS</div>
-      <div class="brand-caption">Business Management</div>
+      <div class="brand-caption">Enterprise Business Suite</div>
     </div>
 
   </div>
@@ -21,69 +22,149 @@
        ===================================================== -->
 
   <div class="business-context">
-    <span class="context-label">WORKSPACE</span>
+
+    <span class="context-label">ACTIVE WORKSPACE</span>
+
     @if (isPlatformMode()) {
+
       <div class="platform-context-card">
-        <span class="material-symbols-rounded" aria-hidden="true">admin_panel_settings</span>
+
+        <span class="material-symbols-rounded" aria-hidden="true">
+          admin_panel_settings
+        </span>
+
         <span>
           <strong>Platform Administration</strong>
           <small>System-wide administration</small>
         </span>
+
       </div>
+
       <a routerLink="/platform" class="platform-workspace-link">
+        <span class="material-symbols-rounded" aria-hidden="true">
+          swap_horiz
+        </span>
         Manage / switch company
       </a>
+
     } @else {
+
       @if (isSuperAdmin()) {
+
         <a routerLink="/platform" class="platform-workspace-link">
-          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+
+          <span class="material-symbols-rounded" aria-hidden="true">
+            arrow_back
+          </span>
+
           Back to Platform
+
         </a>
+
       }
-      <button type="button" class="company"
+
+      <button
+        type="button"
+        class="company"
         [attr.aria-expanded]="isBranchSelectorOpen()"
         aria-controls="workspace-branch-options"
         aria-label="Select active branch"
-        (click)="toggleBranchSelector()">
-        <span class="company-avatar">{{ workspace.companyInitials() }}</span>
-        <span class="company-details">
-          <strong>{{ workspace.companyDisplayName() }}</strong>
-          <span>{{ workspace.branchDisplayName() }}</span>
+        (click)="toggleBranchSelector()"
+      >
+
+        <span class="company-avatar">
+          {{ workspace.companyInitials() }}
         </span>
-        <span class="material-symbols-rounded context-arrow" aria-hidden="true">
+
+        <span class="company-details">
+
+          <strong>
+            {{ workspace.companyDisplayName() }}
+          </strong>
+
+          <span>
+            {{ workspace.branchDisplayName() }}
+          </span>
+
+        </span>
+
+        <span
+          class="material-symbols-rounded context-arrow"
+          aria-hidden="true"
+        >
           {{ isBranchSelectorOpen() ? 'expand_less' : 'unfold_more' }}
         </span>
+
       </button>
+
       @if (isBranchSelectorOpen()) {
-        <div id="workspace-branch-options" class="workspace-branch-options"
-          aria-label="Available branches">
-          <span class="workspace-branch-heading">SELECT BRANCH</span>
+
+        <div
+          id="workspace-branch-options"
+          class="workspace-branch-options"
+          aria-label="Available branches"
+        >
+
+          <span class="workspace-branch-heading">
+            SELECT BRANCH
+          </span>
+
           @for (branch of workspace.branchOptions(); track branch.id) {
-            <button type="button" class="workspace-branch-option"
+
+            <button
+              type="button"
+              class="workspace-branch-option"
               [class.workspace-branch-option-active]="workspace.branchId() === branch.id"
               [attr.aria-pressed]="workspace.branchId() === branch.id"
-              (click)="selectBranch(branch.id)">
-              <span class="material-symbols-rounded workspace-branch-icon"
-                aria-hidden="true">store</span>
-              <span class="workspace-branch-details">
-                <strong>{{ branch.name }}</strong>
-                <span>{{ branch.code }}</span>
+              (click)="selectBranch(branch.id)"
+            >
+
+              <span
+                class="material-symbols-rounded workspace-branch-icon"
+                aria-hidden="true"
+              >
+                store
               </span>
+
+              <span class="workspace-branch-details">
+
+                <strong>{{ branch.name }}</strong>
+
+                <span>{{ branch.code }}</span>
+
+              </span>
+
               @if (workspace.branchId() === branch.id) {
-                <span class="material-symbols-rounded workspace-branch-check"
-                  aria-hidden="true">check_circle</span>
+
+                <span
+                  class="material-symbols-rounded workspace-branch-check"
+                  aria-hidden="true"
+                >
+                  check_circle
+                </span>
+
               }
+
             </button>
+
           }
+
           @if (workspace.branchOptions().length === 0) {
+
             <p class="workspace-branch-heading" role="status">
               No authorized branches available.
             </p>
+
           }
+
         </div>
+
       }
+
     }
+
   </div>
+
 
   <!-- =====================================================
        Enterprise Navigation
@@ -91,275 +172,322 @@
 
   <nav class="navigation" aria-label="Main navigation">
 
-    <span class="navigation-title">MAIN MENU</span>
+    <span class="navigation-title">
+      MAIN NAVIGATION
+    </span>
+
     @if (isPlatformMode()) {
-      <a class="navigation-item" routerLink="/platform"
-        routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-        <span class="material-symbols-rounded navigation-icon">dashboard</span>
-        <span class="navigation-label">Platform Dashboard</span>
+
+      <!-- Platform Dashboard -->
+
+      <a
+        class="navigation-item"
+        routerLink="/platform"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: true }"
+      >
+
+        <span
+          class="material-symbols-rounded navigation-icon"
+          aria-hidden="true"
+        >
+          dashboard
+        </span>
+
+        <span class="navigation-label">
+          Platform Dashboard
+        </span>
+
       </a>
-      <a class="navigation-item"
+
+
+      <!-- Company Management -->
+
+      <a
+        class="navigation-item"
         routerLink="/settings/organization/company-management"
-        routerLinkActive="active">
-        <span class="material-symbols-rounded navigation-icon">domain</span>
-        <span class="navigation-label">Companies</span>
+        routerLinkActive="active"
+      >
+
+        <span
+          class="material-symbols-rounded navigation-icon"
+          aria-hidden="true"
+        >
+          domain
+        </span>
+
+        <span class="navigation-label">
+          Companies
+        </span>
+
       </a>
+
       <div class="platform-nav-hint">
         Select an authorized company on the Platform Dashboard
         to access business modules.
       </div>
+
     } @else {
-    @for (item of navigation; track item.label) {
 
       <!-- =================================================
            LEVEL 1: Main Modules
            ================================================= -->
 
-      @if (item.children?.length) {
+      @for (item of navigation; track item.label) {
 
-        <div class="navigation-group">
+        @if (item.children?.length) {
 
-          <button
-            type="button"
-            class="navigation-item navigation-parent"
-            [class.navigation-expanded]="isMenuExpanded(item.label)"
-            [attr.aria-expanded]="isMenuExpanded(item.label)"
-            (click)="toggleMenu(item.label)"
-          >
+          <div class="navigation-group">
 
-            <span class="material-symbols-rounded navigation-icon">
-              {{ item.icon }}
-            </span>
-
-            <span class="navigation-label">
-              {{ item.label }}
-            </span>
-
-            <span
-              class="material-symbols-rounded navigation-chevron"
-              [class.navigation-chevron-open]="isMenuExpanded(item.label)"
-              aria-hidden="true"
+            <button
+              type="button"
+              class="navigation-item navigation-parent"
+              [class.navigation-expanded]="isMenuExpanded(item.label)"
+              [attr.aria-expanded]="isMenuExpanded(item.label)"
+              (click)="toggleMenu(item.label)"
             >
-              keyboard_arrow_down
-            </span>
 
-          </button>
+              <span
+                class="material-symbols-rounded navigation-icon"
+                aria-hidden="true"
+              >
+                {{ item.icon || 'apps' }}
+              </span>
+
+              <span class="navigation-label">
+                {{ item.label }}
+              </span>
+
+              <span
+                class="material-symbols-rounded navigation-chevron"
+                [class.navigation-chevron-open]="isMenuExpanded(item.label)"
+                aria-hidden="true"
+              >
+                keyboard_arrow_down
+              </span>
+
+            </button>
 
 
-          <!-- =============================================
-               LEVEL 2: Module Features
-               ============================================= -->
+            <!-- =============================================
+                 LEVEL 2: Module Features
+                 ============================================= -->
 
-          @if (isMenuExpanded(item.label)) {
+            @if (isMenuExpanded(item.label)) {
 
-            <div class="navigation-submenu">
+              <div class="navigation-submenu">
 
-              @for (child of item.children; track child.label) {
+                @for (child of item.children; track child.label) {
 
-                @if (child.children?.length) {
+                  @if (child.children?.length) {
 
-                  <div class="navigation-subgroup">
+                    <div class="navigation-subgroup">
 
-                    <button
-                      type="button"
-                      class="navigation-subitem navigation-subparent"
-                      [class.navigation-expanded]="
-                        isMenuExpanded(
-                          getMenuKey(item.label, child.label)
-                        )
-                      "
-                      [attr.aria-expanded]="
-                        isMenuExpanded(
-                          getMenuKey(item.label, child.label)
-                        )
-                      "
-                      (click)="
-                        toggleMenu(
-                          getMenuKey(item.label, child.label)
-                        )
-                      "
-                    >
-
-                      <span class="navigation-subitem-indicator"></span>
-
-                      <span class="navigation-label">
-                        {{ child.label }}
-                      </span>
-
-                      <span
-                        class="material-symbols-rounded navigation-chevron"
-                        [class.navigation-chevron-open]="
-                          isMenuExpanded(
-                            getMenuKey(item.label, child.label)
-                          )
-                        "
-                        aria-hidden="true"
+                      <button
+                        type="button"
+                        class="navigation-subitem navigation-subparent"
+                        [class.navigation-expanded]="isMenuExpanded(getMenuKey(item.label, child.label))"
+                        [attr.aria-expanded]="isMenuExpanded(getMenuKey(item.label, child.label))"
+                        (click)="toggleMenu(getMenuKey(item.label, child.label))"
                       >
-                        keyboard_arrow_down
-                      </span>
 
-                    </button>
+                        <span
+                          class="material-symbols-rounded navigation-subicon"
+                          aria-hidden="true"
+                        >
+                          {{ child.icon || 'folder' }}
+                        </span>
+
+                        <span class="navigation-label">
+                          {{ child.label }}
+                        </span>
+
+                        <span
+                          class="material-symbols-rounded navigation-chevron"
+                          [class.navigation-chevron-open]="isMenuExpanded(getMenuKey(item.label, child.label))"
+                          aria-hidden="true"
+                        >
+                          keyboard_arrow_down
+                        </span>
+
+                      </button>
 
 
-                    <!-- =====================================
-                         LEVEL 3: Nested Features
-                         ===================================== -->
+                      <!-- =====================================
+                           LEVEL 3: Nested Features
+                           ===================================== -->
 
-                    @if (
-                      isMenuExpanded(
-                        getMenuKey(item.label, child.label)
-                      )
-                    ) {
+                      @if (isMenuExpanded(getMenuKey(item.label, child.label))) {
 
-                      <div class="navigation-third-level">
+                        <div class="navigation-third-level">
 
-                        @for (
-                          grandchild of child.children;
-                          track grandchild.label
-                        ) {
+                          @for (grandchild of child.children; track grandchild.label) {
 
-                          @if (
-                            grandchild.implemented &&
-                            grandchild.route
-                          ) {
+                            @if (grandchild.implemented && grandchild.route) {
 
-                            <a
-                              class="navigation-third-item"
-                              [routerLink]="grandchild.route"
-                              routerLinkActive="active"
-                              [routerLinkActiveOptions]="{ exact: true }"
-                            >
-                              @if (child.label === 'Organization') {
-                                <span class="material-symbols-rounded navigation-third-icon" aria-hidden="true">
-                                  {{ grandchild.label === 'Companies' ? 'domain' : grandchild.label === 'Branches' ? 'account_tree' : grandchild.label === 'Warehouses' ? 'warehouse' : grandchild.label === 'POS Counters' ? 'point_of_sale' : 'radio_button_unchecked' }}
+                              <a
+                                class="navigation-third-item"
+                                [routerLink]="grandchild.route"
+                                routerLinkActive="active"
+                                [routerLinkActiveOptions]="{ exact: true }"
+                              >
+
+                                <span
+                                  class="material-symbols-rounded navigation-third-icon"
+                                  aria-hidden="true"
+                                >
+                                  {{ grandchild.icon || 'radio_button_unchecked' }}
                                 </span>
-                              } @else {
-                                <span class="navigation-third-dot"></span>
-                              }
 
-                              <span>{{ grandchild.label }}</span>
-                            </a>
-
-                          } @else {
-
-                            <span
-                              class="navigation-third-item navigation-disabled"
-                              aria-disabled="true"
-                            >
-                              @if (child.label === 'Organization') {
-                                <span class="material-symbols-rounded navigation-third-icon" aria-hidden="true">
-                                  {{ grandchild.label === 'Companies' ? 'domain' : grandchild.label === 'Branches' ? 'account_tree' : grandchild.label === 'Warehouses' ? 'warehouse' : grandchild.label === 'POS Counters' ? 'point_of_sale' : 'radio_button_unchecked' }}
+                                <span class="navigation-label">
+                                  {{ grandchild.label }}
                                 </span>
-                              } @else {
-                                <span class="navigation-third-dot"></span>
-                              }
 
-                              <span>{{ grandchild.label }}</span>
-                            </span>
+                              </a>
+
+                            } @else {
+
+                              <span
+                                class="navigation-third-item navigation-disabled"
+                                aria-disabled="true"
+                              >
+
+                                <span
+                                  class="material-symbols-rounded navigation-third-icon"
+                                  aria-hidden="true"
+                                >
+                                  {{ grandchild.icon || 'radio_button_unchecked' }}
+                                </span>
+
+                                <span class="navigation-label">
+                                  {{ grandchild.label }}
+                                </span>
+
+                              </span>
+
+                            }
 
                           }
 
-                        }
+                        </div>
 
-                      </div>
+                      }
 
-                    }
-
-                  </div>
-
-                } @else {
-
-                  <!-- =======================================
-                       LEVEL 2: Feature Link
-                       ======================================= -->
-
-                  @if (child.implemented && child.route) {
-
-                    <a
-                      class="navigation-subitem"
-                      [routerLink]="child.route"
-                      routerLinkActive="active"
-                      [routerLinkActiveOptions]="{ exact: true }"
-                    >
-                      <span class="navigation-subitem-indicator"></span>
-
-                      <span class="navigation-label">
-                        {{ child.label }}
-                      </span>
-                    </a>
+                    </div>
 
                   } @else {
 
-                    <span
-                      class="navigation-subitem navigation-disabled"
-                      aria-disabled="true"
-                    >
-                      <span class="navigation-subitem-indicator"></span>
+                    <!-- =======================================
+                         LEVEL 2: Feature Link
+                         ======================================= -->
 
-                      <span class="navigation-label">
-                        {{ child.label }}
+                    @if (child.implemented && child.route) {
+
+                      <a
+                        class="navigation-subitem"
+                        [routerLink]="child.route"
+                        routerLinkActive="active"
+                        [routerLinkActiveOptions]="{ exact: true }"
+                      >
+
+                        <span
+                          class="material-symbols-rounded navigation-subicon"
+                          aria-hidden="true"
+                        >
+                          {{ child.icon || 'radio_button_unchecked' }}
+                        </span>
+
+                        <span class="navigation-label">
+                          {{ child.label }}
+                        </span>
+
+                      </a>
+
+                    } @else {
+
+                      <span
+                        class="navigation-subitem navigation-disabled"
+                        aria-disabled="true"
+                      >
+
+                        <span
+                          class="material-symbols-rounded navigation-subicon"
+                          aria-hidden="true"
+                        >
+                          {{ child.icon || 'radio_button_unchecked' }}
+                        </span>
+
+                        <span class="navigation-label">
+                          {{ child.label }}
+                        </span>
+
                       </span>
-                    </span>
+
+                    }
 
                   }
 
                 }
 
-              }
+              </div>
 
-            </div>
+            }
 
-          }
-
-        </div>
-
-      } @else {
-
-        <!-- =================================================
-             LEVEL 1: Direct Navigation Link
-             ================================================= -->
-
-        @if (item.implemented && item.route) {
-
-          <a
-            class="navigation-item"
-            [routerLink]="item.route"
-            routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: true }"
-          >
-
-            <span class="material-symbols-rounded navigation-icon">
-              {{ item.icon }}
-            </span>
-
-            <span class="navigation-label">
-              {{ item.label }}
-            </span>
-
-          </a>
+          </div>
 
         } @else {
 
-          <span
-            class="navigation-item navigation-disabled"
-            aria-disabled="true"
-          >
+          <!-- =================================================
+               LEVEL 1: Direct Navigation Link
+               ================================================= -->
 
-            <span class="material-symbols-rounded navigation-icon">
-              {{ item.icon }}
+          @if (item.implemented && item.route) {
+
+            <a
+              class="navigation-item"
+              [routerLink]="item.route"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
+
+              <span
+                class="material-symbols-rounded navigation-icon"
+                aria-hidden="true"
+              >
+                {{ item.icon || 'apps' }}
+              </span>
+
+              <span class="navigation-label">
+                {{ item.label }}
+              </span>
+
+            </a>
+
+          } @else {
+
+            <span
+              class="navigation-item navigation-disabled"
+              aria-disabled="true"
+            >
+
+              <span
+                class="material-symbols-rounded navigation-icon"
+                aria-hidden="true"
+              >
+                {{ item.icon || 'apps' }}
+              </span>
+
+              <span class="navigation-label">
+                {{ item.label }}
+              </span>
+
             </span>
 
-            <span class="navigation-label">
-              {{ item.label }}
-            </span>
-
-          </span>
+          }
 
         }
 
       }
-
-    }
 
     }
 
@@ -374,19 +502,25 @@
 
     <div class="support-card">
 
-      <span class="material-symbols-rounded">
-        help
+      <span
+        class="material-symbols-rounded"
+        aria-hidden="true"
+      >
+        support_agent
       </span>
 
       <div>
+
         <strong>Need help?</strong>
+
         <span>Contact support</span>
+
       </div>
 
     </div>
 
     <div class="version">
-      iPOS v1.0
+      iPOS v1.0 · Enterprise Suite
     </div>
 
   </div>
