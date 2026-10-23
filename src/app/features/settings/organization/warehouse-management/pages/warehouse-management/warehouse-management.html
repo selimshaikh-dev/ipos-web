@@ -85,7 +85,7 @@
       type="button"
       [class.is-active]="activeView() === 'details'"
       [attr.aria-current]="activeView() === 'details' ? 'page' : null"
-      [disabled]="lastCreatedWarehouse() === null"
+      [disabled]="selectedWarehouse() === null || isLoadingWarehouseDetails()"
       (click)="showDetails()">
 
       <span
@@ -506,6 +506,7 @@
                     <th scope="col">Default</th>
                     <th scope="col">Sales</th>
                     <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -529,6 +530,16 @@
                           <span class="status-dot"></span>
                           {{ warehouse.isActive ? 'Active' : 'Inactive' }}
                         </span>
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="button button-secondary"
+                          [attr.aria-label]="'View details for ' + warehouse.name"
+                          (click)="viewWarehouse(warehouse.id)">
+                          <span class="material-symbols-rounded" aria-hidden="true">visibility</span>
+                          View
+                        </button>
                       </td>
                     </tr>
                   }
@@ -583,7 +594,27 @@
 
   @if (activeView() === 'details') {
 
-    @if (lastCreatedWarehouse(); as warehouse) {
+    @if (isLoadingWarehouseDetails()) {
+      <div class="warehouse-directory-state" role="status" aria-live="polite">
+        <span class="button-spinner" aria-hidden="true"></span>
+        <span>Loading warehouse details...</span>
+      </div>
+    }
+
+    @if (warehouseDetailsError(); as message) {
+      <div class="alert alert-error" role="alert">
+        <div class="alert-icon">!</div>
+        <div class="alert-content">
+          <strong>Unable to load warehouse details</strong>
+          <span>{{ message }}</span>
+        </div>
+        <button type="button" class="button button-secondary" (click)="showDirectory()">
+          Back to warehouses
+        </button>
+      </div>
+    }
+
+    @if (selectedWarehouse(); as warehouse) {
 
       <div class="profile-toolbar">
 
@@ -661,13 +692,116 @@
             <h2>Warehouse Information</h2>
             <p>
               Server-confirmed details of the
-              newly created warehouse.
+              selected warehouse.
             </p>
           </div>
+
+          @if (!isEditOpen()) {
+            <button
+              type="button"
+              class="button button-primary"
+              [disabled]="isUpdating() || isLoadingWarehouseDetails()"
+              (click)="openEditWarehouse()">
+              <span class="material-symbols-rounded" aria-hidden="true">edit</span>
+              Edit Warehouse
+            </button>
+          }
 
         </div>
 
         <div class="form-card-body">
+
+          @if (isEditOpen()) {
+
+            <form
+              class="company-create-form"
+              [formGroup]="editForm"
+              (ngSubmit)="updateWarehouse()"
+              novalidate>
+
+              <div class="company-create-heading">
+                <div>
+                  <h3>Edit Warehouse</h3>
+                  <p>Update the name, type and sales eligibility. Code, default status and active status cannot be changed here.</p>
+                </div>
+              </div>
+
+              @if (updateError(); as message) {
+                <div class="alert alert-error" role="alert">
+                  <div class="alert-icon">!</div>
+                  <div class="alert-content">
+                    <strong>Unable to update warehouse</strong>
+                    <span>{{ message }}</span>
+                  </div>
+                </div>
+              }
+
+              <div class="form-grid">
+
+                <div class="form-field form-field-wide">
+                  <label for="editWarehouseName">
+                    Warehouse Name <span class="required">*</span>
+                  </label>
+                  <input
+                    id="editWarehouseName"
+                    type="text"
+                    formControlName="name"
+                    maxlength="200"
+                    autocomplete="off"
+                    [attr.aria-invalid]="editForm.controls.name.touched && editForm.controls.name.invalid">
+                  @if (editForm.controls.name.touched && editForm.controls.name.invalid) {
+                    <span class="field-error">Enter a warehouse name (maximum 200 characters).</span>
+                  }
+                </div>
+
+                <div class="form-field">
+                  <label for="editWarehouseType">
+                    Warehouse Type <span class="required">*</span>
+                  </label>
+                  <select id="editWarehouseType" formControlName="type">
+                    @for (type of warehouseTypes; track type.value) {
+                      <option [ngValue]="type.value">{{ type.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <div class="form-field warehouse-option-field">
+                  <label for="editWarehouseAllowSales">Sales Operations</label>
+                  <label class="warehouse-checkbox-label">
+                    <input
+                      id="editWarehouseAllowSales"
+                      type="checkbox"
+                      formControlName="allowSales">
+                    <span>Allow sales from this warehouse</span>
+                  </label>
+                </div>
+
+              </div>
+
+              <div class="company-create-actions">
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  [disabled]="isUpdating()"
+                  (click)="closeEditWarehouse()">
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="button button-primary"
+                  [disabled]="isUpdating() || editForm.invalid">
+                  @if (isUpdating()) {
+                    <span class="button-spinner" aria-hidden="true"></span>
+                    Saving...
+                  } @else {
+                    Save Changes
+                  }
+                </button>
+              </div>
+
+            </form>
+
+          } @else {
 
           <div class="form-grid">
 
@@ -740,6 +874,8 @@
             </div>
 
           </div>
+
+          }
 
         </div>
 

@@ -1,4 +1,3 @@
-
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
@@ -7,6 +6,7 @@ import { environment } from '../../../../../../environments/environment';
 
 import {
   CreateWarehouseRequest,
+  UpdateWarehouseRequest,
   Warehouse,
   WarehouseListQuery,
   WarehousePagedResult
@@ -108,6 +108,29 @@ export class WarehouseService {
   }
 
   // =========================================================
+  // Get Warehouse By ID
+  //
+  // GET /api/branches/{branchId}/warehouses/{warehouseId}
+  //
+  // Features:
+  // - Retrieve a single warehouse
+  // - Branch-scoped lookup
+  // - Retrieve RowVersion for optimistic concurrency
+  //
+  // Authorization is enforced by the backend.
+  // =========================================================
+
+  getWarehouseById(
+    branchId: number,
+    warehouseId: number
+  ): Observable<Warehouse> {
+
+    return this.http.get<Warehouse>(
+      `${this.apiUrl}/${branchId}/warehouses/${warehouseId}`
+    );
+  }
+
+  // =========================================================
   // Create Warehouse
   //
   // POST /api/branches/{branchId}/warehouses
@@ -134,6 +157,47 @@ export class WarehouseService {
 
     return this.http.post<Warehouse>(
       `${this.apiUrl}/${branchId}/warehouses`,
+      request
+    );
+  }
+
+  // =========================================================
+  // Update Warehouse
+  //
+  // PUT /api/branches/{branchId}/warehouses/{warehouseId}
+  //
+  // Requires SuperAdmin authorization.
+  //
+  // Editable properties:
+  // - Name
+  // - Type
+  // - AllowSales
+  //
+  // Protected properties:
+  // - Code
+  // - IsDefault
+  // - IsActive
+  //
+  // Uses RowVersion for optimistic concurrency.
+  //
+  // HTTP Responses:
+  // - 200: Updated Warehouse
+  // - 400: Validation failed
+  // - 401/403: Unauthorized / Forbidden
+  // - 404: Warehouse not found
+  // - 409: Concurrency or dependency conflict
+  //
+  // Error handling is performed by the component.
+  // =========================================================
+
+  updateWarehouse(
+    branchId: number,
+    warehouseId: number,
+    request: UpdateWarehouseRequest
+  ): Observable<Warehouse> {
+
+    return this.http.put<Warehouse>(
+      `${this.apiUrl}/${branchId}/warehouses/${warehouseId}`,
       request
     );
   }

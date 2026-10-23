@@ -1,4 +1,3 @@
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -6,7 +5,8 @@ import {
   computed,
   effect,
   inject,
-  signal
+  signal,
+  untracked
 } from '@angular/core';
 
 import { HttpErrorResponse } from '@angular/common/http';
@@ -28,7 +28,9 @@ import {
 
 import {
   CreatePosCounterRequest,
-  PosCounter
+  UpdatePosCounterRequest,
+  PosCounter,
+  PosCounterPagedResult
 } from '../../models/pos-counter.model';
 
 import {
@@ -106,11 +108,31 @@ export class PosCounterManagement {
   // =========================================================
   // Counter State
   //
-  // Until the List API exists, only counters created
-  // during the current component session are displayed.
+  // Records are loaded from the selected branch via the List API.
+  // Search remains client-side until the directory HTML is upgraded.
   // =========================================================
 
   readonly counters = signal<PosCounter[]>([]);
+
+  readonly isLoadingCounters = signal(false);
+
+  readonly countersLoadError = signal<string | null>(null);
+
+  readonly pageNumber = signal(1);
+
+  readonly pageSize = signal(20);
+
+  readonly totalCount = signal(0);
+
+  readonly totalPages = signal(0);
+
+  readonly hasPreviousPage = signal(false);
+
+  readonly hasNextPage = signal(false);
+
+  private listSubscription?: Subscription;
+
+  private listRequestSequence = 0;
 
   readonly totalCounters = computed(
     () => this.counters().length
@@ -160,6 +182,18 @@ export class PosCounterManagement {
   readonly isSaving = signal(false);
 
   readonly formError = signal<string | null>(null);
+
+  readonly formMode = signal<'create' | 'edit'>('create');
+
+  readonly editingCounter = signal<PosCounter | null>(null);
+
+  readonly isLoadingCounterDetails = signal(false);
+
+  readonly counterDetailsError = signal<string | null>(null);
+
+  private detailsSubscription?: Subscription;
+
+  private detailsRequestSequence = 0;
 
   private saveSubscription?: Subscription;
 
@@ -213,9 +247,13 @@ export class PosCounterManagement {
       // Prevent responses from an old workspace context.
       this.saveSubscription?.unsubscribe();
 
+      this.cancelCounterDetails();
+      this.cancelCounterLoad();
+
       this.cancelWorkspaceRefresh();
 
       this.counters.set([]);
+      this.pageNumber.set(1);
 
       this.searchTerm.set('');
 
@@ -225,10 +263,15 @@ export class PosCounterManagement {
 
       this.refreshManagementPermission();
 
+      // Prevent signals read during HTTP setup from becoming effect dependencies.
+      untracked(() => this.loadCounters());
+
     });
 
     this.destroyRef.onDestroy(() => {
       this.cancelWorkspaceRefresh();
+      this.cancelCounterDetails();
+      this.cancelCounterLoad();
     });
   }
 
@@ -257,6 +300,118 @@ export class PosCounterManagement {
   );
 
   // =========================================================
+  // Server-side Counter Directory
+  // =========================================================
+
+  loadCounters(): void {
+    this.cancelCounterLoad();
+
+    const companyId = this.companyId();
+    const branchId = this.branchId();
+    const userId = this.authService.getCurrentUser()?.userId;
+    const generation = this.authService.getSessionGeneration();
+
+    this.counters.set([]);
+    this.totalCount.set(0);
+    this.totalPages.set(0);
+    this.hasPreviousPage.set(false);
+    this.hasNextPage.set(false);
+    this.countersLoadError.set(null);
+
+    if (
+      companyId === null || companyId <= 0 ||
+      branchId === null || branchId <= 0 ||
+      !userId || !this.authService.isAuthenticated()
+    ) {
+      this.isLoadingCounters.set(false);
+      return;
+    }
+
+    const sequence = ++this.listRequestSequence;
+    this.isLoadingCounters.set(true);
+
+    this.listSubscription = this.posCounterService
+      .getPosCounters(branchId, {
+        includeInactive: true,
+        pageNumber: this.pageNumber(),
+        pageSize: this.pageSize()
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response: PosCounterPagedResult) => {
+          if (
+            sequence !== this.listRequestSequence ||
+            !this.isCurrentSession(companyId, branchId, generation, userId)
+          ) {
+            return;
+          }
+
+          if (
+            !response || !Array.isArray(response.items) ||
+            !Number.isSafeInteger(response.totalCount) || response.totalCount < 0 ||
+            !Number.isSafeInteger(response.totalPages) || response.totalPages < 0 ||
+            !Number.isSafeInteger(response.pageNumber) || response.pageNumber < 1 ||
+            !Number.isSafeInteger(response.pageSize) || response.pageSize < 1 ||
+            response.items.some(counter => counter.branchId !== branchId)
+          ) {
+            this.countersLoadError.set('The server returned an invalid counter directory.');
+            this.isLoadingCounters.set(false);
+            return;
+          }
+
+          this.counters.set(response.items);
+          this.totalCount.set(response.totalCount);
+          this.totalPages.set(response.totalPages);
+          this.pageNumber.set(response.pageNumber);
+          this.hasPreviousPage.set(response.hasPreviousPage);
+          this.hasNextPage.set(response.hasNextPage);
+          this.isLoadingCounters.set(false);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (
+            sequence !== this.listRequestSequence ||
+            !this.isCurrentSession(companyId, branchId, generation, userId)
+          ) {
+            return;
+          }
+
+          this.isLoadingCounters.set(false);
+          this.countersLoadError.set(
+            error.status === 403
+              ? 'You do not have permission to view POS counters.'
+              : error.status === 404
+                ? 'The selected branch could not be found.'
+                : 'Unable to load POS counters. Please retry.'
+          );
+        }
+      });
+  }
+
+  goToCounterPage(page: number): void {
+    if (
+      !Number.isSafeInteger(page) || page < 1 ||
+      page === this.pageNumber() ||
+      (this.totalPages() > 0 && page > this.totalPages())
+    ) {
+      return;
+    }
+
+    this.pageNumber.set(page);
+    this.loadCounters();
+  }
+
+  retryCounterLoad(): void {
+    this.loadCounters();
+  }
+
+  private cancelCounterLoad(): void {
+    ++this.listRequestSequence;
+    this.listSubscription?.unsubscribe();
+    this.listSubscription = undefined;
+    this.isLoadingCounters.set(false);
+  }
+
+  // =========================================================
   // Directory Search
   // =========================================================
 
@@ -266,6 +421,89 @@ export class PosCounterManagement {
 
   clearSearch(): void {
     this.searchTerm.set('');
+  }
+
+  // =========================================================
+  // GetById / Open Edit Form
+  // =========================================================
+
+  openEdit(counterId: number): void {
+    this.refreshManagementPermission();
+    if (
+      !this.canManageCounters() || !this.hasSelectedBranch() ||
+      this.isSaving() || !Number.isSafeInteger(counterId) || counterId <= 0
+    ) {
+      return;
+    }
+
+    const companyId = this.companyId();
+    const branchId = this.branchId();
+    const userId = this.authService.getCurrentUser()?.userId;
+    const generation = this.authService.getSessionGeneration();
+    if (companyId === null || branchId === null || !userId) {
+      return;
+    }
+
+    this.cancelCounterDetails();
+    this.resetFormState();
+    this.counterDetailsError.set(null);
+    this.isLoadingCounterDetails.set(true);
+    const sequence = ++this.detailsRequestSequence;
+
+    this.detailsSubscription = this.posCounterService
+      .getPosCounterById(branchId, counterId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: counter => {
+          if (
+            sequence !== this.detailsRequestSequence ||
+            !this.isCurrentSession(companyId, branchId, generation, userId)
+          ) {
+            return;
+          }
+          this.isLoadingCounterDetails.set(false);
+          if (
+            !counter || counter.id !== counterId ||
+            counter.branchId !== branchId || !counter.rowVersion ||
+            !counter.code
+          ) {
+            this.counterDetailsError.set('The server returned an invalid POS counter.');
+            return;
+          }
+          this.editingCounter.set(counter);
+          this.formMode.set('edit');
+          this.form.reset({
+            name: counter.name,
+            deviceIdentifier: counter.deviceIdentifier ?? '',
+            defaultWarehouseId: counter.defaultWarehouseId === null
+              ? '' : String(counter.defaultWarehouseId)
+          });
+          this.isFormOpen.set(true);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (
+            sequence !== this.detailsRequestSequence ||
+            !this.isCurrentSession(companyId, branchId, generation, userId)
+          ) {
+            return;
+          }
+          this.isLoadingCounterDetails.set(false);
+          this.counterDetailsError.set(
+            error.status === 403
+              ? 'You do not have permission to view this POS counter.'
+              : error.status === 404
+                ? 'The selected POS counter could not be found.'
+                : 'Unable to load POS counter details. Please retry.'
+          );
+        }
+      });
+  }
+
+  private cancelCounterDetails(): void {
+    ++this.detailsRequestSequence;
+    this.detailsSubscription?.unsubscribe();
+    this.detailsSubscription = undefined;
+    this.isLoadingCounterDetails.set(false);
   }
 
   // =========================================================
@@ -284,6 +522,7 @@ export class PosCounterManagement {
       return;
     }
 
+    this.cancelCounterDetails();
     this.resetFormState();
 
     this.form.reset({
@@ -305,11 +544,12 @@ export class PosCounterManagement {
       return;
     }
 
+    this.cancelCounterDetails();
     this.resetFormState();
   }
 
   // =========================================================
-  // Create POS Counter
+  // Create or Update POS Counter
   // =========================================================
 
   saveCounter(): void {
@@ -403,6 +643,11 @@ export class PosCounterManagement {
 
     this.formError.set(null);
 
+    if (this.formMode() === 'edit') {
+      this.updateCounter(companyId, branchId, requestedUserId, sessionGeneration, request);
+      return;
+    }
+
     this.isSaving.set(true);
 
     this.saveSubscription =
@@ -441,12 +686,9 @@ export class PosCounterManagement {
               return;
             }
 
-            this.counters.update(items => [
-              ...items.filter(
-                item => item.id !== counter.id
-              ),
-              counter
-            ]);
+            // Reload the authoritative server directory after creation.
+            this.pageNumber.set(1);
+            this.loadCounters();
 
             this.resetFormState();
 
@@ -480,6 +722,72 @@ export class PosCounterManagement {
           }
 
         });
+  }
+
+  // =========================================================
+  // Update POS Counter with optimistic concurrency
+  // =========================================================
+
+  private updateCounter(
+    companyId: number,
+    branchId: number,
+    userId: string,
+    generation: number,
+    values: CreatePosCounterRequest
+  ): void {
+    const current = this.editingCounter();
+    if (!current || current.branchId !== branchId || !current.rowVersion) {
+      this.formError.set('Counter details are missing. Reopen the counter and try again.');
+      return;
+    }
+
+    const request: UpdatePosCounterRequest = {
+      ...values,
+      rowVersion: current.rowVersion
+    };
+
+    this.isSaving.set(true);
+    this.saveSubscription = this.posCounterService
+      .updatePosCounter(branchId, current.id, request)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isSaving.set(false))
+      )
+      .subscribe({
+        next: updated => {
+          if (!this.isCurrentSession(companyId, branchId, generation, userId)) {
+            return;
+          }
+          if (
+            !updated || updated.id !== current.id ||
+            updated.branchId !== branchId || !updated.rowVersion || !updated.code
+          ) {
+            this.formError.set('The server returned an invalid updated POS counter.');
+            return;
+          }
+          this.resetFormState();
+          this.loadCounters();
+          this.notificationService.success('POS counter updated successfully.', {
+            title: 'Counter updated'
+          });
+        },
+        error: (error: HttpErrorResponse) => {
+          if (!this.isCurrentSession(companyId, branchId, generation, userId)) {
+            return;
+          }
+          this.formError.set(
+            error.status === 409
+              ? 'The counter was changed by another user or its warehouse is unavailable. Reopen the counter to load the latest information.'
+              : error.status === 400
+                ? 'Invalid counter information. Review the form and try again.'
+                : error.status === 403
+                  ? 'You do not have permission to update POS counters.'
+                  : error.status === 404
+                    ? 'The counter or selected warehouse could not be found.'
+                    : 'Unable to update the POS counter. Please try again.'
+          );
+        }
+      });
   }
 
   // =========================================================
@@ -655,6 +963,8 @@ export class PosCounterManagement {
   private resetFormState(): void {
 
     this.isFormOpen.set(false);
+    this.formMode.set('create');
+    this.editingCounter.set(null);
 
     this.formError.set(null);
 

@@ -21,6 +21,7 @@ import { finalize, Subscription } from 'rxjs';
 
 import {
   CreateWarehouseRequest,
+  UpdateWarehouseRequest,
   Warehouse,
   WarehouseListQuery,
   WarehousePagedResult,
@@ -85,6 +86,15 @@ export class WarehouseManagement {
 
   readonly lastCreatedWarehouse = signal<Warehouse | null>(null);
 
+  // Selected warehouse is independent of the last-created record.
+  readonly selectedWarehouse = signal<Warehouse | null>(null);
+
+  readonly isEditOpen = signal(false);
+  readonly isUpdating = signal(false);
+  readonly updateError = signal<string | null>(null);
+  readonly isLoadingWarehouseDetails = signal(false);
+  readonly warehouseDetailsError = signal<string | null>(null);
+
   // =========================================================
   // Directory State
   // =========================================================
@@ -135,6 +145,12 @@ export class WarehouseManagement {
 
   private directoryRequestVersion = 0;
 
+  private detailsSubscription: Subscription | null = null;
+  private detailsRequestVersion = 0;
+
+  private updateSubscription: Subscription | null = null;
+  private updateRequestVersion = 0;
+
   // =========================================================
   // Create Warehouse Form
   // =========================================================
@@ -152,6 +168,16 @@ export class WarehouseManagement {
       [Validators.required]
     ],
     isDefault: [false],
+    allowSales: [false]
+  });
+
+  // =========================================================
+  // Edit Warehouse Form
+  // =========================================================
+
+  readonly editForm = this.formBuilder.nonNullable.group({
+    name: ['', [Validators.required, Validators.maxLength(200)]],
+    type: [WarehouseType.General, [Validators.required]],
     allowSales: [false]
   });
 
@@ -177,6 +203,8 @@ export class WarehouseManagement {
 
     this.destroyRef.onDestroy(() => {
       this.cancelDirectoryRequest();
+      this.cancelDetailsRequest();
+      this.cancelUpdateRequest();
     });
   }
 
@@ -185,19 +213,194 @@ export class WarehouseManagement {
   // =========================================================
 
   showDirectory(): void {
-    if (this.isCreating()) {
+    if (this.isCreating() || this.isUpdating()) {
       return;
     }
 
+    this.closeEditWarehouse();
+    this.cancelDetailsRequest();
+    this.isLoadingWarehouseDetails.set(false);
     this.activeView.set('directory');
   }
 
   showDetails(): void {
-    if (this.lastCreatedWarehouse() === null) {
+    if (this.selectedWarehouse() === null &&
+        this.lastCreatedWarehouse() === null) {
       return;
     }
 
     this.activeView.set('details');
+  }
+
+  // =========================================================
+  // Get Warehouse By ID
+  // =========================================================
+
+  viewWarehouse(warehouseId: number): void {
+    const branchId = this.branchId();
+
+    this.cancelDetailsRequest();
+    const requestVersion = ++this.detailsRequestVersion;
+
+    this.closeEditWarehouse();
+    this.selectedWarehouse.set(null);
+    this.warehouseDetailsError.set(null);
+    this.isLoadingWarehouseDetails.set(false);
+
+    if (branchId === null || branchId <= 0 ||
+        !Number.isSafeInteger(warehouseId) || warehouseId <= 0) {
+      this.warehouseDetailsError.set('Select a valid warehouse and branch.');
+      return;
+    }
+
+    // The existing template still renders lastCreatedWarehouse().
+    // HTML binding will be switched to selectedWarehouse() next.
+    this.lastCreatedWarehouse.set(null);
+    this.isCreateOpen.set(false);
+    this.activeView.set('details');
+    this.isLoadingWarehouseDetails.set(true);
+
+    this.detailsSubscription = this.warehouseService
+      .getWarehouseById(branchId, warehouseId)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          if (requestVersion === this.detailsRequestVersion) {
+            this.isLoadingWarehouseDetails.set(false);
+          }
+        })
+      )
+      .subscribe({
+        next: warehouse => {
+          if (requestVersion !== this.detailsRequestVersion ||
+              this.branchId() !== branchId) {
+            return;
+          }
+
+          this.selectedWarehouse.set(warehouse);
+          // Temporary compatibility with the current HTML details view.
+          this.lastCreatedWarehouse.set(warehouse);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (requestVersion !== this.detailsRequestVersion ||
+              this.branchId() !== branchId) {
+            return;
+          }
+
+          this.warehouseDetailsError.set(
+            this.getWarehouseDetailsErrorMessage(error)
+          );
+        }
+      });
+  }
+
+  // =========================================================
+  // Edit / Update Warehouse
+  // =========================================================
+
+  openEditWarehouse(): void {
+    const warehouse = this.selectedWarehouse();
+    if (!warehouse || this.isUpdating() || this.isLoadingWarehouseDetails() ||
+        this.branchId() !== warehouse.branchId) {
+      return;
+    }
+
+    this.editForm.reset({
+      name: warehouse.name,
+      type: warehouse.type,
+      allowSales: warehouse.allowSales
+    });
+    this.updateError.set(null);
+    this.isEditOpen.set(true);
+  }
+
+  closeEditWarehouse(): void {
+    if (this.isUpdating()) {
+      return;
+    }
+    this.isEditOpen.set(false);
+    this.updateError.set(null);
+    this.editForm.reset();
+  }
+
+  updateWarehouse(): void {
+    if (!this.isEditOpen() || this.isUpdating()) {
+      return;
+    }
+
+    const warehouse = this.selectedWarehouse();
+    const branchId = this.branchId();
+    if (!warehouse || branchId === null || branchId <= 0 ||
+        warehouse.branchId !== branchId || !warehouse.rowVersion) {
+      this.updateError.set('Warehouse details are unavailable. Reload the warehouse and try again.');
+      return;
+    }
+
+    if (this.editForm.invalid) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+
+    const value = this.editForm.getRawValue();
+    const name = value.name.trim();
+    if (!name) {
+      this.editForm.controls.name.markAsTouched();
+      this.updateError.set('Warehouse name is required.');
+      return;
+    }
+
+    const request: UpdateWarehouseRequest = {
+      name,
+      type: value.type,
+      allowSales: value.allowSales,
+      rowVersion: warehouse.rowVersion
+    };
+
+    this.cancelUpdateRequest();
+    const requestVersion = ++this.updateRequestVersion;
+    this.updateError.set(null);
+    this.isUpdating.set(true);
+
+    this.updateSubscription = this.warehouseService
+      .updateWarehouse(branchId, warehouse.id, request)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => {
+          if (requestVersion === this.updateRequestVersion) {
+            this.isUpdating.set(false);
+          }
+        })
+      )
+      .subscribe({
+        next: updated => {
+          if (requestVersion !== this.updateRequestVersion ||
+              this.branchId() !== branchId) {
+            return;
+          }
+
+          this.selectedWarehouse.set(updated);
+          this.lastCreatedWarehouse.set(updated);
+          this.warehouses.update(items =>
+            items.map(item => item.id === updated.id ? updated : item)
+          );
+          this.isEditOpen.set(false);
+          this.editForm.reset();
+          this.notificationService.success(
+            `Warehouse ${updated.code} updated successfully.`,
+            { title: 'Warehouse updated' }
+          );
+          this.loadWarehouses();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (requestVersion !== this.updateRequestVersion ||
+              this.branchId() !== branchId) {
+            return;
+          }
+          const message = this.getUpdateErrorMessage(error);
+          this.updateError.set(message);
+          this.notificationService.error(message, { title: 'Warehouse update failed' });
+        }
+      });
   }
 
   // =========================================================
@@ -514,6 +717,14 @@ export class WarehouseManagement {
       )
       .subscribe({
         next: warehouse => {
+          if (this.branchId() !== branchId) {
+            return;
+          }
+
+          this.cancelDetailsRequest();
+          this.selectedWarehouse.set(warehouse);
+          this.warehouseDetailsError.set(null);
+          this.isLoadingWarehouseDetails.set(false);
           this.lastCreatedWarehouse.set(warehouse);
           this.isCreateOpen.set(false);
           this.createForm.reset();
@@ -549,6 +760,16 @@ export class WarehouseManagement {
 
   private resetDirectoryForBranchChange(): void {
     this.cancelDirectoryRequest();
+    this.cancelDetailsRequest();
+    this.cancelUpdateRequest();
+    this.isUpdating.set(false);
+    this.isEditOpen.set(false);
+    this.updateError.set(null);
+    this.editForm.reset();
+
+    this.selectedWarehouse.set(null);
+    this.warehouseDetailsError.set(null);
+    this.isLoadingWarehouseDetails.set(false);
 
     this.searchCode.set('');
     this.searchName.set('');
@@ -594,9 +815,62 @@ export class WarehouseManagement {
     this.directorySubscription = null;
   }
 
+  private cancelDetailsRequest(): void {
+    ++this.detailsRequestVersion;
+    this.detailsSubscription?.unsubscribe();
+    this.detailsSubscription = null;
+  }
+
+  private cancelUpdateRequest(): void {
+    ++this.updateRequestVersion;
+    this.updateSubscription?.unsubscribe();
+    this.updateSubscription = null;
+  }
+
   // =========================================================
   // Error Mapping
   // =========================================================
+
+  private getUpdateErrorMessage(error: HttpErrorResponse): string {
+    if (error.status === 400) {
+      return 'Invalid warehouse details. Review the form and try again.';
+    }
+    if (error.status === 401 || error.status === 403) {
+      return 'You do not have permission to update warehouses.';
+    }
+    if (error.status === 404) {
+      return 'The warehouse was not found. Return to the directory and refresh.';
+    }
+    if (error.status === 409) {
+      return 'The warehouse has changed or has a dependency conflict. Reload its details before retrying.';
+    }
+    if (error.status === 0) {
+      return 'Unable to connect to the server. Check your connection.';
+    }
+    return 'Unable to update the warehouse. Please try again.';
+  }
+
+  private getWarehouseDetailsErrorMessage(
+    error: HttpErrorResponse
+  ): string {
+    if (error.status === 400) {
+      return 'Invalid warehouse or branch identifier.';
+    }
+
+    if (error.status === 401 || error.status === 403) {
+      return 'You do not have permission to view this warehouse.';
+    }
+
+    if (error.status === 404) {
+      return 'The requested warehouse was not found in this branch.';
+    }
+
+    if (error.status === 0) {
+      return 'Unable to connect to the server. Check your connection.';
+    }
+
+    return 'Unable to load warehouse details. Please try again.';
+  }
 
   private getDirectoryErrorMessage(
     error: HttpErrorResponse

@@ -14,7 +14,7 @@
       <h1>Company Management</h1>
 
       <p>
-        Your organization directory, profiles and settings — all in one place.
+        Your organization directory, profiles and settings ΓÇö all in one place.
       </p>
     </div>
 
@@ -131,7 +131,7 @@
               }
             </div>
 
-            <div class="form-field form-field-full">
+            <div class="form-field">
               <label for="newCompanyTimeZone">Time Zone <span class="required">*</span></label>
               <input id="newCompanyTimeZone" type="text" formControlName="timeZoneId"
                 maxlength="100" placeholder="Bangladesh Standard Time" autocomplete="off">
@@ -243,8 +243,8 @@
           <table class="company-list-table">
             <thead>
               <tr>
-                <th scope="col"><button type="button" class="button button-secondary" (click)="sortCompanies('code')">Code @if (sortBy() === 'code') { {{ sortDirection() === 'asc' ? '↑' : '↓' }} }</button></th>
-                <th scope="col"><button type="button" class="button button-secondary" (click)="sortCompanies('name')">Name @if (sortBy() === 'name') { {{ sortDirection() === 'asc' ? '↑' : '↓' }} }</button></th>
+                <th scope="col"><button type="button" class="button button-secondary" (click)="sortCompanies('code')">Code @if (sortBy() === 'code') { {{ sortDirection() === 'asc' ? 'Γåæ' : 'Γåô' }} }</button></th>
+                <th scope="col"><button type="button" class="button button-secondary" (click)="sortCompanies('name')">Name @if (sortBy() === 'name') { {{ sortDirection() === 'asc' ? 'Γåæ' : 'Γåô' }} }</button></th>
                 <th scope="col">Country</th>
                 <th scope="col">Currency</th>
                 <th scope="col">Time Zone</th>
@@ -293,7 +293,7 @@
           </table>
         </div>
         <div class="form-footer">
-          <span>Page {{ pageNumber() }} of {{ totalPages() }} · {{ totalCompanies() }} companies</span>
+          <span>Page {{ pageNumber() }} of {{ totalPages() }} ┬╖ {{ totalCompanies() }} companies</span>
           <div class="page-actions">
             <button type="button" class="button button-secondary"
               [disabled]="!hasPreviousPage() || isListLoading()"
@@ -329,7 +329,7 @@
         <span class="company-selection-meta">
           Company ID: {{ selectedCompanyId() }}
           @if (!isLoading() && !loadError() && companyCode()) {
-            · Code: {{ companyCode() }}
+            ┬╖ Code: {{ companyCode() }}
           }
         </span>
       } @else {
@@ -426,7 +426,7 @@
           <span>
             Currency
             <strong>
-              {{ form.controls.currencyCode.value || '—' }}
+              {{ form.controls.currencyCode.value || 'ΓÇö' }}
             </strong>
           </span>
 
@@ -435,7 +435,7 @@
           <span>
             Country
             <strong>
-              {{ form.controls.countryCode.value || '—' }}
+              {{ form.controls.countryCode.value || 'ΓÇö' }}
             </strong>
           </span>
 

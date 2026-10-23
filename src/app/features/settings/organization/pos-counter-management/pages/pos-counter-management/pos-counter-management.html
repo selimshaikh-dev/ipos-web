@@ -1,4 +1,3 @@
-
 <!-- ========================================================= -->
 <!-- POS Counter Management                                   -->
 <!-- ========================================================= -->
@@ -40,7 +39,7 @@
         <button
           type="button"
           class="btn btn-primary button button-primary company-add-button"
-          [disabled]="isSaving() || isFormOpen()"
+          [disabled]="isSaving() || isFormOpen() || isLoadingCounterDetails()"
           (click)="openCreate()">
 
           <span
@@ -133,8 +132,7 @@
         <h2>POS Counter Directory</h2>
 
         <p>
-          View counters created during this session
-          for the selected branch.
+          View saved POS counters for the selected branch.
         </p>
 
       </div>
@@ -142,11 +140,11 @@
       <div class="directory-count">
 
         <strong>
-          {{ totalCounters() }}
+          {{ totalCount() }}
         </strong>
 
         <span>
-          Session counters
+          Total counters
         </span>
 
       </div>
@@ -170,15 +168,13 @@
           </h2>
 
           <p>
-            Counters created in the current session.
-            Full directory synchronization will be available
-            when the Counter List API is implemented.
+            Counters are loaded from the selected branch. Search currently filters the displayed page.
           </p>
 
         </div>
 
         <span class="record-count">
-          {{ totalCounters() }} session counters
+          {{ totalCount() }} total counters
         </span>
 
       </div>
@@ -198,12 +194,17 @@
             <div>
 
               <h2 id="pos-counter-form-title">
-                Create POS Counter
+                {{ formMode() === 'edit' ? 'Edit POS Counter' : 'Create POS Counter' }}
               </h2>
 
               <p>
-                Register a new sales counter under
-                {{ branchName() || 'the selected branch' }}.
+                @if (formMode() === 'edit') {
+                  Update counter {{ editingCounter()?.code }} under
+                  {{ branchName() || 'the selected branch' }}.
+                } @else {
+                  Register a new sales counter under
+                  {{ branchName() || 'the selected branch' }}.
+                }
               </p>
 
             </div>
@@ -259,8 +260,12 @@
                   </span>
 
                   <span class="field-hint">
-                    The counter code is generated automatically
-                    by the backend when the counter is created.
+                    @if (formMode() === 'edit') {
+                      Counter code: {{ editingCounter()?.code }} (read-only).
+                    } @else {
+                      The counter code is generated automatically
+                      by the backend when the counter is created.
+                    }
                   </span>
 
                 </div>
@@ -373,9 +378,8 @@
                     placeholder="Optional warehouse ID" />
 
                   <span class="field-hint">
-                    Leave empty to create the counter without
-                    a default warehouse. The server validates
-                    warehouse ownership.
+                    Leave empty for no default warehouse.
+                    The server validates warehouse ownership and availability.
                   </span>
 
                 </div>
@@ -404,9 +408,9 @@
                 [disabled]="isSaving() || form.invalid">
 
                 @if (isSaving()) {
-                  Creating Counter...
+                  {{ formMode() === 'edit' ? 'Updating Counter...' : 'Creating Counter...' }}
                 } @else {
-                  Create POS Counter
+                  {{ formMode() === 'edit' ? 'Update POS Counter' : 'Create POS Counter' }}
                 }
 
               </button>
@@ -419,27 +423,63 @@
 
       }
 
+      <!-- Counter details request state -->
+      @if (isLoadingCounterDetails()) {
+        <div class="empty-state" role="status" aria-live="polite">
+          <h3>Loading counter details...</h3>
+          <p>Fetching the latest record before editing.</p>
+        </div>
+      } @else if (counterDetailsError()) {
+        <div class="empty-state" role="alert">
+          <h3>Unable to open counter</h3>
+          <p>{{ counterDetailsError() }}</p>
+          <button
+            type="button"
+            class="btn btn-secondary button button-secondary"
+            (click)="openCreate()">
+            Create New Counter
+          </button>
+        </div>
+      }
+
       <!-- =================================================== -->
-      <!-- Session Counter List -->
+      <!-- Backend Counter Directory -->
       <!-- =================================================== -->
 
-      @if (totalCounters() > 0) {
+      @if (isLoadingCounters()) {
+
+        <div class="empty-state" role="status" aria-live="polite">
+          <h3>Loading POS counters...</h3>
+          <p>Retrieving counters for the selected branch.</p>
+        </div>
+
+      } @else if (countersLoadError()) {
+
+        <div class="empty-state" role="alert">
+          <h3>Unable to load POS counters</h3>
+          <p>{{ countersLoadError() }}</p>
+          <button
+            type="button"
+            class="btn btn-secondary button button-secondary"
+            (click)="retryCounterLoad()">
+            Retry
+          </button>
+        </div>
+
+      } @else if (totalCount() > 0) {
 
         <div class="pos-counter-directory-toolbar form-card-body">
 
           <div class="form-field directory-search-field">
-
             <label for="pos-counter-directory-search">
-              Search counters
+              Search current page
             </label>
-
             <input
               id="pos-counter-directory-search"
               type="search"
-              placeholder="Search by name, code or device"
+              placeholder="Search this page by name, code or device"
               [value]="searchTerm()"
               (input)="setSearchTerm($any($event.target).value)" />
-
           </div>
 
           <button
@@ -451,8 +491,7 @@
           </button>
 
           <span class="record-count" aria-live="polite">
-            Showing {{ filteredCounters().length }}
-            of {{ totalCounters() }}
+            Showing {{ filteredCounters().length }} of {{ totalCounters() }} on this page
           </span>
 
         </div>
@@ -473,6 +512,7 @@
                   <th scope="col">Device</th>
                   <th scope="col">Default Warehouse</th>
                   <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
                 </tr>
 
               </thead>
@@ -531,6 +571,21 @@
 
                     </td>
 
+                    <td>
+                      @if (canManageCounters()) {
+                        <button
+                          type="button"
+                          class="btn btn-secondary button button-secondary"
+                          [disabled]="isSaving() || isLoadingCounterDetails() || isFormOpen()"
+                          [attr.aria-label]="'Edit POS counter ' + counter.name"
+                          (click)="openEdit(counter.id)">
+                          Edit
+                        </button>
+                      } @else {
+                        <span class="field-hint">View only</span>
+                      }
+                    </td>
+
                   </tr>
 
                 }
@@ -544,55 +599,59 @@
         } @else {
 
           <div class="empty-state" role="status">
-
-            <h3>No matching counters</h3>
-
-            <p>
-              Try searching with a different counter name,
-              code or device identifier.
-            </p>
-
+            <h3>No matching counters on this page</h3>
+            <p>Try another search or clear the current-page filter.</p>
             <button
               type="button"
               class="btn btn-secondary button button-secondary"
               (click)="clearSearch()">
               Clear Search
             </button>
-
           </div>
 
         }
 
+        <nav
+          class="pos-counter-directory-toolbar"
+          aria-label="POS counter directory pagination">
+
+          <button
+            type="button"
+            class="btn btn-secondary button button-secondary"
+            [disabled]="!hasPreviousPage() || isLoadingCounters()"
+            (click)="goToCounterPage(pageNumber() - 1)">
+            Previous
+          </button>
+
+          <span class="record-count" aria-live="polite">
+            Page {{ pageNumber() }} of {{ totalPages() }}
+            · {{ totalCount() }} total counters
+          </span>
+
+          <button
+            type="button"
+            class="btn btn-secondary button button-secondary"
+            [disabled]="!hasNextPage() || isLoadingCounters()"
+            (click)="goToCounterPage(pageNumber() + 1)">
+            Next
+          </button>
+
+        </nav>
+
       } @else {
 
-        <!-- ================================================= -->
-        <!-- Empty State -->
-        <!-- ================================================= -->
+        <div class="empty-state" role="status">
+          <h3>No POS counters found</h3>
+          <p>No counters are available for the selected branch.</p>
 
-        <div class="empty-state">
-
-          <h3>No counters created in this session</h3>
-
-          <p>
-            You can create a POS counter for the selected branch.
-            Existing database counters will appear when
-            the Counter List API is available.
-          </p>
-
-          @if (
-            canManageCounters() &&
-            !isFormOpen()
-          ) {
-
+          @if (canManageCounters() && !isFormOpen()) {
             <button
               type="button"
               class="btn btn-primary button button-primary"
               (click)="openCreate()">
               Create First Counter
             </button>
-
           }
-
         </div>
 
       }
