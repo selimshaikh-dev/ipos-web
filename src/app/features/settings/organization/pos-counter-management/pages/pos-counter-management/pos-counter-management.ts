@@ -601,7 +601,7 @@ export class PosCounterManagement {
     // The warehouse field is optional.
     // Reject non-integer or unsafe numeric identifiers.
     const warehouseText =
-      value.defaultWarehouseId.trim();
+      String(value.defaultWarehouseId ?? '').trim();
 
     let defaultWarehouseId: number | null = null;
 
