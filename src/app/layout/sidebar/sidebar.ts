@@ -369,7 +369,12 @@ export class Sidebar {
           label: 'Users & Access Control',
           icon: 'admin_panel_settings',
           children: [
-            { label: 'Users', icon: 'group' },
+            {
+              label: 'Users',
+              icon: 'group',
+              route: '/settings/users-access-control/user-management',
+              implemented: true
+            },
             { label: 'Roles & Permissions', icon: 'verified_user' },
             { label: 'Company / Branch Access', icon: 'account_tree' },
             { label: 'User Sessions', icon: 'devices' }

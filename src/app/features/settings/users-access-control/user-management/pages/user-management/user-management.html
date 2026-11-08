@@ -1,0 +1,921 @@
+<div class="company-profile-page user-management-page">
+
+  <!-- =====================================================
+       01. Page Header
+       ===================================================== -->
+
+  <header class="page-header">
+    <div class="page-heading">
+
+      <div class="breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Users &amp; Access Control</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Users</span>
+      </div>
+
+      <h1>Users Management</h1>
+
+      <p>
+        Review and manage the user directory
+        for your selected company.
+      </p>
+
+    </div>
+  </header>
+
+  <!-- =====================================================
+       02. Directory Introduction
+       ===================================================== -->
+
+  <div class="directory-intro">
+    <div>
+
+      <span class="eyebrow">
+        ACCESS CONTROL DIRECTORY
+      </span>
+
+      <h2>Company users</h2>
+
+      <p>
+        View registered users, account status
+        and login activity.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- =====================================================
+       03. Users Directory
+       ===================================================== -->
+
+  <section
+    class="form-card company-directory"
+    aria-label="User directory">
+
+    <div class="form-card-header">
+
+      <div>
+        <h2>Users</h2>
+
+        <p>
+          User records are displayed within the
+          selected company workspace.
+        </p>
+      </div>
+
+      <!-- Create User Button -->
+
+      @if (companyId() !== null) {
+
+        <button
+          type="button"
+          class="button button-primary"
+          [disabled]="isSavingUser() || changingStatusUserId() !== null"
+          (click)="openCreateUser()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">
+            person_add
+          </span>
+
+          Create User
+
+        </button>
+
+      }
+
+    </div>
+
+    <div class="form-card-body user-directory-body">
+
+      <!-- Company Selection -->
+
+      @if (companyId() === null) {
+
+        <div class="state-card" role="status">
+
+          <div>
+            <h2>Select a company</h2>
+
+            <p>
+              Select an authorized company from the
+              workspace to view its users.
+            </p>
+          </div>
+
+        </div>
+
+      } @else {
+
+        <!-- =================================================
+             04. Search and Filters
+             ================================================= -->
+
+        <div class="user-directory-toolbar">
+
+          <div class="user-search-fields">
+
+            <div class="form-field">
+
+              <label for="userSearch">
+                Search users
+              </label>
+
+              <input
+                #userSearch
+                id="userSearch"
+                type="search"
+                maxlength="200"
+                [value]="searchText()"
+                placeholder="Search by full name or email"
+                (keyup.enter)="searchUsers(userSearch.value)">
+
+            </div>
+
+            <button
+              type="button"
+              class="button button-primary"
+              [disabled]="isLoadingUsers()"
+              (click)="searchUsers(userSearch.value)">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">
+                search
+              </span>
+
+              Search
+
+            </button>
+
+          </div>
+
+          <div class="user-filter-fields">
+
+            <div class="form-field">
+
+              <label for="userFilterStatus">
+                Status
+              </label>
+
+              <select
+                #userStatus
+                id="userFilterStatus"
+                [value]="selectedIsActive() === null
+                  ? ''
+                  : (selectedIsActive() ? 'true' : 'false')"
+                [disabled]="isLoadingUsers()"
+                (change)="filterByStatus(
+                  userStatus.value === ''
+                    ? null
+                    : userStatus.value === 'true'
+                )">
+
+                <option value="">
+                  All statuses
+                </option>
+
+                <option value="true">
+                  Active
+                </option>
+
+                <option value="false">
+                  Inactive
+                </option>
+
+              </select>
+
+            </div>
+
+            <div class="user-directory-actions">
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isLoadingUsers()"
+                (click)="clearFilters()">
+
+                Reset filters
+
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isLoadingUsers()"
+                (click)="refreshDirectory()">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">
+                  refresh
+                </span>
+
+                Refresh
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- =================================================
+             05. Success notifications are displayed by the shared app shell
+             ================================================= -->
+
+        <!-- =================================================
+             06. Status Error
+             ================================================= -->
+
+        @if (userStatusError(); as message) {
+
+          <div
+            class="alert alert-error"
+            role="alert">
+
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to change user status</strong>
+              <span>{{ message }}</span>
+            </div>
+
+          </div>
+
+        }
+
+        <!-- =================================================
+             07. Directory Error
+             ================================================= -->
+
+        @if (directoryError(); as message) {
+
+          <div
+            class="alert alert-error"
+            role="alert">
+
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to load users</strong>
+              <span>{{ message }}</span>
+            </div>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="refreshDirectory()">
+
+              Try again
+
+            </button>
+
+          </div>
+
+        }
+
+        <!-- =================================================
+             08. Loading / Empty / Users Table
+             ================================================= -->
+
+        @if (isLoadingUsers()) {
+
+          <div
+            class="user-directory-state"
+            role="status"
+            aria-live="polite">
+
+            <span
+              class="button-spinner"
+              aria-hidden="true">
+            </span>
+
+            <span>
+              Loading users...
+            </span>
+
+          </div>
+
+        } @else if (
+          !directoryError() &&
+          users().length === 0
+        ) {
+
+          <div
+            class="company-empty-state"
+            role="status">
+
+            <span
+              class="material-symbols-rounded"
+              aria-hidden="true">
+              group_off
+            </span>
+
+            <strong>
+              No users found
+            </strong>
+
+            <p>
+              No users match the current
+              company and filters.
+            </p>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="clearFilters()">
+
+              Clear filters
+
+            </button>
+
+          </div>
+
+        } @else if (!directoryError()) {
+
+          <!-- Invitation request errors -->
+          @if (invitationActionError()) {
+            <div class="field-error" role="alert">
+              {{ invitationActionError() }}
+            </div>
+          }
+
+          <!-- Native browser confirm replaced by an in-page confirmation panel. -->
+          @if (pendingConfirmation(); as pending) {
+            <div class="ipos-confirmation" role="group" aria-labelledby="ipos-confirmation-title">
+              <div class="ipos-confirmation__icon" aria-hidden="true">
+                <span class="material-symbols-rounded">help</span>
+              </div>
+              <div class="ipos-confirmation__content">
+                <strong id="ipos-confirmation-title">Confirm action</strong>
+                <p>
+                  @switch (pending.action) {
+                    @case ('reissue') {
+                      Send a new invitation to <strong>{{ pending.user.fullName }}</strong>?
+                      Any previous pending invitation link will be invalidated.
+                    }
+                    @case ('revoke') {
+                      Revoke the pending invitation for <strong>{{ pending.user.fullName }}</strong>?
+                      Their existing invitation link will stop working.
+                    }
+                    @case ('activate') {
+                      Activate company access for <strong>{{ pending.user.fullName }}</strong>?
+                    }
+                    @case ('deactivate') {
+                      Deactivate company access for <strong>{{ pending.user.fullName }}</strong>?
+                    }
+                  }
+                </p>
+              </div>
+              <div class="ipos-confirmation__actions">
+                <button type="button" class="button button-secondary" (click)="cancelConfirmation()">Cancel</button>
+                <button type="button" class="button button-primary" (click)="confirmPendingAction()">
+                  Confirm
+                </button>
+              </div>
+            </div>
+          }
+
+          <!-- Users Table -->
+
+          <div class="user-table-scroll">
+
+            <table class="user-directory-table">
+
+              <thead>
+
+                <tr>
+                  <th scope="col">User</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Created</th>
+                  <th scope="col">Last login</th>
+                  <th scope="col">Actions</th>
+                </tr>
+
+              </thead>
+
+              <tbody>
+
+                @for (user of users(); track user.id) {
+
+                  <tr>
+
+                    <!-- User -->
+
+                    <td>
+
+                      <div class="user-identity">
+
+                        <div
+                          class="user-avatar"
+                          aria-hidden="true">
+
+                          {{ user.fullName.charAt(0).toUpperCase() || 'U' }}
+
+                        </div>
+
+                        <strong>
+                          {{ user.fullName }}
+                        </strong>
+
+                      </div>
+
+                    </td>
+
+                    <!-- Email -->
+
+                    <td>
+                      {{ user.email || 'Not provided' }}
+                    </td>
+
+                    <!-- Status -->
+
+                    <td>
+
+                      <span
+                        class="status-badge"
+                        [class.status-active]="user.isActive"
+                        [class.status-inactive]="!user.isActive">
+
+                        <span class="status-dot"></span>
+
+                        {{ user.isActive ? 'Active' : 'Inactive' }}
+
+                      </span>
+
+                    </td>
+
+                    <!-- Created -->
+
+                    <td>
+
+                      {{ user.createdAtUtc
+                        ? (user.createdAtUtc | date:'mediumDate')
+                        : '╬ô├ç├╢' }}
+
+                    </td>
+
+                    <!-- Last Login -->
+
+                    <td>
+
+                      {{ user.lastLoginAtUtc
+                        ? (user.lastLoginAtUtc | date:'medium')
+                        : 'Never' }}
+
+                    </td>
+
+                    <!-- Actions -->
+
+                    <td>
+
+                      <div class="user-directory-actions">
+
+                        <!-- Edit User -->
+
+                        <button
+                          type="button"
+                          class="button button-secondary"
+                          [disabled]="isSavingUser() || changingStatusUserId() !== null"
+                          (click)="openEditUser(user.id)">
+
+                          <span
+                            class="material-symbols-rounded"
+                            aria-hidden="true">
+                            edit
+                          </span>
+
+                          Edit
+
+                        </button>
+
+                        <!-- Invitation actions -->
+                        <button
+                          type="button"
+                          class="button button-secondary"
+                          [disabled]="invitationActionUserId() !== null || isSavingUser() || changingStatusUserId() !== null || isLoadingUsers()"
+                          (click)="reissueInvitation(user)"
+                          [attr.aria-label]="'Resend invitation to ' + user.fullName">
+                          @if (invitationActionUserId() === user.id) {
+                            <span class="button-spinner" aria-hidden="true"></span>
+                          } @else {
+                            <span class="material-symbols-rounded" aria-hidden="true">forward_to_inbox</span>
+                          }
+                          Resend Invitation
+                        </button>
+
+                        <button
+                          type="button"
+                          class="button button-secondary"
+                          [disabled]="invitationActionUserId() !== null || isSavingUser() || changingStatusUserId() !== null || isLoadingUsers()"
+                          (click)="revokeInvitation(user)"
+                          [attr.aria-label]="'Revoke invitation for ' + user.fullName">
+                          <span class="material-symbols-rounded" aria-hidden="true">cancel_schedule_send</span>
+                          Revoke Invitation
+                        </button>
+
+                        <!-- Deactivate User -->
+
+                        @if (user.isActive) {
+
+                          <button
+                            type="button"
+                            class="button button-secondary"
+                            [disabled]="changingStatusUserId() !== null || isSavingUser() || isLoadingUsers()"
+                            (click)="deactivateUser(user)">
+
+                            @if (changingStatusUserId() === user.id) {
+
+                              <span
+                                class="button-spinner"
+                                aria-hidden="true">
+                              </span>
+
+                            } @else {
+
+                              <span
+                                class="material-symbols-rounded"
+                                aria-hidden="true">
+                                person_off
+                              </span>
+
+                            }
+
+                            {{ changingStatusUserId() === user.id
+                              ? 'Processing...'
+                              : 'Deactivate' }}
+
+                          </button>
+
+                        } @else {
+
+                          <!-- Activate User -->
+
+                          <button
+                            type="button"
+                            class="button button-primary"
+                            [disabled]="changingStatusUserId() !== null || isSavingUser() || isLoadingUsers()"
+                            (click)="activateUser(user)">
+
+                            @if (changingStatusUserId() === user.id) {
+
+                              <span
+                                class="button-spinner"
+                                aria-hidden="true">
+                              </span>
+
+                            } @else {
+
+                              <span
+                                class="material-symbols-rounded"
+                                aria-hidden="true">
+                                person_check
+                              </span>
+
+                            }
+
+                            {{ changingStatusUserId() === user.id
+                              ? 'Processing...'
+                              : 'Activate' }}
+
+                          </button>
+
+                        }
+
+                      </div>
+
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        }
+
+        <!-- =================================================
+             09. Pagination
+             ================================================= -->
+
+        @if (
+          !directoryError() &&
+          !isLoadingUsers()
+        ) {
+
+          <div class="user-directory-pagination">
+
+            <span class="user-directory-count">
+              {{ totalCount() }} user(s) found
+            </span>
+
+            <div class="user-directory-page-controls">
+
+              <label for="userPageSize">
+                Rows per page
+              </label>
+
+              <select
+                #userPageSize
+                id="userPageSize"
+                [value]="pageSize()"
+                (change)="changePageSize(+userPageSize.value)">
+
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+
+              </select>
+
+              <span>
+                Page {{ pageNumber() }}
+                of {{ totalPages() || 1 }}
+              </span>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="!hasPreviousPage() || isLoadingUsers()"
+                (click)="previousPage()">
+
+                Previous
+
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="!hasNextPage() || isLoadingUsers()"
+                (click)="nextPage()">
+
+                Next
+
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      }
+
+    </div>
+
+  </section>
+
+  <!-- =====================================================
+       10. Create / Edit User Form
+       ===================================================== -->
+
+  @if (formMode(); as mode) {
+
+    <section
+      class="form-card user-editor"
+      aria-label="User editor">
+
+      <div class="form-card-header">
+
+        <div>
+
+          <h2>
+            {{ mode === 'create'
+              ? 'Create User'
+              : 'Edit User' }}
+          </h2>
+
+          <p>
+            {{ mode === 'create'
+              ? 'Invite a user to the selected company. They will set their own password using a secure email link.'
+              : 'Update the selected user profile.' }}
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="button button-secondary"
+          [disabled]="isSavingUser()"
+          (click)="closeUserForm()">
+
+          Cancel
+
+        </button>
+
+      </div>
+
+      <div class="form-card-body">
+
+        <!-- Form Error -->
+
+        @if (userFormError(); as message) {
+
+          <div
+            class="alert alert-error"
+            role="alert">
+
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to load or save user</strong>
+              <span>{{ message }}</span>
+            </div>
+
+          </div>
+
+        }
+
+        <!-- Details Loading -->
+
+        @if (isLoadingUserDetails()) {
+
+          <div
+            class="user-directory-state"
+            role="status">
+
+            <span
+              class="button-spinner"
+              aria-hidden="true">
+            </span>
+
+            <span>
+              Loading user details...
+            </span>
+
+          </div>
+
+        } @else if (
+          mode === 'edit' &&
+          !userDetailsLoaded()
+        ) {
+
+          <div class="company-empty-state">
+
+            <strong>
+              User details unavailable
+            </strong>
+
+            <p>
+              User details could not be loaded.
+              Close the form and try again.
+            </p>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="closeUserForm()">
+
+              Close
+
+            </button>
+
+          </div>
+
+        } @else {
+
+          <!-- Reactive Form -->
+
+          <form
+            [formGroup]="userForm"
+            (ngSubmit)="saveUser()">
+
+            <!-- Full Name -->
+
+            <div class="form-field">
+
+              <label for="userFullName">
+                Full name
+              </label>
+
+              <input
+                id="userFullName"
+                type="text"
+                maxlength="200"
+                autocomplete="name"
+                formControlName="fullName"
+                required
+                [attr.aria-invalid]="userForm.controls.fullName.touched && userForm.controls.fullName.invalid">
+
+              @if (
+                userForm.controls.fullName.touched &&
+                userForm.controls.fullName.invalid
+              ) {
+
+                <small class="field-error">
+                  Full name is required
+                  (maximum 200 characters).
+                </small>
+
+              }
+
+            </div>
+
+            <!-- Email -->
+
+            <div class="form-field">
+
+              <label for="userEmail">
+                Email address
+              </label>
+
+              <input
+                id="userEmail"
+                type="email"
+                maxlength="256"
+                autocomplete="email"
+                formControlName="email"
+                required
+                [attr.aria-invalid]="userForm.controls.email.touched && userForm.controls.email.invalid">
+
+              @if (
+                userForm.controls.email.touched &&
+                userForm.controls.email.invalid
+              ) {
+
+                <small class="field-error">
+                  Enter a valid email address.
+                </small>
+
+              }
+
+            </div>
+
+            <!-- Invitation: Create Only -->
+
+            @if (mode === 'create') {
+
+              <div class="form-field">
+
+                <p>
+                  An invitation link will be sent to the email address above.
+                  The user will set their own password securely.
+                </p>
+
+              </div>
+
+            }
+
+            <!-- Form Actions -->
+
+            <div class="user-editor-actions">
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isSavingUser()"
+                (click)="closeUserForm()">
+
+                Cancel
+
+              </button>
+
+              <button
+                type="submit"
+                class="button button-primary"
+                [disabled]="userForm.invalid ||
+                  isSavingUser() ||
+                  isLoadingUserDetails() ||
+                  changingStatusUserId() !== null ||
+                  (mode === 'edit' && !userDetailsLoaded())">
+
+                @if (isSavingUser()) {
+
+                  <span
+                    class="button-spinner"
+                    aria-hidden="true">
+                  </span>
+
+                }
+
+                {{ isSavingUser()
+                  ? 'Saving...'
+                  : (mode === 'create'
+                    ? 'Create User'
+                    : 'Save Changes') }}
+
+              </button>
+
+            </div>
+
+          </form>
+
+        }
+
+      </div>
+
+    </section>
+
+  }
+
+</div>

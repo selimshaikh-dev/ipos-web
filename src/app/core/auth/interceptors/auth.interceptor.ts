@@ -18,26 +18,13 @@ import { environment } from '../../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 import { TokenService } from '../services/token.service';
 
-// =========================================================
-// Authentication Interceptor
-// =========================================================
-
 export const authInterceptor: HttpInterceptorFn = (
   request,
   next
 ) => {
-
-  // =======================================================
-  // Dependencies
-  // =======================================================
-
   const tokenService = inject(TokenService);
   const authService = inject(AuthService);
   const router = inject(Router);
-
-  // =======================================================
-  // Request Classification
-  // =======================================================
 
   const apiBaseUrl =
     environment.apiBaseUrl.replace(/\/+$/, '');
@@ -52,19 +39,29 @@ export const authInterceptor: HttpInterceptorFn = (
 
   const isLoginRequest =
     isApiRequest &&
-    requestPath.endsWith('/auth/login');
+    requestPath === `${apiBaseUrl}/auth/login`;
 
   const isRefreshRequest =
     isApiRequest &&
-    requestPath.endsWith('/auth/refresh');
+    requestPath === `${apiBaseUrl}/auth/refresh`;
 
   const isLogoutRequest =
     isApiRequest &&
-    requestPath.endsWith('/auth/logout');
+    requestPath === `${apiBaseUrl}/auth/logout`;
 
-  // =======================================================
-  // Attach Access Token
-  // =======================================================
+  const isNewInvitationRequest =
+    isApiRequest &&
+    requestPath === `${apiBaseUrl}/auth/invitations/accept`;
+
+  const isExistingInvitationRequest =
+    isApiRequest &&
+    requestPath === `${apiBaseUrl}/auth/invitations/accept-existing`;
+
+  const isAnonymousAuthRequest =
+    isLoginRequest ||
+    isRefreshRequest ||
+    isLogoutRequest ||
+    isNewInvitationRequest;
 
   const accessToken =
     tokenService.getAccessToken();
@@ -72,9 +69,7 @@ export const authInterceptor: HttpInterceptorFn = (
   const outgoingRequest =
     isApiRequest &&
     accessToken &&
-    !isLoginRequest &&
-    !isRefreshRequest &&
-    !isLogoutRequest
+    !isAnonymousAuthRequest
       ? request.clone({
           setHeaders: {
             Authorization: `Bearer ${accessToken}`
@@ -82,52 +77,28 @@ export const authInterceptor: HttpInterceptorFn = (
         })
       : request;
 
-  // =======================================================
-  // Execute HTTP Request
-  // =======================================================
-
   return next(outgoingRequest).pipe(
-
     catchError((error: HttpErrorResponse) => {
-
-      // ===================================================
-      // Refresh Eligibility
-      // ===================================================
-
       const shouldAttemptRefresh =
         error.status === 401 &&
         isApiRequest &&
-        !isLoginRequest &&
-        !isRefreshRequest &&
-        !isLogoutRequest;
+        !isAnonymousAuthRequest;
 
       if (!shouldAttemptRefresh) {
         return throwError(() => error);
       }
 
-      // ===================================================
-      // Centralized Refresh
-      // ===================================================
-      //
-      // AuthService coordinates concurrent refresh calls
-      // from the interceptor and route guards.
-      // ===================================================
-
       return authService.refresh().pipe(
-
         switchMap(() => {
-
           const newAccessToken =
             tokenService.getAccessToken();
 
           if (!newAccessToken) {
-
-            // A refresh response without a usable token
-            // cannot authorize the original request.
-
             authService.clearLocalSession();
 
-            void router.navigateByUrl('/login');
+            if (!isExistingInvitationRequest) {
+              void router.navigateByUrl('/login');
+            }
 
             return throwError(
               () => new Error(
@@ -136,43 +107,20 @@ export const authInterceptor: HttpInterceptorFn = (
             );
           }
 
-          // =================================================
-          // Retry Original Request
-          // =================================================
-
           const retryRequest = request.clone({
             setHeaders: {
               Authorization: `Bearer ${newAccessToken}`
             }
           });
 
-          return next(retryRequest).pipe(
-
-            catchError((retryError: HttpErrorResponse) => {
-
-              // A repeated 401 may indicate an invalid
-              // session or endpoint-specific access rule.
-              //
-              // Do not automatically clear authentication
-              // solely because a retried request returns 401.
-
-              return throwError(() => retryError);
-            })
-
-          );
+          return next(retryRequest);
         }),
 
         catchError(refreshOrRetryError => {
-
-          // AuthService owns refresh failure cleanup.
-          //
-          // For example, HTTP 400/401 from the refresh
-          // endpoint invalidates the local session.
-          //
-          // Network errors and unrelated retry failures
-          // must not automatically destroy the session.
-
-          if (!authService.getCurrentUser()) {
+          if (
+            !authService.getCurrentUser() &&
+            !isExistingInvitationRequest
+          ) {
             void router.navigateByUrl('/login');
           }
 
@@ -180,9 +128,7 @@ export const authInterceptor: HttpInterceptorFn = (
             () => refreshOrRetryError
           );
         })
-
       );
     })
-
   );
 };

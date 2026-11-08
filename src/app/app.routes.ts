@@ -66,6 +66,39 @@ export const routes: Routes = [
   },
 
   // =======================================================
+  // Invitation Acceptance
+  // =======================================================
+
+  /**
+   * Allows invited users to accept invitations.
+   *
+   * New users:
+   *   Accept invitation and establish a password.
+   *
+   * Existing users:
+   *   Accept invitation using their authenticated
+   *   identity.
+   *
+   * This route is intentionally outside AppShell.
+   *
+   * Do not apply authGuard or guestGuard here.
+   *
+   * Backend must validate invitation tokens,
+   * expiration, identity and authorization.
+   */
+  {
+    path: 'invitations/accept',
+
+    loadComponent: () =>
+      import(
+        './features/auth/accept-invitation/accept-invitation'
+      )
+        .then(m => m.AcceptInvitation),
+
+    title: 'Accept Invitation | iPOS'
+  },
+
+  // =======================================================
   // Authenticated Application Shell
   // =======================================================
 
@@ -200,6 +233,26 @@ export const routes: Routes = [
         },
 
         title: 'Warehouse Management | iPOS'
+      },
+
+      // ===================================================
+      // Users & Access Control / User Management
+      // ===================================================
+
+      {
+        path: 'settings/users-access-control/user-management',
+
+        loadComponent: () =>
+          import(
+            './features/settings/users-access-control/user-management/pages/user-management/user-management'
+          )
+            .then(m => m.UserManagement),
+
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Users Management | iPOS'
       }
 
     ]

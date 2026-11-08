@@ -1,0 +1,704 @@
+
+<div class="login-page">
+
+  <!-- =====================================================
+       BRAND / INFORMATION PANEL
+       ===================================================== -->
+
+  <section class="brand-panel">
+
+    <div class="brand-panel__inner">
+
+      <!-- Brand Logo -->
+      <div class="brand">
+        <img
+          src="/images/branding/ipos-logo.png"
+          alt="iPOS - Integrated Point of Sale"
+          class="brand__logo"
+        >
+      </div>
+
+      <!-- Brand Message -->
+      <div class="brand-message">
+
+        <p class="brand-message__eyebrow">
+          Integrated Business Operations
+        </p>
+
+        <h1>
+          One platform for your
+          <span>day-to-day business.</span>
+        </h1>
+
+        <p class="brand-message__description">
+          Manage sales, inventory, purchasing, customers,
+          suppliers and financial operations from a secure,
+          centralized workspace.
+        </p>
+
+      </div>
+
+      <!-- Business Features -->
+      <div class="system-points">
+
+        <!-- Feature 1 -->
+        <div class="system-point">
+
+          <span
+            class="system-point__icon"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M12 2 4 5v6c0 5 3.4 9.7 8 11
+                   4.6-1.3 8-6 8-11V5l-8-3Z"
+              />
+            </svg>
+          </span>
+
+          <div>
+            <strong>Secure onboarding</strong>
+            <span>
+              Activate your account through a protected
+              organization invitation.
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Feature 2 -->
+        <div class="system-point">
+
+          <span
+            class="system-point__icon"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M4 4h6v6H4V4Zm10 0h6v6h-6V4Z
+                   M4 14h6v6H4v-6Zm10 0h6v6h-6v-6Z"
+              />
+            </svg>
+          </span>
+
+          <div>
+            <strong>Centralized operations</strong>
+            <span>
+              Access your authorized business operations
+              from one secure workspace.
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Feature 3 -->
+        <div class="system-point">
+
+          <span
+            class="system-point__icon"
+            aria-hidden="true"
+          >
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M17 8h-1V6a4 4 0 0 0-8 0v2H7
+                   a3 3 0 0 0-3 3v7
+                   a3 3 0 0 0 3 3h10
+                   a3 3 0 0 0 3-3v-7
+                   a3 3 0 0 0-3-3Z"
+              />
+            </svg>
+          </span>
+
+          <div>
+            <strong>Controlled access</strong>
+            <span>
+              Your organization manages your account
+              permissions and workspace access.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Brand Footer -->
+      <div class="brand-panel__footer">
+
+        <span>iPOS</span>
+
+        <span class="separator"></span>
+
+        <span>
+          Integrated Point of Sale &amp;
+          Business Management System
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =====================================================
+       INVITATION ACCEPTANCE PANEL
+       ===================================================== -->
+
+  <main class="login-panel">
+
+    <div class="login-panel__content">
+
+      <!-- Mobile Brand -->
+      <div class="mobile-brand">
+
+        <img
+          src="/images/branding/ipos-logo.png"
+          alt="iPOS"
+          class="mobile-brand__logo"
+        >
+
+      </div>
+
+
+      <!-- =================================================
+           PAGE HEADER
+           ================================================= -->
+
+      <header class="login-header">
+
+        <p class="login-header__eyebrow">
+          Secure Account Onboarding
+        </p>
+
+        <h2>
+
+          @if (isCompleted) {
+            Invitation accepted
+          } @else if (isResolvingSession) {
+            Verifying your invitation
+          } @else if (isAuthenticated) {
+            Join your organization
+          } @else {
+            Set up your password
+          }
+
+        </h2>
+
+        <p>
+
+          @if (isCompleted) {
+
+            Your invitation has been accepted successfully.
+
+          } @else if (isResolvingSession) {
+
+            Please wait while we securely verify your
+            authentication session.
+
+          } @else if (isAuthenticated) {
+
+            Confirm your invitation to activate access
+            to the invited organization.
+
+          } @else {
+
+            Create a secure password to activate your
+            iPOS account and access your workspace.
+
+          }
+
+        </p>
+
+      </header>
+
+
+      <!-- =================================================
+           ERROR MESSAGE
+           ================================================= -->
+
+      @if (errorMessage && !isCompleted) {
+
+        <div
+          class="alert alert--error"
+          role="alert"
+        >
+
+          <span
+            class="alert__icon"
+            aria-hidden="true"
+          >
+            !
+          </span>
+
+          <span>
+            {{ errorMessage }}
+          </span>
+
+        </div>
+
+      }
+
+
+      <!-- =================================================
+           SUCCESS STATE
+           ================================================= -->
+
+      @if (isCompleted) {
+
+        <div
+          class="invitation-success"
+          role="status"
+        >
+
+          <span
+            class="invitation-success__icon"
+            aria-hidden="true"
+          >
+            &#10003;
+          </span>
+
+          <strong>
+            Account access activated
+          </strong>
+
+          <p>
+
+            @if (isAuthenticated) {
+
+              Your organization access has been activated
+              successfully. You can now continue to your
+              business workspace.
+
+            } @else {
+
+              Your password has been created successfully
+              and your iPOS account is activated.
+              You can now sign in to your account.
+
+            }
+
+          </p>
+
+          <a
+            class="sign-in-button invitation-link-button"
+            [routerLink]="
+              isAuthenticated
+                ? '/dashboard'
+                : '/login'
+            "
+          >
+
+            <span>
+              {{
+                isAuthenticated
+                  ? 'Go to dashboard'
+                  : 'Continue to sign in'
+              }}
+            </span>
+
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path
+                d="m13.3 5.3 6 6
+                   a1 1 0 0 1 0 1.4
+                   l-6 6-1.4-1.4
+                   4.3-4.3H5v-2h11.2
+                   l-4.3-4.3
+                   1.4-1.4Z"
+              />
+            </svg>
+
+          </a>
+
+        </div>
+
+
+      <!-- =================================================
+           SESSION RESTORATION LOADING
+           ================================================= -->
+
+      } @else if (isResolvingSession) {
+
+        <div
+          class="invitation-session-loading"
+          role="status"
+          aria-live="polite"
+        >
+
+          <span
+            class="spinner"
+            aria-hidden="true"
+          ></span>
+
+          <span>
+            Verifying your session...
+          </span>
+
+        </div>
+
+
+      <!-- =================================================
+           INVITATION FORM
+           ================================================= -->
+
+      } @else if (token && token.length <= 512) {
+
+        <form
+          class="login-form"
+          [formGroup]="invitationForm"
+          (ngSubmit)="submit()"
+          novalidate
+        >
+
+          <!-- =============================================
+               NEW USER PASSWORD FIELDS
+               ============================================= -->
+
+          @if (!isAuthenticated) {
+
+            <!-- NEW PASSWORD -->
+            <div class="field">
+
+              <label for="password">
+                New password
+              </label>
+
+              <div
+                class="input-control"
+                [class.input-control--invalid]="
+                  passwordControl.invalid &&
+                  passwordControl.touched
+                "
+              >
+
+                <span
+                  class="input-control__icon"
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M17 8h-1V6a4 4 0 0 0-8 0v2H7
+                         a3 3 0 0 0-3 3v7
+                         a3 3 0 0 0 3 3h10
+                         a3 3 0 0 0 3-3v-7
+                         a3 3 0 0 0-3-3Z"
+                    />
+                  </svg>
+                </span>
+
+                <input
+                  id="password"
+                  [type]="
+                    showPassword
+                      ? 'text'
+                      : 'password'
+                  "
+                  formControlName="password"
+                  autocomplete="new-password"
+                  placeholder="Create your password"
+                  [attr.aria-invalid]="
+                    passwordControl.invalid &&
+                    passwordControl.touched
+                  "
+                >
+
+                <button
+                  class="password-toggle"
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  [attr.aria-label]="
+                    showPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  "
+                >
+
+                  @if (showPassword) {
+                    Hide
+                  } @else {
+                    Show
+                  }
+
+                </button>
+
+              </div>
+
+              <!-- Password Validation -->
+              @if (
+                passwordControl.invalid &&
+                passwordControl.touched
+              ) {
+
+                <p
+                  class="field__error"
+                  role="alert"
+                >
+
+                  @if (
+                    passwordControl.hasError('required')
+                  ) {
+
+                    Password is required.
+
+                  } @else if (
+                    passwordControl.hasError('minlength')
+                  ) {
+
+                    Password must contain at least
+                    8 characters.
+
+                  }
+
+                </p>
+
+              }
+
+            </div>
+
+
+            <!-- CONFIRM PASSWORD -->
+            <div class="field">
+
+              <label for="confirmPassword">
+                Confirm password
+              </label>
+
+              <div
+                class="input-control"
+                [class.input-control--invalid]="
+                  confirmPasswordControl.touched &&
+                  (
+                    confirmPasswordControl.invalid ||
+                    invitationForm.hasError('passwordMismatch')
+                  )
+                "
+              >
+
+                <span
+                  class="input-control__icon"
+                  aria-hidden="true"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path
+                      d="M17 8h-1V6a4 4 0 0 0-8 0v2H7
+                         a3 3 0 0 0-3 3v7
+                         a3 3 0 0 0 3 3h10
+                         a3 3 0 0 0 3-3v-7
+                         a3 3 0 0 0-3-3Z"
+                    />
+                  </svg>
+                </span>
+
+                <input
+                  id="confirmPassword"
+                  [type]="
+                    showConfirmPassword
+                      ? 'text'
+                      : 'password'
+                  "
+                  formControlName="confirmPassword"
+                  autocomplete="new-password"
+                  placeholder="Confirm your password"
+                  [attr.aria-invalid]="
+                    confirmPasswordControl.touched &&
+                    (
+                      confirmPasswordControl.invalid ||
+                      invitationForm.hasError('passwordMismatch')
+                    )
+                  "
+                >
+
+                <button
+                  class="password-toggle"
+                  type="button"
+                  (click)="toggleConfirmPasswordVisibility()"
+                  [attr.aria-label]="
+                    showConfirmPassword
+                      ? 'Hide password'
+                      : 'Show password'
+                  "
+                >
+
+                  @if (showConfirmPassword) {
+                    Hide
+                  } @else {
+                    Show
+                  }
+
+                </button>
+
+              </div>
+
+              <!-- Confirmation Validation -->
+              @if (
+                confirmPasswordControl.touched &&
+                confirmPasswordControl.hasError('required')
+              ) {
+
+                <p
+                  class="field__error"
+                  role="alert"
+                >
+                  Please confirm your password.
+                </p>
+
+              } @else if (
+                confirmPasswordControl.touched &&
+                invitationForm.hasError('passwordMismatch')
+              ) {
+
+                <p
+                  class="field__error"
+                  role="alert"
+                >
+                  Passwords do not match.
+                </p>
+
+              }
+
+            </div>
+
+          }
+
+
+          <!-- =============================================
+               EXISTING USER CONFIRMATION
+               ============================================= -->
+
+          @if (isAuthenticated) {
+
+            <div class="security-note">
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="M12 2 4 5v6
+                     c0 5 3.4 9.7 8 11
+                     4.6-1.3 8-6 8-11V5l-8-3Z"
+                />
+              </svg>
+
+              <p>
+                You are signed in to iPOS.
+                By accepting this invitation, you confirm
+                that you want to join the invited organization
+                using your current account.
+              </p>
+
+            </div>
+
+          }
+
+
+          <!-- =============================================
+               SUBMIT BUTTON
+               ============================================= -->
+
+          <button
+            class="sign-in-button"
+            type="submit"
+            [disabled]="
+              isSubmitting ||
+              isResolvingSession
+            "
+          >
+
+            @if (isSubmitting) {
+
+              <span
+                class="spinner"
+                aria-hidden="true"
+              ></span>
+
+              <span>
+                Processing invitation...
+              </span>
+
+            } @else {
+
+              <span>
+                {{
+                  isAuthenticated
+                    ? 'Accept invitation'
+                    : 'Set password & activate'
+                }}
+              </span>
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  d="m13.3 5.3 6 6
+                     a1 1 0 0 1 0 1.4
+                     l-6 6-1.4-1.4
+                     4.3-4.3H5v-2h11.2
+                     l-4.3-4.3
+                     1.4-1.4Z"
+                />
+              </svg>
+
+            }
+
+          </button>
+
+        </form>
+
+      }
+
+
+      <!-- =================================================
+           SECURITY NOTICE
+           ================================================= -->
+
+      <div class="security-note">
+
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path
+            d="M12 2 4 5v6
+               c0 5 3.4 9.7 8 11
+               4.6-1.3 8-6 8-11V5l-8-3Z"
+          />
+        </svg>
+
+        <p>
+          This invitation is intended only for the invited
+          account. Do not share your invitation link,
+          password or account credentials with anyone.
+        </p>
+
+      </div>
+
+
+      <!-- =================================================
+           PAGE FOOTER
+           ================================================= -->
+
+      <footer class="login-footer">
+
+        <span>
+          &copy; {{ currentYear }} iPOS
+        </span>
+
+        <span class="login-footer__separator">
+          &bull;
+        </span>
+
+        <span>
+          All rights reserved.
+        </span>
+
+      </footer>
+
+    </div>
+
+  </main>
+
+</div>
