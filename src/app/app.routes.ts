@@ -253,6 +253,26 @@ export const routes: Routes = [
         },
 
         title: 'Users Management | iPOS'
+      },
+
+      // ===================================================
+      // Users & Access Control / Roles & Permissions
+      // ===================================================
+
+      {
+        path: 'settings/users-access-control/role-management',
+
+        loadComponent: () =>
+          import(
+            './features/settings/users-access-control/role-management/pages/role-management/role-management'
+          )
+            .then(m => m.RoleManagement),
+
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Roles & Permissions | iPOS'
       }
 
     ]

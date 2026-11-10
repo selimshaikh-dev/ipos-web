@@ -375,9 +375,20 @@ export class Sidebar {
               route: '/settings/users-access-control/user-management',
               implemented: true
             },
-            { label: 'Roles & Permissions', icon: 'verified_user' },
-            { label: 'Company / Branch Access', icon: 'account_tree' },
-            { label: 'User Sessions', icon: 'devices' }
+            {
+              label: 'Roles & Permissions',
+              icon: 'verified_user',
+              route: '/settings/users-access-control/role-management',
+              implemented: true
+            },
+            {
+              label: 'Company / Branch Access',
+              icon: 'account_tree'
+            },
+            {
+              label: 'User Sessions',
+              icon: 'devices'
+            }
           ]
         },
 

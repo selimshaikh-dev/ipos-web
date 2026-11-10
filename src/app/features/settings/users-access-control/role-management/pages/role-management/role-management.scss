@@ -1,0 +1,155 @@
+
+/*
+ * iPOS Enterprise Role Management
+ *
+ * Reuse the existing User Management visual system.
+ * Keep role-specific presentation rules in this file.
+ *
+ * The shared stylesheet is imported at build time.
+ */
+
+@use '../../../user-management/pages/user-management/user-management.scss';
+
+// =========================================================
+// Role Management
+// =========================================================
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+.role-management-page {
+
+  // =======================================================
+  // Role Identity
+  // =======================================================
+
+  .role-identity-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  .role-identity-details strong {
+    color: var(--ipos-text, #172033);
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .role-code {
+    color: var(--ipos-primary, #2563eb);
+    font-size: 11px;
+    font-weight: 650;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .role-description {
+    max-width: 440px;
+    color: var(--ipos-text-muted, #687386);
+    font-size: 12px;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+
+  // =======================================================
+  // Role Type
+  // =======================================================
+
+  .role-type-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 10px;
+    border: 1px solid var(--ipos-border, #e4e8ee);
+    border-radius: 999px;
+    background: var(--ipos-surface-soft, #f8fafc);
+    color: #475467;
+    font-size: 11px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
+
+  // =======================================================
+  // Role Avatar
+  // =======================================================
+
+  .user-avatar .material-symbols-rounded {
+    font-size: 21px;
+    line-height: 1;
+  }
+
+  // =======================================================
+  // Directory Table
+  // =======================================================
+
+  .user-directory-table {
+    min-width: 820px;
+  }
+
+  .user-directory-table td:first-child {
+    min-width: 260px;
+  }
+
+  .user-directory-table td:nth-child(3),
+  .user-directory-table td:nth-child(4) {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .user-directory-table td:last-child {
+    width: auto;
+  }
+
+  // =======================================================
+  // Filters
+  // =======================================================
+
+  .user-filter-fields {
+    justify-content: flex-start;
+  }
+
+  .user-filter-fields > .form-field {
+    min-width: min(180px, 100%);
+  }
+
+  .user-filter-fields > .user-directory-actions {
+    margin-left: auto;
+  }
+
+  // =======================================================
+  // Responsive
+  // =======================================================
+
+  @media (max-width: 820px) {
+
+    .role-description {
+      max-width: 300px;
+    }
+
+    .user-filter-fields > .user-directory-actions {
+      margin-left: 0;
+    }
+
+  }
+
+  @media (max-width: 600px) {
+
+    .user-filter-fields > .form-field {
+      width: 100%;
+    }
+
+    .user-filter-fields > .user-directory-actions {
+      width: 100%;
+    }
+
+    .role-description {
+      max-width: 240px;
+    }
+
+  }
+
+}

@@ -1,0 +1,494 @@
+
+<div class="company-profile-page user-management-page role-management-page">
+
+  <!-- =====================================================
+       01. Page Header
+       ===================================================== -->
+
+  <header class="page-header">
+    <div class="page-heading">
+
+      <div class="breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Users &amp; Access Control</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Roles &amp; Permissions</span>
+      </div>
+
+      <h1>Roles &amp; Permissions</h1>
+
+      <p>
+        Review security roles and permission assignments
+        within your selected company workspace.
+      </p>
+
+    </div>
+  </header>
+
+  <!-- =====================================================
+       02. Directory Introduction
+       ===================================================== -->
+
+  <div class="directory-intro">
+    <div>
+
+      <span class="eyebrow">
+        ACCESS CONTROL DIRECTORY
+      </span>
+
+      <h2>Company roles</h2>
+
+      <p>
+        Review system and custom roles, assigned users
+        and permission coverage.
+      </p>
+
+    </div>
+  </div>
+
+  <!-- =====================================================
+       03. Roles Directory
+       ===================================================== -->
+
+  <section
+    class="form-card company-directory"
+    aria-label="Roles directory">
+
+    <div class="form-card-header">
+
+      <div>
+        <h2>Roles</h2>
+
+        <p>
+          Role records are displayed within the
+          selected company workspace.
+        </p>
+      </div>
+
+    </div>
+
+    <div class="form-card-body user-directory-body">
+
+      <!-- Company Selection -->
+
+      @if (companyId() === null) {
+
+        <div class="state-card" role="status">
+
+          <div>
+            <h2>Select a company</h2>
+
+            <p>
+              Select an authorized company from the
+              workspace to view its roles.
+            </p>
+          </div>
+
+        </div>
+
+      } @else {
+
+        <!-- =================================================
+             04. Search and Filters
+             ================================================= -->
+
+        <div class="user-directory-toolbar">
+
+          <div class="user-search-fields">
+
+            <div class="form-field">
+
+              <label for="roleSearch">
+                Search roles
+              </label>
+
+              <input
+                #roleSearch
+                id="roleSearch"
+                type="search"
+                maxlength="200"
+                [value]="searchText()"
+                placeholder="Search by role name or code"
+                (keyup.enter)="searchRoles(roleSearch.value)">
+
+            </div>
+
+            <button
+              type="button"
+              class="button button-primary"
+              [disabled]="isLoadingRoles()"
+              (click)="searchRoles(roleSearch.value)">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">
+                search
+              </span>
+
+              Search
+
+            </button>
+
+          </div>
+
+          <div class="user-filter-fields">
+
+            <!-- Role Type -->
+
+            <div class="form-field">
+
+              <label for="roleFilterType">
+                Role type
+              </label>
+
+              <select
+                #roleType
+                id="roleFilterType"
+                [value]="selectedRoleType() ?? ''"
+                [disabled]="isLoadingRoles()"
+                (change)="filterByRoleType(
+                  roleType.value === 'system'
+                    ? 'system'
+                    : roleType.value === 'custom'
+                      ? 'custom'
+                      : null
+                )">
+
+                <option value="">All types</option>
+                <option value="system">System</option>
+                <option value="custom">Custom</option>
+
+              </select>
+
+            </div>
+
+            <!-- Role Status -->
+
+            <div class="form-field">
+
+              <label for="roleFilterStatus">
+                Status
+              </label>
+
+              <select
+                #roleStatus
+                id="roleFilterStatus"
+                [value]="selectedIsActive() === null
+                  ? ''
+                  : (selectedIsActive() ? 'true' : 'false')"
+                [disabled]="isLoadingRoles()"
+                (change)="filterByStatus(
+                  roleStatus.value === ''
+                    ? null
+                    : roleStatus.value === 'true'
+                )">
+
+                <option value="">All statuses</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+
+              </select>
+
+            </div>
+
+            <div class="user-directory-actions">
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isLoadingRoles()"
+                (click)="clearFilters()">
+
+                Reset filters
+
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isLoadingRoles()"
+                (click)="refreshDirectory()">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">
+                  refresh
+                </span>
+
+                Refresh
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- =================================================
+             05. Directory Error
+             ================================================= -->
+
+        @if (directoryError(); as message) {
+
+          <div
+            class="alert alert-error"
+            role="alert">
+
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to load roles</strong>
+              <span>{{ message }}</span>
+            </div>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="refreshDirectory()">
+
+              Try again
+
+            </button>
+
+          </div>
+
+        }
+
+        <!-- =================================================
+             06. Loading / Empty / Roles Table
+             ================================================= -->
+
+        @if (isLoadingRoles()) {
+
+          <div
+            class="user-directory-state"
+            role="status"
+            aria-live="polite">
+
+            <span
+              class="button-spinner"
+              aria-hidden="true">
+            </span>
+
+            <span>Loading roles...</span>
+
+          </div>
+
+        } @else if (
+          !directoryError() &&
+          roles().length === 0
+        ) {
+
+          <div
+            class="company-empty-state"
+            role="status">
+
+            <span
+              class="material-symbols-rounded"
+              aria-hidden="true">
+              admin_panel_settings
+            </span>
+
+            <strong>No roles found</strong>
+
+            <p>
+              No roles match the selected company
+              and current filters.
+            </p>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="clearFilters()">
+
+              Clear filters
+
+            </button>
+
+          </div>
+
+        } @else if (!directoryError()) {
+
+          <!-- Roles Table -->
+
+          <div class="user-table-scroll">
+
+            <table class="user-directory-table">
+
+              <thead>
+                <tr>
+                  <th scope="col">Role</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Permissions</th>
+                  <th scope="col">Assigned users</th>
+                  <th scope="col">Status</th>
+                </tr>
+              </thead>
+
+              <tbody>
+
+                @for (role of roles(); track role.id) {
+
+                  <tr>
+
+                    <!-- Role Identity -->
+
+                    <td>
+
+                      <div class="user-identity">
+
+                        <div
+                          class="user-avatar"
+                          aria-hidden="true">
+
+                          <span class="material-symbols-rounded">
+                            verified_user
+                          </span>
+
+                        </div>
+
+                        <div class="role-identity-details">
+
+                          <strong>{{ role.name }}</strong>
+
+                          <span class="role-code">
+                            {{ role.code }}
+                          </span>
+
+                          @if (role.description) {
+                            <span class="role-description">
+                              {{ role.description }}
+                            </span>
+                          }
+
+                        </div>
+
+                      </div>
+
+                    </td>
+
+                    <!-- Role Type -->
+
+                    <td>
+
+                      <span class="role-type-label">
+                        {{ role.isSystemRole ? 'System' : 'Custom' }}
+                      </span>
+
+                    </td>
+
+                    <!-- Permission Count -->
+
+                    <td>
+                      {{ role.permissionCount }}
+                    </td>
+
+                    <!-- Assigned User Count -->
+
+                    <td>
+                      {{ role.assignedUserCount }}
+                    </td>
+
+                    <!-- Status -->
+
+                    <td>
+
+                      <span
+                        class="status-badge"
+                        [class.status-active]="role.isActive"
+                        [class.status-inactive]="!role.isActive">
+
+                        <span class="status-dot"></span>
+
+                        {{ role.isActive ? 'Active' : 'Inactive' }}
+
+                      </span>
+
+                    </td>
+
+                  </tr>
+
+                }
+
+              </tbody>
+
+            </table>
+
+          </div>
+
+        }
+
+        <!-- =================================================
+             07. Pagination
+             ================================================= -->
+
+        @if (
+          !directoryError() &&
+          !isLoadingRoles()
+        ) {
+
+          <div class="user-directory-pagination">
+
+            <span class="user-directory-count">
+              {{ totalCount() }} role(s) found
+            </span>
+
+            <div class="user-directory-page-controls">
+
+              <label for="rolePageSize">
+                Rows per page
+              </label>
+
+              <select
+                #rolePageSize
+                id="rolePageSize"
+                [value]="pageSize()"
+                (change)="changePageSize(+rolePageSize.value)">
+
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+
+              </select>
+
+              <span>
+                Page {{ pageNumber() }}
+                of {{ totalPages() || 1 }}
+              </span>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="!hasPreviousPage() || isLoadingRoles()"
+                (click)="previousPage()">
+
+                Previous
+
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="!hasNextPage() || isLoadingRoles()"
+                (click)="nextPage()">
+
+                Next
+
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      }
+
+    </div>
+
+  </section>
+
+</div>
