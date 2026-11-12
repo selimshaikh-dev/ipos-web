@@ -18,8 +18,14 @@ import {
 } from '../../../../../../environments/environment';
 
 import {
+  ChangeRoleStatusRequest,
+  CreateRoleRequest,
+  CreatedRole,
   RoleListQuery,
-  RolePagedResult
+  RolePagedResult,
+  RoleStatus,
+  UpdatedRole,
+  UpdateRoleRequest
 } from '../models/role.model';
 
 @Injectable({
@@ -36,9 +42,16 @@ export class RoleService {
     return `${this.apiUrl}/${companyId}/roles`;
   }
 
-  // =======================================================
+  private roleUrl(
+    companyId: number,
+    roleId: number
+  ): string {
+    return `${this.rolesUrl(companyId)}/${roleId}`;
+  }
+
+  // =========================================================
   // Roles Directory
-  // =======================================================
+  // =========================================================
 
   getRoles(
     companyId: number,
@@ -85,6 +98,69 @@ export class RoleService {
     return this.http.get<RolePagedResult>(
       this.rolesUrl(companyId),
       { params }
+    );
+  }
+
+  // =========================================================
+  // Create Custom Role
+  // =========================================================
+
+  createRole(
+    companyId: number,
+    request: CreateRoleRequest
+  ): Observable<CreatedRole> {
+
+    return this.http.post<CreatedRole>(
+      this.rolesUrl(companyId),
+      request
+    );
+  }
+
+  // =========================================================
+  // Update Custom Role
+  // =========================================================
+
+  updateRole(
+    companyId: number,
+    roleId: number,
+    request: UpdateRoleRequest
+  ): Observable<UpdatedRole> {
+
+    return this.http.put<UpdatedRole>(
+      this.roleUrl(companyId, roleId),
+      request
+    );
+  }
+
+  // =========================================================
+  // Activate Custom Role
+  // =========================================================
+
+  activateRole(
+    companyId: number,
+    roleId: number,
+    request: ChangeRoleStatusRequest
+  ): Observable<RoleStatus> {
+
+    return this.http.patch<RoleStatus>(
+      `${this.roleUrl(companyId, roleId)}/activate`,
+      request
+    );
+  }
+
+  // =========================================================
+  // Deactivate Custom Role
+  // =========================================================
+
+  deactivateRole(
+    companyId: number,
+    roleId: number,
+    request: ChangeRoleStatusRequest
+  ): Observable<RoleStatus> {
+
+    return this.http.patch<RoleStatus>(
+      `${this.roleUrl(companyId, roleId)}/deactivate`,
+      request
     );
   }
 }

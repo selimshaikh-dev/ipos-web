@@ -1,4 +1,3 @@
-
 <div class="sidebar">
 
   <!-- =====================================================
@@ -44,7 +43,7 @@
         <span class="material-symbols-rounded" aria-hidden="true">
           swap_horiz
         </span>
-        Manage / switch company
+        Company workspaces
       </a>
 
     } @else {
@@ -63,6 +62,25 @@
 
       }
 
+      <div class="workspace-mode-switch" role="group" aria-label="Workspace mode">
+        <button type="button" class="workspace-mode-button"
+                [class.workspace-mode-button-active]="!isBranchMode()"
+                [attr.aria-pressed]="!isBranchMode()"
+                (click)="enterCompanyWorkspace()">
+          <span class="material-symbols-rounded" aria-hidden="true">corporate_fare</span>
+          Company
+        </button>
+        <button type="button" class="workspace-mode-button"
+                [class.workspace-mode-button-active]="isBranchMode()"
+                [attr.aria-pressed]="isBranchMode()"
+                [disabled]="!workspace.hasCompany()"
+                (click)="enterBranchWorkspace()">
+          <span class="material-symbols-rounded" aria-hidden="true">store</span>
+          Branch
+        </button>
+      </div>
+
+      @if (isBranchMode()) {
       <button
         type="button"
         class="company"
@@ -160,6 +178,15 @@
         </div>
 
       }
+      } @else {
+        <div class="platform-context-card">
+          <span class="material-symbols-rounded" aria-hidden="true">domain</span>
+          <span>
+            <strong>{{ workspace.companyDisplayName() }}</strong>
+            <small>Company Administration</small>
+          </span>
+        </div>
+      }
 
     }
 
@@ -233,7 +260,7 @@
            LEVEL 1: Main Modules
            ================================================= -->
 
-      @for (item of navigation; track item.label) {
+      @for (item of visibleNavigation(); track item.label) {
 
         @if (item.children?.length) {
 
@@ -520,7 +547,7 @@
     </div>
 
     <div class="version">
-      iPOS v1.0 · Enterprise Suite
+      iPOS v1.0 ┬╖ Enterprise Suite
     </div>
 
   </div>

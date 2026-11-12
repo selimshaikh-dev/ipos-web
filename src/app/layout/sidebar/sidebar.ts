@@ -1,5 +1,4 @@
-
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   NavigationEnd,
   Router,
@@ -27,6 +26,7 @@ export interface NavigationItem {
   readonly route?: string;
   readonly children?: readonly NavigationItem[];
   readonly implemented?: boolean;
+  readonly workspaceScope?: 'company' | 'branch';
 }
 
 @Component({
@@ -52,14 +52,91 @@ export class Sidebar {
 
   private readonly activeUrl = signal(this.router.url);
 
-  readonly isPlatformMode = () =>
+  // Workspace mode follows the active route, not merely a saved branchId.
+  readonly isPlatformMode = computed(() =>
     this.isSuperAdmin() && (
-      this.activeUrl() === '/platform' ||
-      this.activeUrl().startsWith('/platform?') ||
-      this.activeUrl().startsWith(
-        '/settings/organization/company-management'
-      )
-    );
+      this.activeUrl().split(/[?#]/, 1)[0] === '/platform' ||
+      this.activeUrl().split(/[?#]/, 1)[0] === '/settings/organization/company-management'
+    )
+  );
+
+  readonly isBranchMode = computed(() => {
+    const path = this.activeUrl().split(/[?#]/, 1)[0];
+    return path === '/settings/organization/warehouse-management' ||
+      path === '/settings/organization/pos-counter-management';
+  });
+
+  readonly workspaceMode = computed<'platform' | 'company' | 'branch'>(() =>
+    this.isPlatformMode() ? 'platform' : this.isBranchMode() ? 'branch' : 'company'
+  );
+
+  readonly visibleNavigation = computed<readonly NavigationItem[]>(() => {
+    const mode = this.workspaceMode();
+    if (mode === 'platform') return [];
+    return this.navigation
+      .filter(item => mode === 'branch'
+        ? item.label !== 'Dashboard'
+        : item.label === 'Dashboard' || item.label === 'Settings' || item.label === 'Help & Support')
+      .map(item => this.filterNavigation(item, mode))
+      .filter((item): item is NavigationItem => item !== null);
+  });
+
+  private filterNavigation(
+    item: NavigationItem,
+    mode: 'company' | 'branch'
+  ): NavigationItem | null {
+    // The company/branch split applies to Organization settings and
+    // Users & Access Control; unimplemented modules remain disabled.
+    if (mode === 'company' && item.route === '/dashboard') {
+      return { ...item, children: undefined };
+    }
+    if (item.route === '/settings/organization/company-management') return null;
+    if (item.route === '/settings/organization/branch-management' ||
+        item.route === '/settings/users-access-control/user-management' ||
+        item.route === '/settings/users-access-control/role-management') {
+      return mode === 'company' ? item : null;
+    }
+    if (item.route === '/settings/organization/warehouse-management' ||
+        item.route === '/settings/organization/pos-counter-management') {
+      return mode === 'branch' ? item : null;
+    }
+    if (mode === 'company' && item.label === 'Settings') {
+      // Company administration owns organization and access-control settings.
+      const children = (item.children ?? [])
+        .filter(child => child.label === 'Organization' || child.label === 'Users & Access Control')
+        .map(child => this.filterNavigation(child, mode))
+        .filter((child): child is NavigationItem => child !== null);
+      return { ...item, children };
+    }
+    if (mode === 'branch' && item.label === 'Settings') {
+      const children = (item.children ?? [])
+        .filter(child => child.label !== 'Users & Access Control')
+        .map(child => this.filterNavigation(child, mode))
+        .filter((child): child is NavigationItem => child !== null);
+      return { ...item, children };
+    }
+    if (!item.children) return item;
+    const children = item.children
+      .map(child => this.filterNavigation(child, mode))
+      .filter((child): child is NavigationItem => child !== null);
+    return children.length ? { ...item, children } : null;
+  }
+
+  readonly canEnterBranch = computed(() =>
+    this.workspace.hasCompany() && this.workspace.branchOptions().length > 0
+  );
+
+  enterCompanyWorkspace(): void {
+    this.closeBranchSelector();
+    void this.router.navigateByUrl('/dashboard');
+  }
+
+  enterBranchWorkspace(): void {
+    if (!this.workspace.hasCompany()) return;
+    this.closeBranchSelector();
+    // This branch-scoped route prompts for an authorized branch when needed.
+    void this.router.navigateByUrl('/settings/organization/warehouse-management');
+  }
 
   constructor() {
     this.router.events.pipe(
@@ -77,13 +154,13 @@ export class Sidebar {
   // Authorization Display State
   // =======================================================
 
-  readonly isSuperAdmin = () => {
+  readonly isSuperAdmin = computed(() => {
     this.auth.sessionGenerationSignal();
 
     return this.auth.getCurrentUser()?.roles?.some(
       role => role.toLowerCase() === 'superadmin'
     ) ?? false;
-  };
+  });
 
   // =======================================================
   // Expanded Navigation Menus
@@ -348,18 +425,21 @@ export class Sidebar {
               label: 'Branches',
               icon: 'account_tree',
               route: '/settings/organization/branch-management',
+              workspaceScope: 'company',
               implemented: true
             },
             {
               label: 'Warehouses',
               icon: 'warehouse',
               route: '/settings/organization/warehouse-management',
+              workspaceScope: 'branch',
               implemented: true
             },
             {
               label: 'POS Counters',
               icon: 'point_of_sale',
               route: '/settings/organization/pos-counter-management',
+              workspaceScope: 'branch',
               implemented: true
             }
           ]
@@ -373,12 +453,14 @@ export class Sidebar {
               label: 'Users',
               icon: 'group',
               route: '/settings/users-access-control/user-management',
+              workspaceScope: 'company',
               implemented: true
             },
             {
               label: 'Roles & Permissions',
               icon: 'verified_user',
               route: '/settings/users-access-control/role-management',
+              workspaceScope: 'company',
               implemented: true
             },
             {
