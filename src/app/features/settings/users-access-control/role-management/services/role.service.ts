@@ -23,8 +23,11 @@ import {
   CreatedRole,
   RoleListQuery,
   RolePagedResult,
+  RolePermissions,
   RoleStatus,
   UpdatedRole,
+  UpdatedRolePermissions,
+  UpdateRolePermissionsRequest,
   UpdateRoleRequest
 } from '../models/role.model';
 
@@ -38,6 +41,10 @@ export class RoleService {
   private readonly apiUrl =
     `${environment.apiBaseUrl}/companies`;
 
+  // =========================================================
+  // API URL HELPERS
+  // =========================================================
+
   private rolesUrl(companyId: number): string {
     return `${this.apiUrl}/${companyId}/roles`;
   }
@@ -49,8 +56,15 @@ export class RoleService {
     return `${this.rolesUrl(companyId)}/${roleId}`;
   }
 
+  private rolePermissionsUrl(
+    companyId: number,
+    roleId: number
+  ): string {
+    return `${this.roleUrl(companyId, roleId)}/permissions`;
+  }
+
   // =========================================================
-  // Roles Directory
+  // 01. ROLES DIRECTORY
   // =========================================================
 
   getRoles(
@@ -102,7 +116,7 @@ export class RoleService {
   }
 
   // =========================================================
-  // Create Custom Role
+  // 02. CREATE CUSTOM ROLE
   // =========================================================
 
   createRole(
@@ -117,7 +131,7 @@ export class RoleService {
   }
 
   // =========================================================
-  // Update Custom Role
+  // 03. UPDATE CUSTOM ROLE
   // =========================================================
 
   updateRole(
@@ -133,7 +147,7 @@ export class RoleService {
   }
 
   // =========================================================
-  // Activate Custom Role
+  // 04. ACTIVATE CUSTOM ROLE
   // =========================================================
 
   activateRole(
@@ -149,7 +163,7 @@ export class RoleService {
   }
 
   // =========================================================
-  // Deactivate Custom Role
+  // 05. DEACTIVATE CUSTOM ROLE
   // =========================================================
 
   deactivateRole(
@@ -160,6 +174,36 @@ export class RoleService {
 
     return this.http.patch<RoleStatus>(
       `${this.roleUrl(companyId, roleId)}/deactivate`,
+      request
+    );
+  }
+
+  // =========================================================
+  // 06. GET ROLE PERMISSION MATRIX
+  // =========================================================
+
+  getRolePermissions(
+    companyId: number,
+    roleId: number
+  ): Observable<RolePermissions> {
+
+    return this.http.get<RolePermissions>(
+      this.rolePermissionsUrl(companyId, roleId)
+    );
+  }
+
+  // =========================================================
+  // 07. UPDATE ROLE PERMISSION MATRIX
+  // =========================================================
+
+  updateRolePermissions(
+    companyId: number,
+    roleId: number,
+    request: UpdateRolePermissionsRequest
+  ): Observable<UpdatedRolePermissions> {
+
+    return this.http.put<UpdatedRolePermissions>(
+      this.rolePermissionsUrl(companyId, roleId),
       request
     );
   }

@@ -3,19 +3,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
+  HostListener,
   effect,
+  computed,
   inject,
   signal,
   untracked
 } from '@angular/core';
 
-import {
-  HttpErrorResponse
-} from '@angular/common/http';
-
-import {
-  takeUntilDestroyed
-} from '@angular/core/rxjs-interop';
+import { DOCUMENT } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import {
   FormBuilder,
@@ -23,22 +22,22 @@ import {
   Validators
 } from '@angular/forms';
 
-import {
-  finalize,
-  Subscription
-} from 'rxjs';
+import { finalize, Subscription } from 'rxjs';
 
 import {
   CreateRoleRequest,
   RoleDirectoryItem,
   RoleListQuery,
   RolePagedResult,
-  UpdateRoleRequest
+  UpdateRoleRequest,
+  RolePermissions,
+  RolePermissionItem,
+  PermissionMatrixViewMode,
+  calculatePermissionChanges,
+  buildPermissionUpdateRequest
 } from '../../models/role.model';
 
-import {
-  RoleService
-} from '../../services/role.service';
+import { RoleService } from '../../services/role.service';
 
 import {
   WorkspaceContextService
@@ -58,15 +57,26 @@ import {
 })
 export class RoleManagement {
 
-  // =========================================================
-  // Dependencies
-  // =========================================================
-
   private readonly roleService = inject(RoleService);
   private readonly notificationService = inject(NotificationService);
   private readonly workspaceContext = inject(WorkspaceContextService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(FormBuilder);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly document = inject(DOCUMENT);
+
+  // =========================================================
+  // Dialog Accessibility State
+  // =========================================================
+
+  private previousFocusedElement: HTMLElement | null = null;
+  private focusTimer: ReturnType<typeof setTimeout> | null = null;
+  private restoreFocusTimer: ReturnType<typeof setTimeout> | null = null;
+
+  private readonly focusableSelector =
+    'a[href], button:not([disabled]), input:not([disabled]), ' +
+    'select:not([disabled]), textarea:not([disabled]), ' +
+    '[tabindex]:not([tabindex="-1"])';
 
   // =========================================================
   // Workspace
@@ -92,10 +102,12 @@ export class RoleManagement {
 
   readonly searchText = signal('');
   readonly selectedIsActive = signal<boolean | null>(null);
-  readonly selectedRoleType = signal<'system' | 'custom' | null>(null);
+
+  readonly selectedRoleType =
+    signal<'system' | 'custom' | null>(null);
 
   // =========================================================
-  // Editor State
+  // Create / Edit State
   // =========================================================
 
   readonly formMode = signal<'create' | 'edit' | null>(null);
@@ -104,13 +116,6 @@ export class RoleManagement {
   readonly roleFormError = signal<string | null>(null);
 
   readonly roleForm = this.formBuilder.nonNullable.group({
-    code: [
-      '',
-      [
-        Validators.required,
-        Validators.maxLength(100)
-      ]
-    ],
     name: [
       '',
       [
@@ -120,7 +125,7 @@ export class RoleManagement {
     ],
     description: [
       '',
-      [Validators.maxLength(1000)]
+      [Validators.maxLength(500)]
     ]
   });
 
@@ -147,8 +152,17 @@ export class RoleManagement {
   private saveSubscription: Subscription | null = null;
   private saveRequestVersion = 0;
 
+  private permissionSubscription: Subscription | null = null;
+  private permissionSaveSubscription: Subscription | null = null;
+  private permissionRequestVersion = 0;
+  private permissionSaveVersion = 0;
+
   private statusSubscription: Subscription | null = null;
   private statusRequestVersion = 0;
+
+  // =========================================================
+  // Constructor / Lifecycle
+  // =========================================================
 
   constructor() {
     effect(() => {
@@ -167,11 +181,14 @@ export class RoleManagement {
       this.cancelDirectoryRequest();
       this.cancelSaveRequest();
       this.cancelStatusRequest();
+      this.cancelPermissionRequests();
+      this.clearDialogTimers();
+      this.previousFocusedElement = null;
     });
   }
 
   // =========================================================
-  // Directory
+  // Role Directory
   // =========================================================
 
   loadRoles(): void {
@@ -225,6 +242,7 @@ export class RoleManagement {
           this.hasPreviousPage.set(result.hasPreviousPage);
           this.hasNextPage.set(result.hasNextPage);
         },
+
         error: (error: HttpErrorResponse) => {
           if (
             version !== this.directoryRequestVersion ||
@@ -234,6 +252,7 @@ export class RoleManagement {
           }
 
           this.clearDirectory();
+
           this.directoryError.set(
             this.getApiErrorMessage(
               error,
@@ -277,7 +296,10 @@ export class RoleManagement {
   }
 
   previousPage(): void {
-    if (this.isLoadingRoles() || !this.hasPreviousPage()) {
+    if (
+      this.isLoadingRoles() ||
+      !this.hasPreviousPage()
+    ) {
       return;
     }
 
@@ -286,7 +308,10 @@ export class RoleManagement {
   }
 
   nextPage(): void {
-    if (this.isLoadingRoles() || !this.hasNextPage()) {
+    if (
+      this.isLoadingRoles() ||
+      !this.hasNextPage()
+    ) {
       return;
     }
 
@@ -309,7 +334,7 @@ export class RoleManagement {
   }
 
   // =========================================================
-  // Create / Edit
+  // Create Role
   // =========================================================
 
   openCreateRole(): void {
@@ -318,16 +343,19 @@ export class RoleManagement {
     }
 
     this.roleForm.reset({
-      code: '',
       name: '',
       description: ''
     });
 
-    this.roleForm.controls.code.enable();
     this.selectedRole.set(null);
     this.roleFormError.set(null);
-    this.formMode.set('create');
+
+    this.openRoleDialog('create');
   }
+
+  // =========================================================
+  // Edit Role
+  // =========================================================
 
   openEditRole(role: RoleDirectoryItem): void {
     if (
@@ -339,16 +367,19 @@ export class RoleManagement {
     }
 
     this.roleForm.reset({
-      code: role.code,
       name: role.name,
       description: role.description ?? ''
     });
 
-    this.roleForm.controls.code.disable();
     this.selectedRole.set(role);
     this.roleFormError.set(null);
-    this.formMode.set('edit');
+
+    this.openRoleDialog('edit');
   }
+
+  // =========================================================
+  // Save Create / Edit
+  // =========================================================
 
   saveRole(): void {
     const companyId = this.companyId();
@@ -367,12 +398,10 @@ export class RoleManagement {
 
     const values = this.roleForm.getRawValue();
 
-    const code = values.code.trim();
     const name = values.name.trim();
     const description = values.description.trim() || null;
 
     this.roleForm.patchValue({
-      code,
       name,
       description: description ?? ''
     });
@@ -384,8 +413,8 @@ export class RoleManagement {
       return;
     }
 
-    if (!code || !name) {
-      this.roleFormError.set('Role code and name are required.');
+    if (!name) {
+      this.roleFormError.set('Role name is required.');
       return;
     }
 
@@ -410,11 +439,13 @@ export class RoleManagement {
     this.isSavingRole.set(true);
     this.roleFormError.set(null);
 
+    // Create: Role Code is generated by the backend.
+    // Edit: RowVersion is required.
+
     const request$ = mode === 'create'
       ? this.roleService.createRole(
           companyId,
           {
-            code,
             name,
             description
           } satisfies CreateRoleRequest
@@ -447,10 +478,9 @@ export class RoleManagement {
             return;
           }
 
-          this.formMode.set(null);
+          this.dismissRoleDialog();
           this.selectedRole.set(null);
           this.roleForm.reset();
-          this.roleForm.controls.code.enable();
 
           this.notificationService.success(
             mode === 'create'
@@ -465,6 +495,7 @@ export class RoleManagement {
 
           this.loadRoles();
         },
+
         error: (error: HttpErrorResponse) => {
           if (
             version !== this.saveRequestVersion ||
@@ -489,15 +520,53 @@ export class RoleManagement {
     }
 
     this.cancelSaveRequest();
-    this.formMode.set(null);
+    this.dismissRoleDialog();
+
     this.selectedRole.set(null);
     this.roleFormError.set(null);
     this.roleForm.reset();
-    this.roleForm.controls.code.enable();
   }
 
   // =========================================================
-  // Role Status
+  // Create / Edit Dialog Accessibility
+  // =========================================================
+
+  private openRoleDialog(
+    mode: 'create' | 'edit'
+  ): void {
+    this.clearDialogTimers();
+
+    this.captureFocusedElement();
+    this.formMode.set(mode);
+
+    this.focusTimer = setTimeout(() => {
+      this.focusTimer = null;
+
+      if (this.formMode() !== mode) {
+        return;
+      }
+
+      const dialog = this.getRoleDialog();
+
+      const field = dialog?.querySelector<HTMLInputElement>(
+        '#roleName'
+      );
+
+      if (field && !field.disabled) {
+        field.focus();
+      } else {
+        dialog?.focus();
+      }
+    }, 0);
+  }
+
+  private dismissRoleDialog(): void {
+    this.formMode.set(null);
+    this.restorePreviousFocus();
+  }
+
+  // =========================================================
+  // Activate / Deactivate
   // =========================================================
 
   activateRole(role: RoleDirectoryItem): void {
@@ -517,6 +586,8 @@ export class RoleManagement {
     if (
       companyId === null ||
       companyId <= 0 ||
+      this.formMode() !== null ||
+      this.pendingConfirmation() !== null ||
       role.isSystemRole ||
       role.isActive === activate ||
       !role.rowVersion ||
@@ -527,7 +598,10 @@ export class RoleManagement {
       return;
     }
 
-    if (!activate && role.assignedUserCount > 0) {
+    if (
+      !activate &&
+      role.assignedUserCount > 0
+    ) {
       this.roleStatusError.set(
         'Revoke active user assignments before deactivating this role.'
       );
@@ -536,15 +610,53 @@ export class RoleManagement {
 
     this.roleStatusError.set(null);
 
+    // Preserve the button that opened the confirmation.
+    this.clearDialogTimers();
+    this.captureFocusedElement();
+
     this.pendingConfirmation.set({
       role,
       action: activate ? 'activate' : 'deactivate',
       companyId
     });
+
+    // The modal is rendered outside the inert page container.
+    // Focus it after Angular renders the new view.
+    this.focusTimer = setTimeout(() => {
+      this.focusTimer = null;
+
+      const pending = this.pendingConfirmation();
+
+      if (
+        !pending ||
+        pending.companyId !== companyId ||
+        pending.role.id !== role.id
+      ) {
+        return;
+      }
+
+      const dialog = this.getConfirmationDialog();
+
+      const cancelButton =
+        dialog?.querySelector<HTMLButtonElement>(
+          '.role-confirmation-actions .button-secondary'
+        );
+
+      if (cancelButton && !cancelButton.disabled) {
+        cancelButton.focus();
+      } else {
+        dialog?.focus();
+      }
+    }, 0);
   }
 
   cancelConfirmation(): void {
+    if (!this.pendingConfirmation()) {
+      return;
+    }
+
     this.pendingConfirmation.set(null);
+    this.restorePreviousFocus();
   }
 
   confirmPendingAction(): void {
@@ -555,6 +667,7 @@ export class RoleManagement {
     }
 
     this.pendingConfirmation.set(null);
+    this.restorePreviousFocus();
 
     if (this.companyId() !== pending.companyId) {
       return;
@@ -630,6 +743,7 @@ export class RoleManagement {
 
           this.loadRoles();
         },
+
         error: (error: HttpErrorResponse) => {
           if (
             version !== this.statusRequestVersion ||
@@ -649,7 +763,149 @@ export class RoleManagement {
   }
 
   // =========================================================
-  // Guards / Reset / Cancellation
+  // Shared Dialog Keyboard Accessibility
+  // =========================================================
+
+  @HostListener('document:keydown', ['$event'])
+  onDialogKeydown(event: KeyboardEvent): void {
+    const confirmationOpen =
+      this.pendingConfirmation() !== null;
+
+    const editorOpen =
+      this.formMode() !== null;
+
+    const permissionOpen = this.permissionRole() !== null;
+
+    if (!confirmationOpen && !editorOpen && !permissionOpen) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+
+      if (permissionOpen) {
+        this.closePermissions();
+      } else if (confirmationOpen) {
+        this.cancelConfirmation();
+      } else if (!this.isSavingRole()) {
+        this.closeRoleForm();
+      }
+
+      return;
+    }
+
+    if (event.key !== 'Tab') {
+      return;
+    }
+
+    const dialog = permissionOpen
+      ? this.host.nativeElement.querySelector<HTMLElement>('.permission-dialog')
+      : confirmationOpen
+        ? this.getConfirmationDialog()
+        : this.getRoleDialog();
+
+    if (!dialog) {
+      return;
+    }
+
+    const focusable = Array.from(
+      dialog.querySelectorAll<HTMLElement>(
+        this.focusableSelector
+      )
+    ).filter(
+      element => element.getClientRects().length > 0
+    );
+
+    if (focusable.length === 0) {
+      event.preventDefault();
+      dialog.focus();
+      return;
+    }
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = this.document.activeElement;
+
+    if (!active || !dialog.contains(active)) {
+      event.preventDefault();
+      (event.shiftKey ? last : first).focus();
+    } else if (
+      event.shiftKey &&
+      active === first
+    ) {
+      event.preventDefault();
+      last.focus();
+    } else if (
+      !event.shiftKey &&
+      active === last
+    ) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
+
+  // =========================================================
+  // Dialog Focus Helpers
+  // =========================================================
+
+  private getRoleDialog(): HTMLElement | null {
+    return this.host.nativeElement
+      .querySelector<HTMLElement>('.role-dialog');
+  }
+
+  private getConfirmationDialog(): HTMLElement | null {
+    return this.host.nativeElement
+      .querySelector<HTMLElement>(
+        '.role-confirmation-dialog'
+      );
+  }
+
+  private captureFocusedElement(): void {
+    const active = this.document.activeElement;
+
+    this.previousFocusedElement =
+      active instanceof HTMLElement ? active : null;
+  }
+
+  private restorePreviousFocus(): void {
+    this.clearDialogTimers();
+
+    const previous = this.previousFocusedElement;
+    this.previousFocusedElement = null;
+
+    if (!previous) {
+      return;
+    }
+
+    this.restoreFocusTimer = setTimeout(() => {
+      this.restoreFocusTimer = null;
+
+      if (
+        previous.isConnected &&
+        this.formMode() === null &&
+        this.pendingConfirmation() === null &&
+        this.permissionRole() === null
+      ) {
+        previous.focus();
+      }
+    }, 0);
+  }
+
+  private clearDialogTimers(): void {
+    if (this.focusTimer !== null) {
+      clearTimeout(this.focusTimer);
+      this.focusTimer = null;
+    }
+
+    if (this.restoreFocusTimer !== null) {
+      clearTimeout(this.restoreFocusTimer);
+      this.restoreFocusTimer = null;
+    }
+  }
+
+  // =========================================================
+  // Guards / Reset
   // =========================================================
 
   private canOpenEditor(): boolean {
@@ -658,6 +914,9 @@ export class RoleManagement {
     return (
       companyId !== null &&
       companyId > 0 &&
+      this.formMode() === null &&
+      this.pendingConfirmation() === null &&
+      this.permissionRole() === null &&
       !this.isSavingRole() &&
       this.changingStatusRoleId() === null &&
       !this.isLoadingRoles()
@@ -668,20 +927,24 @@ export class RoleManagement {
     this.cancelDirectoryRequest();
     this.cancelSaveRequest();
     this.cancelStatusRequest();
+    this.cancelPermissionRequests();
+    this.permissionRole.set(null);
+    this.permissionData.set(null);
+    this.permissionDraft.set([]);
 
     this.pendingConfirmation.set(null);
+    this.clearDialogTimers();
+    this.previousFocusedElement = null;
+
     this.formMode.set(null);
     this.selectedRole.set(null);
     this.roleFormError.set(null);
     this.roleStatusError.set(null);
 
     this.roleForm.reset({
-      code: '',
       name: '',
       description: ''
     });
-
-    this.roleForm.controls.code.enable();
 
     this.searchText.set('');
     this.selectedIsActive.set(null);
@@ -723,7 +986,7 @@ export class RoleManagement {
   }
 
   // =========================================================
-  // API Errors
+  // API Error Handling
   // =========================================================
 
   private getApiErrorMessage(
@@ -731,7 +994,6 @@ export class RoleManagement {
     fallback: string
   ): string {
     const body: unknown = error.error;
-
     let message: string | null = null;
 
     if (
@@ -786,7 +1048,8 @@ export class RoleManagement {
 
       case 400:
       case 422:
-        return message || 'Invalid role information. Check the form values.';
+        return message ||
+          'Invalid role information. Check the form values.';
 
       case 401:
         return 'Your session has expired. Please sign in again.';
@@ -795,7 +1058,8 @@ export class RoleManagement {
         return 'You do not have permission to perform this role operation.';
 
       case 404:
-        return message || 'The company or role could not be found.';
+        return message ||
+          'The company or role could not be found.';
 
       case 409:
         return (
@@ -810,4 +1074,207 @@ export class RoleManagement {
         return message || fallback;
     }
   }
+
+  // =========================================================
+  // Hybrid Permission Matrix — company-isolated draft editor
+  // =========================================================
+  readonly permissionRole = signal<RoleDirectoryItem | null>(null);
+  readonly permissionData = signal<RolePermissions | null>(null);
+  readonly permissionDraft = signal<string[]>([]);
+  readonly permissionLoading = signal(false);
+  readonly permissionSaving = signal(false);
+  readonly permissionError = signal<string | null>(null);
+  readonly permissionConflict = signal(false);
+  readonly permissionSearch = signal('');
+  readonly permissionFilter = signal<PermissionMatrixViewMode>('all');
+  readonly permissionModule = signal<string | null>(null);
+  readonly expandedModules = signal<string[]>([]);
+
+  readonly permissionChanges = computed(() =>
+    calculatePermissionChanges(
+      (this.permissionData()?.permissions ?? []).filter(p => p.isAssigned).map(p => p.code),
+      this.permissionDraft()
+    )
+  );
+
+  readonly permissionModules = computed(() => {
+    const permissions = this.permissionData()?.permissions ?? [];
+    const selected = new Set(this.permissionDraft());
+    const modules = new Map<string, RolePermissionItem[]>();
+    for (const permission of permissions) {
+      const key = permission.module || 'General';
+      modules.set(key, [...(modules.get(key) ?? []), permission]);
+    }
+    return [...modules.entries()].map(([name, items]) => ({
+      name,
+      count: items.length,
+      assigned: items.filter(item => selected.has(item.code)).length
+    })).sort((a, b) => a.name.localeCompare(b.name));
+  });
+
+  readonly visiblePermissions = computed(() => {
+    const data = this.permissionData();
+    if (!data) return [] as RolePermissionItem[];
+    const module = this.permissionModule();
+    const query = this.permissionSearch().trim().toLocaleLowerCase();
+    const selected = new Set(this.permissionDraft());
+    const filter = this.permissionFilter();
+    return data.permissions.filter(item => {
+      if (module && item.module !== module) return false;
+      if (query && !`${item.name} ${item.code} ${item.description} ${item.module}`.toLocaleLowerCase().includes(query)) return false;
+      const assigned = selected.has(item.code);
+      if (filter === 'assigned' && !assigned) return false;
+      if (filter === 'unassigned' && assigned) return false;
+      if (filter === 'changed' && assigned === item.isAssigned) return false;
+      return true;
+    });
+  });
+
+  readonly canEditPermissions = computed(() => {
+    const data = this.permissionData();
+    return !!data && !data.isSystemRole && data.isActive && !this.permissionSaving() && !this.permissionConflict();
+  });
+
+  openPermissions(role: RoleDirectoryItem): void {
+    const companyId = this.companyId();
+    if (companyId === null || companyId <= 0 || this.formMode() !== null ||
+        this.pendingConfirmation() !== null || this.permissionRole() !== null ||
+        this.isLoadingRoles() || this.isSavingRole() || this.changingStatusRoleId() !== null) return;
+    this.captureFocusedElement();
+    this.permissionRole.set(role);
+    this.permissionSearch.set('');
+    this.permissionFilter.set('all');
+    this.permissionModule.set(null);
+    this.loadPermissions();
+    this.clearDialogTimers();
+    this.focusTimer = setTimeout(() => {
+      this.focusTimer = null;
+      this.host.nativeElement.querySelector<HTMLElement>('.permission-dialog')?.focus();
+    }, 0);
+  }
+
+  loadPermissions(): void {
+    const companyId = this.companyId();
+    const role = this.permissionRole();
+    this.cancelPermissionLoad();
+    const version = this.permissionRequestVersion;
+    if (!role || companyId === null || companyId <= 0) return;
+    this.permissionLoading.set(true);
+    this.permissionError.set(null);
+    this.permissionConflict.set(false);
+    this.permissionData.set(null);
+    this.permissionDraft.set([]);
+    this.permissionSubscription = this.roleService.getRolePermissions(companyId, role.id)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
+        if (version === this.permissionRequestVersion) this.permissionLoading.set(false);
+      }))
+      .subscribe({
+        next: data => {
+          if (version !== this.permissionRequestVersion || this.companyId() !== companyId || this.permissionRole()?.id !== role.id) return;
+          this.permissionData.set(data);
+          this.permissionDraft.set(data.permissions.filter(item => item.isAssigned).map(item => item.code));
+          const names = [...new Set(data.permissions.map(item => item.module || 'General'))].sort();
+          this.expandedModules.set(names);
+          this.permissionModule.set(null);
+        },
+        error: (error: HttpErrorResponse) => {
+          if (version !== this.permissionRequestVersion || this.companyId() !== companyId) return;
+          this.permissionError.set(this.getApiErrorMessage(error, 'Unable to load permissions.'));
+        }
+      });
+  }
+
+  selectPermissionModule(module: string | null): void {
+    this.permissionModule.set(module);
+  }
+
+  toggleModuleExpanded(module: string): void {
+    this.expandedModules.update(items => items.includes(module)
+      ? items.filter(item => item !== module) : [...items, module]);
+  }
+
+  isPermissionSelected(code: string): boolean {
+    return this.permissionDraft().includes(code);
+  }
+
+  togglePermission(code: string, checked: boolean): void {
+    if (!this.canEditPermissions() || !this.permissionData()?.permissions.some(item => item.code === code)) return;
+    this.permissionDraft.update(items => checked
+      ? [...new Set([...items, code])] : items.filter(item => item !== code));
+  }
+
+  selectAllPermissions(checked: boolean, module: string | null = null): void {
+    if (!this.canEditPermissions()) return;
+    const codes = (this.permissionData()?.permissions ?? [])
+      .filter(item => module === null || item.module === module).map(item => item.code);
+    const affected = new Set(codes);
+    this.permissionDraft.update(items => checked
+      ? [...new Set([...items, ...codes])]
+      : items.filter(code => !affected.has(code)));
+  }
+
+  resetPermissionDraft(): void {
+    if (!this.canEditPermissions()) return;
+    this.permissionDraft.set((this.permissionData()?.permissions ?? [])
+      .filter(item => item.isAssigned).map(item => item.code));
+  }
+
+  savePermissions(): void {
+    const companyId = this.companyId();
+    const role = this.permissionRole();
+    const data = this.permissionData();
+    if (companyId === null || companyId <= 0 || !role || !data ||
+        !this.canEditPermissions() || !this.permissionChanges().hasChanges || !data.rowVersion) return;
+    this.permissionSaveSubscription?.unsubscribe();
+    const version = ++this.permissionSaveVersion;
+    this.permissionSaving.set(true);
+    this.permissionError.set(null);
+    const request = buildPermissionUpdateRequest(this.permissionDraft(), data.rowVersion);
+    this.permissionSaveSubscription = this.roleService.updateRolePermissions(companyId, role.id, request)
+      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
+        if (version === this.permissionSaveVersion) this.permissionSaving.set(false);
+      }))
+      .subscribe({
+        next: () => {
+          if (version !== this.permissionSaveVersion || this.companyId() !== companyId || this.permissionRole()?.id !== role.id) return;
+          this.notificationService.success('Role permissions updated successfully.', { title: 'Permissions Saved' });
+          this.loadRoles();
+          this.loadPermissions();
+        },
+        error: (error: HttpErrorResponse) => {
+          if (version !== this.permissionSaveVersion || this.companyId() !== companyId) return;
+          if (error.status === 409) this.permissionConflict.set(true);
+          this.permissionError.set(this.getApiErrorMessage(error, 'Unable to save permissions.'));
+        }
+      });
+  }
+
+  closePermissions(): void {
+    if (this.permissionSaving()) return;
+    if (this.permissionChanges().hasChanges && !this.permissionConflict() &&
+        !this.document.defaultView?.confirm('Discard unsaved permission changes?')) return;
+    this.cancelPermissionRequests();
+    this.permissionRole.set(null);
+    this.permissionData.set(null);
+    this.permissionDraft.set([]);
+    this.permissionError.set(null);
+    this.permissionConflict.set(false);
+    this.restorePreviousFocus();
+  }
+
+  private cancelPermissionLoad(): void {
+    ++this.permissionRequestVersion;
+    this.permissionSubscription?.unsubscribe();
+    this.permissionSubscription = null;
+    this.permissionLoading.set(false);
+  }
+
+  private cancelPermissionRequests(): void {
+    this.cancelPermissionLoad();
+    ++this.permissionSaveVersion;
+    this.permissionSaveSubscription?.unsubscribe();
+    this.permissionSaveSubscription = null;
+    this.permissionSaving.set(false);
+  }
+
 }

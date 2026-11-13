@@ -1,0 +1,107 @@
+
+<!-- ============================================================
+     iPOS Enterprise — Permission Summary
+     Presentation-only Component
+
+     Input:
+       summary(): PermissionSummaryView
+
+     Cards:
+       1. Modules
+       2. Total Permissions
+       3. Granted Permissions
+     ============================================================ -->
+
+<section
+  class="permission-summary"
+  aria-label="Role permission overview"
+>
+
+  <!-- ========================================================
+       Card 01 — Modules
+       ======================================================== -->
+
+  <article class="permission-summary__card">
+
+    <span
+      class="permission-summary__icon permission-summary__icon--modules"
+      aria-hidden="true"
+    >
+      <span class="material-symbols-rounded">
+        widgets
+      </span>
+    </span>
+
+    <div class="permission-summary__content">
+
+      <span class="permission-summary__label">
+        Modules
+      </span>
+
+      <strong class="permission-summary__value">
+        {{ summary().totalModules }}
+      </strong>
+
+    </div>
+
+  </article>
+
+  <!-- ========================================================
+       Card 02 — Total Permissions
+       ======================================================== -->
+
+  <article class="permission-summary__card">
+
+    <span
+      class="permission-summary__icon permission-summary__icon--total"
+      aria-hidden="true"
+    >
+      <span class="material-symbols-rounded">
+        admin_panel_settings
+      </span>
+    </span>
+
+    <div class="permission-summary__content">
+
+      <span class="permission-summary__label">
+        Total Permissions
+      </span>
+
+      <strong class="permission-summary__value">
+        {{ summary().totalPermissions }}
+      </strong>
+
+    </div>
+
+  </article>
+
+  <!-- ========================================================
+       Card 03 — Granted Permissions
+       ======================================================== -->
+
+  <article class="permission-summary__card">
+
+    <span
+      class="permission-summary__icon permission-summary__icon--granted"
+      aria-hidden="true"
+    >
+      <span class="material-symbols-rounded">
+        verified_user
+      </span>
+    </span>
+
+    <div class="permission-summary__content">
+
+      <span class="permission-summary__label">
+        Granted Permissions
+      </span>
+
+      <strong class="permission-summary__value">
+        {{ summary().grantedPermissions }}
+      </strong>
+
+    </div>
+
+  </article>
+
+</section>

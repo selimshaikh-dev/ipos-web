@@ -1,0 +1,300 @@
+
+/* ============================================================
+   iPOS Enterprise — Permission Summary
+   ------------------------------------------------------------
+   Component: PermissionSummary
+   Scope: Role Permissions
+   Architecture: Angular Standalone / OnPush
+
+   Design:
+   - Corporate dashboard summary cards
+   - Global iPOS design tokens
+   - Responsive grid
+   - Compact component-scoped styling
+   ============================================================ */
+
+/* ============================================================
+   Component Host
+   ============================================================ */
+
+:host {
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ============================================================
+   Summary Grid
+   ============================================================ */
+
+.permission-summary {
+  --ps-surface: var(--ipos-surface, #ffffff);
+  --ps-surface-soft: var(--ipos-surface-soft, #f8fafc);
+  --ps-border: var(--ipos-border, #e4e8ee);
+  --ps-text: var(--ipos-text, #172033);
+  --ps-muted: var(--ipos-text-muted, #64748b);
+  --ps-radius: var(--ipos-radius-lg, 11px);
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 14px 24px;
+
+  background: var(--ps-surface-soft);
+  border-bottom: 1px solid var(--ps-border);
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+}
+
+/* ============================================================
+   Summary Card
+   ============================================================ */
+
+.permission-summary__card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  min-width: 0;
+  min-height: 76px;
+
+  padding: 13px 15px;
+
+  background: var(--ps-surface);
+  border: 1px solid var(--ps-border);
+  border-radius: var(--ps-radius);
+
+  box-shadow: 0 1px 3px rgb(15 23 42 / 3%);
+
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+
+  &:hover {
+    border-color: var(--ipos-border-strong, #cbd5e1);
+    box-shadow: 0 4px 14px rgb(15 23 42 / 6%);
+    transform: translateY(-1px);
+  }
+}
+
+/* ============================================================
+   Card Icon
+   ============================================================ */
+
+.permission-summary__icon {
+  display: grid;
+  place-items: center;
+
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+
+  border-radius: 11px;
+
+  .material-symbols-rounded {
+    font-size: 23px;
+    line-height: 1;
+  }
+
+  /* Modules */
+
+  &--modules {
+    color: var(--ipos-info, #2563eb);
+    background: var(--ipos-info-soft, #eaf2ff);
+  }
+
+  /* Total Permissions */
+
+  &--total {
+    color: var(--ipos-purple, #6941c6);
+    background: var(--ipos-purple-soft, #f1edff);
+  }
+
+  /* Granted Permissions */
+
+  &--granted {
+    color: var(--ipos-success, #07845c);
+    background: var(--ipos-success-soft, #e6f8ef);
+  }
+}
+
+/* ============================================================
+   Card Content
+   ============================================================ */
+
+.permission-summary__content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+
+  flex: 1;
+  min-width: 0;
+}
+
+/* ============================================================
+   Card Label
+   ============================================================ */
+
+.permission-summary__label {
+  display: block;
+
+  color: var(--ps-muted);
+
+  font-size: 11px;
+  font-weight: 550;
+  line-height: 1.4;
+
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   Card Value
+   ============================================================ */
+
+.permission-summary__value {
+  display: block;
+
+  color: var(--ps-text);
+
+  font-size: 23px;
+  font-weight: 750;
+  line-height: 1.15;
+
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+
+  overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   Responsive — Tablet
+   ============================================================ */
+
+@media (max-width: 1000px) {
+  .permission-summary {
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .permission-summary__card {
+    gap: 10px;
+    min-height: 70px;
+    padding: 11px 12px;
+  }
+
+  .permission-summary__icon {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+
+    .material-symbols-rounded {
+      font-size: 21px;
+    }
+  }
+
+  .permission-summary__value {
+    font-size: 21px;
+  }
+}
+
+/* ============================================================
+   Responsive — Mobile
+   ============================================================ */
+
+@media (max-width: 700px) {
+  .permission-summary {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .permission-summary__card {
+    gap: 8px;
+    min-height: 65px;
+    padding: 9px;
+  }
+
+  .permission-summary__icon {
+    flex-basis: 32px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+
+    .material-symbols-rounded {
+      font-size: 18px;
+    }
+  }
+
+  .permission-summary__label {
+    font-size: 10px;
+  }
+
+  .permission-summary__value {
+    font-size: 19px;
+  }
+}
+
+/* ============================================================
+   Responsive — Small Mobile
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .permission-summary {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .permission-summary__card {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+
+    min-height: 88px;
+    padding: 9px;
+  }
+
+  .permission-summary__icon {
+    flex: 0 0 29px;
+    width: 29px;
+    height: 29px;
+
+    .material-symbols-rounded {
+      font-size: 17px;
+    }
+  }
+
+  .permission-summary__content {
+    gap: 4px;
+    width: 100%;
+  }
+
+  .permission-summary__label {
+    font-size: 9px;
+    line-height: 1.35;
+  }
+
+  .permission-summary__value {
+    font-size: 18px;
+  }
+}
+
+/* ============================================================
+   Reduced Motion Accessibility
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .permission-summary__card {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}

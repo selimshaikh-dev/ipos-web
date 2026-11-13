@@ -1,0 +1,1045 @@
+/* ============================================================
+
+   iPOS Enterprise — Role Permissions
+
+   Scoped Corporate UI
+
+   ============================================================ */
+
+:host {
+
+  display: block;
+
+  min-width: 0;
+
+  min-height: 0;
+
+}
+
+.role-permissions {
+
+  --rp-surface: var(--ipos-surface, #fff);
+
+  --rp-soft: var(--ipos-surface-soft, #f8fafc);
+
+  --rp-border: var(--ipos-border, #e4e8ee);
+
+  --rp-text: var(--ipos-text, #172033);
+
+  --rp-muted: var(--ipos-text-muted, #64748b);
+
+  --rp-primary: var(--ipos-primary, #2563eb);
+
+  --rp-radius: var(--ipos-radius-lg, 11px);
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+
+  min-height: 0;
+
+  height: 100%;
+
+  max-height: 100%;
+
+  overflow: hidden;
+
+  color: var(--rp-text);
+
+  background: var(--rp-surface);
+
+  font-size: 13px;
+
+  *,
+
+  *::before,
+
+  *::after {
+
+    box-sizing: border-box;
+
+  }
+
+  button,
+
+  input,
+
+  select {
+
+    font: inherit;
+
+  }
+
+  button {
+
+    cursor: pointer;
+
+    &:disabled {
+
+      cursor: not-allowed;
+
+      opacity: 0.55;
+
+    }
+
+  }
+
+  :is(button, input, select):focus-visible {
+
+    outline: 2px solid var(--rp-primary);
+
+    outline-offset: 3px;
+
+  }
+
+}
+
+/* ============================================================
+
+   Header
+
+   ============================================================ */
+
+.role-permissions__header,
+
+.role-permissions__heading,
+
+.role-permissions__header-actions,
+
+.role-permissions__badge {
+
+  display: flex;
+
+  align-items: center;
+
+}
+
+.role-permissions__header {
+
+  justify-content: space-between;
+
+  gap: 16px;
+
+  flex: 0 0 auto;
+
+  padding: 18px 24px;
+
+  border-bottom: 1px solid var(--rp-border);
+
+}
+
+.role-permissions__heading {
+
+  gap: 13px;
+
+  min-width: 0;
+
+}
+
+.role-permissions__heading-icon {
+
+  display: grid;
+
+  place-items: center;
+
+  flex: 0 0 44px;
+
+  width: 44px;
+
+  height: 44px;
+
+  border-radius: 12px;
+
+  color: var(--rp-primary);
+
+  background: #eaf2ff;
+
+  .material-symbols-rounded {
+
+    font-size: 25px;
+
+  }
+
+}
+
+.role-permissions__heading-content {
+
+  min-width: 0;
+
+}
+
+.role-permissions__title {
+
+  margin: 0;
+
+  font-size: 19px;
+
+  font-weight: 750;
+
+  letter-spacing: -0.025em;
+
+}
+
+.role-permissions__subtitle {
+
+  margin: 5px 0 0;
+
+  color: var(--rp-muted);
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  strong {
+
+    color: var(--rp-text);
+
+    font-weight: 650;
+
+  }
+
+}
+
+.role-permissions__header-actions {
+
+  gap: 12px;
+
+  flex-shrink: 0;
+
+}
+
+.role-permissions__badge {
+
+  gap: 5px;
+
+  padding: 6px 10px;
+
+  border: 1px solid transparent;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+
+  font-weight: 650;
+
+  white-space: nowrap;
+
+  .material-symbols-rounded {
+
+    font-size: 15px;
+
+  }
+
+  &--system {
+
+    color: #6941c6;
+
+    background: #f2edff;
+
+    border-color: #e5dcff;
+
+  }
+
+  &--inactive {
+
+    color: #b42318;
+
+    background: #fff0ee;
+
+    border-color: #ffd7d2;
+
+  }
+
+  &--active {
+
+    color: #067647;
+
+    background: #e8f8ef;
+
+    border-color: #c8ecd7;
+
+  }
+
+}
+
+.role-permissions__icon-button {
+
+  display: grid;
+
+  place-items: center;
+
+  width: 34px;
+
+  height: 34px;
+
+  padding: 0;
+
+  border: 1px solid var(--rp-border);
+
+  border-radius: 9px;
+
+  color: var(--rp-muted);
+
+  background: var(--rp-surface);
+
+  &:hover:not(:disabled) {
+
+    color: var(--rp-text);
+
+    background: var(--rp-soft);
+
+  }
+
+  .material-symbols-rounded {
+
+    font-size: 20px;
+
+  }
+
+}
+
+/* ============================================================
+
+   Notices
+
+   ============================================================ */
+
+.role-permissions__notice {
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 11px;
+
+  flex: 0 0 auto;
+
+  margin: 12px 24px 0;
+
+  padding: 12px 14px;
+
+  border: 1px solid;
+
+  border-radius: 9px;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  > .material-symbols-rounded {
+
+    flex-shrink: 0;
+
+    font-size: 20px;
+
+  }
+
+  > div {
+
+    flex: 1;
+
+    min-width: 0;
+
+  }
+
+  strong {
+
+    display: block;
+
+    margin-bottom: 2px;
+
+  }
+
+  p {
+
+    margin: 0;
+
+  }
+
+  &--readonly {
+
+    color: #475569;
+
+    background: #f1f5f9;
+
+    border-color: #dce4ee;
+
+  }
+
+  &--conflict {
+
+    color: #92400e;
+
+    background: #fffbeb;
+
+    border-color: #fcd34d;
+
+  }
+
+  &--error {
+
+    color: #b42318;
+
+    background: #fff1f0;
+
+    border-color: #fecaca;
+
+  }
+
+}
+
+/* ============================================================
+
+   Main Workspace
+
+   ============================================================ */
+
+.role-permissions__workspace {
+
+  display: grid;
+
+  grid-template-columns: minmax(220px, 255px) minmax(0, 1fr);
+
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  overflow: hidden;
+
+}
+
+/* PermissionExplorer now owns its internal navigation styling.
+   Keep the child sized correctly as a workspace grid item. */
+app-permission-explorer,
+app-permission-matrix {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ============================================================
+
+   Child Components
+
+   ============================================================ */
+
+
+/* ============================================================
+
+   Bulk Actions
+
+   ============================================================ */
+
+
+
+/* ============================================================
+
+   Table
+
+   ============================================================ */
+
+
+/* ============================================================
+
+   Access Toggle
+
+   ============================================================ */
+
+
+/* ============================================================
+
+   Buttons
+
+   ============================================================ */
+
+.role-permissions__button {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  min-height: 35px;
+
+  padding: 8px 12px;
+
+  border: 1px solid transparent;
+
+  border-radius: 8px;
+
+  background: var(--rp-soft);
+
+  color: var(--rp-text);
+
+  font-size: 12px;
+
+  font-weight: 650;
+
+  line-height: 1.2;
+
+  white-space: nowrap;
+
+  transition: background 150ms ease;
+
+  .material-symbols-rounded {
+
+    font-size: 17px;
+
+  }
+
+  &--primary {
+
+    color: #fff;
+
+    background: var(--rp-primary);
+
+    &:hover:not(:disabled) {
+
+      background: #1d4ed8;
+
+    }
+
+  }
+
+  &--outline {
+
+    border-color: var(--rp-border);
+
+    background: var(--rp-surface);
+
+    &:hover:not(:disabled) {
+
+      background: var(--rp-soft);
+
+    }
+
+  }
+
+  &--grant {
+
+    color: #067647;
+
+    background: #e6f8ef;
+
+    border-color: #c8ecd7;
+
+  }
+
+  &--revoke,
+
+  &--danger {
+
+    color: #b42318;
+
+    background: #fff0ee;
+
+    border-color: #ffd7d2;
+
+  }
+
+  &--danger:hover:not(:disabled),
+
+  &--revoke:hover:not(:disabled) {
+
+    background: #ffe1dc;
+
+  }
+
+}
+
+/* ============================================================
+
+   Sticky Footer
+
+   ============================================================ */
+
+.role-permissions__footer {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 16px;
+
+  flex: 0 0 auto;
+
+  padding: 13px 24px;
+
+  border-top: 1px solid var(--rp-border);
+
+  background: var(--rp-surface);
+
+  box-shadow: 0 -3px 12px rgb(15 23 42 / 4%);
+
+  z-index: 2;
+
+}
+
+.role-permissions__footer-status,
+
+.role-permissions__footer-actions {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+}
+
+.role-permissions__footer-actions {
+
+  justify-content: flex-end;
+
+  flex-wrap: wrap;
+
+}
+
+.role-permissions__unsaved-indicator {
+
+  flex: 0 0 8px;
+
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #f59e0b;
+
+}
+
+.role-permissions__footer-message {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 3px;
+
+  strong {
+
+    font-size: 12px;
+
+  }
+
+  span {
+
+    color: var(--rp-muted);
+
+    font-size: 11px;
+
+  }
+
+}
+
+.role-permissions__saved-icon {
+
+  color: #16a34a;
+
+  font-size: 19px;
+
+}
+
+.role-permissions__saved-label {
+
+  color: var(--rp-muted);
+
+  font-size: 12px;
+
+}
+
+/* ============================================================
+
+   Loading / Empty / Error States
+
+   ============================================================ */
+
+.role-permissions__state {
+
+  display: flex;
+
+  flex: 1;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 12px;
+
+  min-height: 240px;
+
+  padding: 35px 20px;
+
+  text-align: center;
+
+  > .material-symbols-rounded {
+
+    color: var(--rp-muted);
+
+    font-size: 42px;
+
+  }
+
+  h3 {
+
+    margin: 0;
+
+    font-size: 15px;
+
+    font-weight: 750;
+
+  }
+
+  p {
+
+    max-width: 390px;
+
+    margin: 0;
+
+    color: var(--rp-muted);
+
+    font-size: 12px;
+
+    line-height: 1.6;
+
+  }
+
+  &--error > .material-symbols-rounded {
+
+    color: #dc2626;
+
+  }
+
+}
+
+
+/* ============================================================
+
+   Spinner
+
+   ============================================================ */
+
+.role-permissions__spinner {
+
+  display: inline-block;
+
+  width: 30px;
+
+  height: 30px;
+
+  border: 3px solid var(--rp-border);
+
+  border-top-color: var(--rp-primary);
+
+  border-radius: 50%;
+
+  animation: rp-spin 750ms linear infinite;
+
+  &--small {
+
+    width: 15px;
+
+    height: 15px;
+
+    border-width: 2px;
+
+    border-color: rgb(255 255 255 / 35%);
+
+    border-top-color: #fff;
+
+  }
+
+}
+
+@keyframes rp-spin {
+
+  to {
+
+    transform: rotate(360deg);
+
+  }
+
+}
+
+/* ============================================================
+
+   Confirmation Dialog
+
+   ============================================================ */
+
+.role-permissions__confirm-backdrop {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 1100;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 16px;
+
+  background: rgb(15 23 42 / 58%);
+
+}
+
+.role-permissions__confirm-dialog {
+
+  width: min(100%, 430px);
+
+  padding: 25px;
+
+  border: 1px solid var(--rp-border);
+
+  border-radius: 14px;
+
+  background: var(--rp-surface);
+
+  box-shadow: 0 22px 65px rgb(15 23 42 / 20%);
+
+  h3 {
+
+    margin: 15px 0 8px;
+
+    font-size: 17px;
+
+  }
+
+  p {
+
+    margin: 0;
+
+    color: var(--rp-muted);
+
+    font-size: 12px;
+
+    line-height: 1.7;
+
+  }
+
+}
+
+.role-permissions__confirm-icon {
+
+  display: grid;
+
+  place-items: center;
+
+  width: 43px;
+
+  height: 43px;
+
+  border-radius: 11px;
+
+  color: #b45309;
+
+  background: #fef3c7;
+
+  .material-symbols-rounded {
+
+    font-size: 25px;
+
+  }
+
+}
+
+.role-permissions__confirm-actions {
+
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 9px;
+
+  margin-top: 23px;
+
+}
+
+/* ============================================================
+
+   Responsive — Tablet
+
+   ============================================================ */
+
+@media (max-width: 1000px) {
+
+  .role-permissions__workspace {
+
+    grid-template-columns: minmax(190px, 220px) minmax(0, 1fr);
+
+  }
+
+  .role-permissions__header,
+
+  .role-permissions__footer {
+
+    padding-right: 16px;
+
+    padding-left: 16px;
+
+  }
+
+
+}
+
+/* ============================================================
+
+   Responsive — Mobile
+
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  .role-permissions {
+
+    height: 100%;
+
+  }
+
+  .role-permissions__header {
+
+    gap: 10px;
+
+    padding: 13px;
+
+  }
+
+  .role-permissions__heading-icon {
+
+    flex-basis: 36px;
+
+    width: 36px;
+
+    height: 36px;
+
+  }
+
+  .role-permissions__title {
+
+    font-size: 16px;
+
+  }
+
+  .role-permissions__subtitle {
+
+    font-size: 11px;
+
+  }
+
+  .role-permissions__badge {
+
+    padding: 5px 7px;
+
+    font-size: 10px;
+
+  }
+
+  .role-permissions__workspace {
+
+    display: flex;
+
+    flex-direction: column;
+
+    overflow-y: auto;
+
+  }
+
+  app-permission-explorer,
+  app-permission-matrix {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 0;
+  }
+
+
+  .role-permissions__footer {
+
+    padding: 10px 13px;
+
+  }
+
+  .role-permissions__notice {
+
+    margin: 9px 13px 0;
+
+  }
+
+}
+
+/* ============================================================
+
+   Responsive — Small Mobile
+
+   ============================================================ */
+
+@media (max-width: 480px) {
+
+  .role-permissions__header-actions {
+
+    gap: 6px;
+
+  }
+
+  .role-permissions__badge {
+
+    max-width: 110px;
+
+  }
+
+
+  .role-permissions__footer {
+
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 10px;
+
+  }
+
+  .role-permissions__footer-actions {
+
+    justify-content: flex-end;
+
+  }
+
+  .role-permissions__button {
+
+    padding: 8px 10px;
+
+    font-size: 11px;
+
+  }
+
+}
+
+/* ============================================================
+
+   Reduced Motion
+
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  .role-permissions__button {
+    transition: none;
+  }
+
+  .role-permissions__spinner {
+    animation-duration: 2s;
+  }
+
+}

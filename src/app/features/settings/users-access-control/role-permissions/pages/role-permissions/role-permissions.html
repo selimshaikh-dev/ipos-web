@@ -1,0 +1,503 @@
+
+<!-- ============================================================
+     iPOS Enterprise — Role Permissions
+     ============================================================ -->
+
+<section
+  class="role-permissions"
+  aria-label="Role permission management"
+>
+
+  <!-- ========================================================
+       HEADER
+       ======================================================== -->
+
+  <header class="role-permissions__header">
+
+    <div class="role-permissions__heading">
+
+      <span
+        class="role-permissions__heading-icon"
+        aria-hidden="true"
+      >
+        <span class="material-symbols-rounded">
+          admin_panel_settings
+        </span>
+      </span>
+
+      <div class="role-permissions__heading-content">
+
+        <h2 class="role-permissions__title">
+          Role Permissions
+        </h2>
+
+        <p class="role-permissions__subtitle">
+          Configure access rights for
+          <strong>{{ roleName() }}</strong>
+        </p>
+
+      </div>
+
+    </div>
+
+    <div class="role-permissions__header-actions">
+
+      @if (isSystemRole()) {
+        <span class="role-permissions__badge role-permissions__badge--system">
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true"
+          >
+            verified
+          </span>
+          System Role
+        </span>
+      } @else if (!isActiveRole()) {
+        <span class="role-permissions__badge role-permissions__badge--inactive">
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true"
+          >
+            block
+          </span>
+          Inactive Role
+        </span>
+      } @else {
+        <span class="role-permissions__badge role-permissions__badge--active">
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true"
+          >
+            check_circle
+          </span>
+          Active Role
+        </span>
+      }
+
+      <button
+        type="button"
+        class="role-permissions__icon-button"
+        aria-label="Close permission editor"
+        title="Close"
+        [disabled]="isSaving()"
+        (click)="requestClose()"
+      >
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true"
+        >
+          close
+        </span>
+      </button>
+
+    </div>
+
+  </header>
+
+  <!-- ========================================================
+       READ-ONLY NOTICE
+       ======================================================== -->
+
+  @if (readOnlyReason(); as reason) {
+
+    <div
+      class="role-permissions__notice role-permissions__notice--readonly"
+      role="status"
+    >
+      <span
+        class="material-symbols-rounded"
+        aria-hidden="true"
+      >
+        lock
+      </span>
+
+      <div>
+        <strong>Read-only access</strong>
+        <p>{{ reason }}</p>
+      </div>
+    </div>
+
+  }
+
+  <!-- ========================================================
+       LOADING STATE
+       ======================================================== -->
+
+  @if (isLoading()) {
+
+    <div
+      class="role-permissions__state"
+      role="status"
+      aria-live="polite"
+    >
+
+      <span
+        class="role-permissions__spinner"
+        aria-hidden="true"
+      ></span>
+
+      <h3>Loading permissions</h3>
+
+      <p>
+        Please wait while the role permission
+        configuration is retrieved.
+      </p>
+
+    </div>
+
+  } @else if (loadError()) {
+
+    <!-- ======================================================
+         LOAD ERROR
+         ====================================================== -->
+
+    <div
+      class="role-permissions__state role-permissions__state--error"
+      role="alert"
+    >
+
+      <span
+        class="material-symbols-rounded"
+        aria-hidden="true"
+      >
+        error_outline
+      </span>
+
+      <h3>Unable to load permissions</h3>
+
+      <p>{{ loadError() }}</p>
+
+      <button
+        type="button"
+        class="role-permissions__button role-permissions__button--primary"
+        (click)="reloadPermissions()"
+      >
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true"
+        >
+          refresh
+        </span>
+        Try Again
+      </button>
+
+    </div>
+
+  } @else if (permissionData()) {
+
+    <!-- ======================================================
+         PERMISSION SUMMARY
+         ====================================================== -->
+
+    <app-permission-summary
+      [summary]="permissionSummary()"
+    />
+
+    <!-- ======================================================
+         CONFLICT NOTICE
+         ====================================================== -->
+
+    @if (hasConflict()) {
+
+      <div
+        class="role-permissions__notice role-permissions__notice--conflict"
+        role="alert"
+      >
+
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true"
+        >
+          sync_problem
+        </span>
+
+        <div>
+          <strong>Permission conflict detected</strong>
+
+          <p>
+            This role was modified by another operation.
+            Reload the latest permissions before editing again.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="role-permissions__button role-permissions__button--outline"
+          [disabled]="isSaving()"
+          (click)="reloadPermissions()"
+        >
+          Reload
+        </button>
+
+      </div>
+
+    }
+
+    <!-- ======================================================
+         SAVE ERROR
+         ====================================================== -->
+
+    @if (saveError()) {
+
+      <div
+        class="role-permissions__notice role-permissions__notice--error"
+        role="alert"
+      >
+
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true"
+        >
+          error
+        </span>
+
+        <p>{{ saveError() }}</p>
+
+      </div>
+
+    }
+
+    <!-- ======================================================
+         MAIN PERMISSION WORKSPACE
+         ====================================================== -->
+
+    <div class="role-permissions__workspace">
+
+      <!-- ====================================================
+           MODULE EXPLORER
+           ==================================================== -->
+
+      <app-permission-explorer
+        [modules]="permissionModules()"
+        [summary]="permissionSummary()"
+        [selectedModule]="selectedModule()"
+        [disabled]="isLoading() || isSaving()"
+        (moduleSelected)="selectModule($event)"
+      />
+
+      <!-- ====================================================
+           PERMISSION MATRIX CHILD COMPONENT
+           ==================================================== -->
+
+      <app-permission-matrix
+        [permissions]="visiblePermissions()"
+        [selectedModule]="selectedModule()"
+        [searchText]="searchText()"
+        [activeFilter]="activeFilter()"
+        [canEdit]="canEditPermissions()"
+        [disabled]="isLoading() || isSaving()"
+        (searchTextChanged)="setSearchText($event)"
+        (searchCleared)="clearSearch()"
+        (filterChanged)="setPermissionFilter($event)"
+        (filtersReset)="resetFilters()"
+        (permissionToggled)="togglePermission($event)"
+        (bulkActionRequested)="requestBulkAction($event)"
+      />
+
+    </div>
+
+    <!-- ======================================================
+         STICKY FOOTER
+         ====================================================== -->
+
+    <footer class="role-permissions__footer">
+
+      <div class="role-permissions__footer-status">
+
+        @if (hasUnsavedChanges()) {
+
+          <span
+            class="role-permissions__unsaved-indicator"
+            aria-hidden="true"
+          ></span>
+
+          <div class="role-permissions__footer-message">
+
+            <strong>
+              {{ permissionChanges().total }}
+              unsaved changes
+            </strong>
+
+            <span>
+              {{ permissionChanges().added }} added,
+              {{ permissionChanges().removed }} removed
+            </span>
+
+          </div>
+
+        } @else {
+
+          <span
+            class="material-symbols-rounded role-permissions__saved-icon"
+            aria-hidden="true"
+          >
+            check_circle
+          </span>
+
+          <span class="role-permissions__saved-label">
+            No unsaved changes
+          </span>
+
+        }
+
+      </div>
+
+      <div class="role-permissions__footer-actions">
+
+        <button
+          type="button"
+          class="role-permissions__button role-permissions__button--outline"
+          [disabled]="isSaving()"
+          (click)="requestClose()"
+        >
+          Close
+        </button>
+
+        @if (!isReadOnly()) {
+
+          <button
+            type="button"
+            class="role-permissions__button role-permissions__button--outline"
+            [disabled]="!canEditPermissions() || !hasUnsavedChanges()"
+            (click)="resetPermissionDraft()"
+          >
+            Discard Changes
+          </button>
+
+          <button
+            type="button"
+            class="role-permissions__button role-permissions__button--primary"
+            [disabled]="!canSavePermissions()"
+            (click)="savePermissions()"
+          >
+
+            @if (isSaving()) {
+              <span
+                class="role-permissions__spinner role-permissions__spinner--small"
+                aria-hidden="true"
+              ></span>
+
+              Saving...
+            } @else {
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true"
+              >
+                save
+              </span>
+
+              Save Permissions
+            }
+
+          </button>
+
+        }
+
+      </div>
+
+    </footer>
+
+  } @else {
+
+    <!-- ======================================================
+         EMPTY STATE
+         ====================================================== -->
+
+    <div class="role-permissions__state">
+
+      <span
+        class="material-symbols-rounded"
+        aria-hidden="true"
+      >
+        admin_panel_settings
+      </span>
+
+      <h3>No permission data available</h3>
+
+      <p>
+        Permission information is not available
+        for the selected role.
+      </p>
+
+      <button
+        type="button"
+        class="role-permissions__button role-permissions__button--outline"
+        (click)="reloadPermissions()"
+      >
+        Reload Permissions
+      </button>
+
+    </div>
+
+  }
+
+  <!-- ========================================================
+       BULK ACTION CONFIRMATION
+       ======================================================== -->
+
+  @if (pendingBulkAction(); as action) {
+
+    <div
+      class="role-permissions__confirm-backdrop"
+    >
+
+      <section
+        class="role-permissions__confirm-dialog"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="bulk-confirm-title"
+        aria-describedby="bulk-confirm-description"
+        tabindex="-1"
+      >
+
+        <span
+          class="role-permissions__confirm-icon"
+          aria-hidden="true"
+        >
+          <span class="material-symbols-rounded">
+            warning
+          </span>
+        </span>
+
+        <h3 id="bulk-confirm-title">
+          {{ action.allowed ? 'Grant all permissions?' : 'Revoke all permissions?' }}
+        </h3>
+
+        <p id="bulk-confirm-description">
+          This action will
+          {{ action.allowed ? 'grant' : 'revoke' }}
+          all permissions for this role.
+
+          The changes will remain unsaved
+          until you select Save Permissions.
+        </p>
+
+        <div class="role-permissions__confirm-actions">
+
+          <button
+            type="button"
+            class="role-permissions__button role-permissions__button--outline"
+            (click)="cancelBulkAction()"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="role-permissions__button"
+            [class.role-permissions__button--primary]="action.allowed"
+            [class.role-permissions__button--danger]="!action.allowed"
+            (click)="confirmBulkAction()"
+          >
+            {{ action.allowed ? 'Grant All' : 'Revoke All' }}
+          </button>
+
+        </div>
+
+      </section>
+
+    </div>
+
+  }
+
+</section>

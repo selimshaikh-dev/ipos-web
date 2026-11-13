@@ -1,7 +1,9 @@
 
-<div class="company-profile-page user-management-page role-management-page">
+<div
+  class="company-profile-page user-management-page role-management-page"
+  [attr.inert]="formMode() !== null || pendingConfirmation() !== null || permissionRole() !== null ? '' : null">
 
-  <!-- Page Header -->
+  <!-- PAGE HEADER -->
   <header class="page-header">
     <div class="page-heading">
       <div class="breadcrumb">
@@ -11,24 +13,16 @@
         <span class="breadcrumb-separator">/</span>
         <span class="breadcrumb-current">Roles</span>
       </div>
-
       <h1>Role Management</h1>
-
-      <p>
-        Manage company roles, access definitions and role availability.
-      </p>
+      <p>Manage company roles, access definitions and role availability.</p>
     </div>
   </header>
 
-  <!-- Directory Introduction -->
+  <!-- INTRODUCTION -->
   <div class="directory-intro">
     <div>
-      <span class="eyebrow">
-        ACCESS CONTROL DIRECTORY
-      </span>
-
+      <span class="eyebrow">ACCESS CONTROL DIRECTORY</span>
       <h2>Company roles</h2>
-
       <p>
         Review system roles and manage custom roles
         within your selected company workspace.
@@ -36,11 +30,8 @@
     </div>
   </div>
 
-  <!-- Role Directory -->
-  <section
-    class="form-card company-directory"
-    aria-label="Role directory">
-
+  <!-- ROLE DIRECTORY -->
+  <section class="form-card company-directory" aria-label="Role directory">
     <div class="form-card-header">
       <div>
         <h2>Roles</h2>
@@ -54,24 +45,16 @@
         <button
           type="button"
           class="button button-primary"
-          [disabled]="isLoadingRoles() ||
-            isSavingRole() ||
-            changingStatusRoleId() !== null"
+          [disabled]="isLoadingRoles() || isSavingRole() || changingStatusRoleId() !== null"
           (click)="openCreateRole()">
-
-          <span
-            class="material-symbols-rounded"
-            aria-hidden="true">add</span>
-
+          <span class="material-symbols-rounded" aria-hidden="true">add</span>
           Create Role
         </button>
       }
     </div>
 
     <div class="form-card-body user-directory-body">
-
       @if (companyId() === null) {
-
         <div class="state-card" role="status">
           <div>
             <h2>Select a company</h2>
@@ -81,16 +64,13 @@
             </p>
           </div>
         </div>
-
       } @else {
 
-        <!-- Search / Filters -->
+        <!-- SEARCH AND FILTERS -->
         <div class="user-directory-toolbar">
-
           <div class="user-search-fields">
             <div class="form-field">
               <label for="roleSearch">Search roles</label>
-
               <input
                 #roleSearch
                 id="roleSearch"
@@ -100,39 +80,25 @@
                 placeholder="Search by code, name or description"
                 (keyup.enter)="searchRoles(roleSearch.value)">
             </div>
-
             <button
               type="button"
               class="button button-primary"
               [disabled]="isLoadingRoles()"
               (click)="searchRoles(roleSearch.value)">
-
-              <span
-                class="material-symbols-rounded"
-                aria-hidden="true">search</span>
-
+              <span class="material-symbols-rounded" aria-hidden="true">search</span>
               Search
             </button>
           </div>
 
           <div class="user-filter-fields">
-
             <div class="form-field">
               <label for="roleFilterStatus">Status</label>
-
               <select
                 #roleStatus
                 id="roleFilterStatus"
-                [value]="selectedIsActive() === null
-                  ? ''
-                  : (selectedIsActive() ? 'true' : 'false')"
+                [value]="selectedIsActive() === null ? '' : (selectedIsActive() ? 'true' : 'false')"
                 [disabled]="isLoadingRoles()"
-                (change)="filterByStatus(
-                  roleStatus.value === ''
-                    ? null
-                    : roleStatus.value === 'true'
-                )">
-
+                (change)="filterByStatus(roleStatus.value === '' ? null : roleStatus.value === 'true')">
                 <option value="">All statuses</option>
                 <option value="true">Active</option>
                 <option value="false">Inactive</option>
@@ -141,20 +107,12 @@
 
             <div class="form-field">
               <label for="roleFilterType">Role type</label>
-
               <select
                 #roleType
                 id="roleFilterType"
                 [value]="selectedRoleType() ?? ''"
                 [disabled]="isLoadingRoles()"
-                (change)="filterByRoleType(
-                  roleType.value === 'system'
-                    ? 'system'
-                    : roleType.value === 'custom'
-                      ? 'custom'
-                      : null
-                )">
-
+                (change)="filterByRoleType(roleType.value === 'system' ? 'system' : roleType.value === 'custom' ? 'custom' : null)">
                 <option value="">All types</option>
                 <option value="system">System roles</option>
                 <option value="custom">Custom roles</option>
@@ -169,25 +127,19 @@
                 (click)="clearFilters()">
                 Reset filters
               </button>
-
               <button
                 type="button"
                 class="button button-secondary"
                 [disabled]="isLoadingRoles()"
                 (click)="refreshDirectory()">
-
-                <span
-                  class="material-symbols-rounded"
-                  aria-hidden="true">refresh</span>
-
+                <span class="material-symbols-rounded" aria-hidden="true">refresh</span>
                 Refresh
               </button>
             </div>
-
           </div>
         </div>
 
-        <!-- Status Error -->
+        <!-- ERRORS -->
         @if (roleStatusError(); as message) {
           <div class="alert alert-error" role="alert">
             <div class="alert-icon">!</div>
@@ -198,7 +150,6 @@
           </div>
         }
 
-        <!-- Directory Error -->
         @if (directoryError(); as message) {
           <div class="alert alert-error" role="alert">
             <div class="alert-icon">!</div>
@@ -206,7 +157,6 @@
               <strong>Unable to load roles</strong>
               <span>{{ message }}</span>
             </div>
-
             <button
               type="button"
               class="button button-secondary"
@@ -216,83 +166,19 @@
           </div>
         }
 
-        <!-- Confirmation Panel -->
-        @if (pendingConfirmation(); as pending) {
-          <div
-            class="ipos-confirmation"
-            role="group"
-            aria-labelledby="role-confirmation-title">
-
-            <div
-              class="ipos-confirmation__icon"
-              aria-hidden="true">
-              <span class="material-symbols-rounded">help</span>
-            </div>
-
-            <div class="ipos-confirmation__content">
-              <strong id="role-confirmation-title">
-                Confirm role status change
-              </strong>
-
-              <p>
-                @if (pending.action === 'activate') {
-                  Activate <strong>{{ pending.role.name }}</strong>?
-                  This role will become available for use.
-                } @else {
-                  Deactivate <strong>{{ pending.role.name }}</strong>?
-                  This role will no longer be available
-                  for new active assignments.
-                }
-              </p>
-            </div>
-
-            <div class="ipos-confirmation__actions">
-              <button
-                type="button"
-                class="button button-secondary"
-                (click)="cancelConfirmation()">
-                Cancel
-              </button>
-
-              <button
-                type="button"
-                class="button button-primary"
-                [disabled]="changingStatusRoleId() !== null"
-                (click)="confirmPendingAction()">
-                Confirm
-              </button>
-            </div>
-          </div>
-        }
-
-        <!-- Loading -->
+        <!-- DIRECTORY STATES -->
         @if (isLoadingRoles()) {
-          <div
-            class="user-directory-state"
-            role="status"
-            aria-live="polite">
-
-            <span
-              class="button-spinner"
-              aria-hidden="true"></span>
-
+          <div class="user-directory-state" role="status" aria-live="polite">
+            <span class="button-spinner" aria-hidden="true"></span>
             <span>Loading roles...</span>
           </div>
-
         } @else if (!directoryError() && roles().length === 0) {
-
-          <!-- Empty State -->
           <div class="company-empty-state" role="status">
-            <span
-              class="material-symbols-rounded"
-              aria-hidden="true">admin_panel_settings</span>
-
+            <span class="material-symbols-rounded" aria-hidden="true">
+              admin_panel_settings
+            </span>
             <strong>No roles found</strong>
-
-            <p>
-              No roles match the selected company and filters.
-            </p>
-
+            <p>No roles match the selected company and filters.</p>
             <button
               type="button"
               class="button button-secondary"
@@ -300,10 +186,9 @@
               Clear filters
             </button>
           </div>
-
         } @else if (!directoryError()) {
 
-          <!-- Roles Table -->
+          <!-- ROLES TABLE -->
           <div class="user-table-scroll">
             <table class="user-directory-table">
               <thead>
@@ -324,16 +209,12 @@
                       <div class="role-identity">
                         <div class="role-identity__icon" aria-hidden="true">
                           <span class="material-symbols-rounded">
-                            {{ role.isSystemRole
-                              ? 'verified_user'
-                              : 'shield_person' }}
+                            {{ role.isSystemRole ? 'verified_user' : 'shield_person' }}
                           </span>
                         </div>
-
                         <div class="role-identity__details">
                           <strong>{{ role.name }}</strong>
                           <span class="role-code">{{ role.code }}</span>
-
                           @if (role.description) {
                             <span class="role-description">
                               {{ role.description }}
@@ -347,21 +228,16 @@
                       <span
                         class="role-type-badge"
                         [class.role-type-badge--system]="role.isSystemRole">
-
                         {{ role.isSystemRole ? 'System' : 'Custom' }}
                       </span>
                     </td>
 
                     <td>
-                      <span class="role-count">
-                        {{ role.permissionCount }}
-                      </span>
+                      <span class="role-count">{{ role.permissionCount }}</span>
                     </td>
 
                     <td>
-                      <span class="role-count">
-                        {{ role.assignedUserCount }}
-                      </span>
+                      <span class="role-count">{{ role.assignedUserCount }}</span>
                     </td>
 
                     <td>
@@ -369,37 +245,38 @@
                         class="status-badge"
                         [class.status-active]="role.isActive"
                         [class.status-inactive]="!role.isActive">
-
                         <span class="status-dot"></span>
-
                         {{ role.isActive ? 'Active' : 'Inactive' }}
                       </span>
                     </td>
 
                     <td>
-                      @if (role.isSystemRole) {
-                        <span class="role-readonly">
-                          <span
-                            class="material-symbols-rounded"
-                            aria-hidden="true">lock</span>
-                          Read-only
-                        </span>
-                      } @else {
-                        <div class="user-directory-actions">
+                      <div class="user-directory-actions">
+                        <button
+                          type="button"
+                          class="button button-secondary"
+                          [disabled]="isLoadingRoles() || isSavingRole() || changingStatusRoleId() !== null"
+                          (click)="openPermissions(role)">
+                          <span class="material-symbols-rounded" aria-hidden="true">
+                            admin_panel_settings
+                          </span>
+                          Permissions
+                        </button>
 
+                        @if (role.isSystemRole) {
+                          <span class="role-readonly">
+                            <span class="material-symbols-rounded" aria-hidden="true">
+                              lock
+                            </span>
+                            Read-only
+                          </span>
+                        } @else {
                           <button
                             type="button"
                             class="button button-secondary"
-                            [disabled]="isSavingRole() ||
-                              changingStatusRoleId() !== null ||
-                              isLoadingRoles() ||
-                              !role.rowVersion"
+                            [disabled]="isSavingRole() || changingStatusRoleId() !== null || isLoadingRoles() || !role.rowVersion"
                             (click)="openEditRole(role)">
-
-                            <span
-                              class="material-symbols-rounded"
-                              aria-hidden="true">edit</span>
-
+                            <span class="material-symbols-rounded" aria-hidden="true">edit</span>
                             Edit
                           </button>
 
@@ -407,54 +284,34 @@
                             <button
                               type="button"
                               class="button button-secondary"
-                              [disabled]="isSavingRole() ||
-                                changingStatusRoleId() !== null ||
-                                isLoadingRoles() ||
-                                !role.rowVersion ||
-                                role.assignedUserCount > 0"
-                              [title]="role.assignedUserCount > 0
-                                ? 'Remove active user assignments first'
-                                : 'Deactivate role'"
+                              [disabled]="isSavingRole() || changingStatusRoleId() !== null || isLoadingRoles() || !role.rowVersion || role.assignedUserCount > 0"
+                              [title]="role.assignedUserCount > 0 ? 'Remove active user assignments first' : 'Deactivate role'"
                               (click)="deactivateRole(role)">
-
                               @if (changingStatusRoleId() === role.id) {
-                                <span
-                                  class="button-spinner"
-                                  aria-hidden="true"></span>
+                                <span class="button-spinner" aria-hidden="true"></span>
                               } @else {
-                                <span
-                                  class="material-symbols-rounded"
-                                  aria-hidden="true">block</span>
+                                <span class="material-symbols-rounded" aria-hidden="true">block</span>
                               }
-
                               Deactivate
                             </button>
                           } @else {
                             <button
                               type="button"
                               class="button button-primary"
-                              [disabled]="isSavingRole() ||
-                                changingStatusRoleId() !== null ||
-                                isLoadingRoles() ||
-                                !role.rowVersion"
+                              [disabled]="isSavingRole() || changingStatusRoleId() !== null || isLoadingRoles() || !role.rowVersion"
                               (click)="activateRole(role)">
-
                               @if (changingStatusRoleId() === role.id) {
-                                <span
-                                  class="button-spinner"
-                                  aria-hidden="true"></span>
+                                <span class="button-spinner" aria-hidden="true"></span>
                               } @else {
-                                <span
-                                  class="material-symbols-rounded"
-                                  aria-hidden="true">check_circle</span>
+                                <span class="material-symbols-rounded" aria-hidden="true">
+                                  check_circle
+                                </span>
                               }
-
                               Activate
                             </button>
                           }
-
-                        </div>
-                      }
+                        }
+                      </div>
                     </td>
                   </tr>
                 }
@@ -463,7 +320,7 @@
           </div>
         }
 
-        <!-- Pagination -->
+        <!-- PAGINATION -->
         @if (!directoryError() && !isLoadingRoles()) {
           <div class="user-directory-pagination">
             <span class="user-directory-count">
@@ -472,13 +329,11 @@
 
             <div class="user-directory-page-controls">
               <label for="rolePageSize">Rows per page</label>
-
               <select
                 #rolePageSize
                 id="rolePageSize"
                 [value]="pageSize()"
                 (change)="changePageSize(+rolePageSize.value)">
-
                 <option value="10">10</option>
                 <option value="20">20</option>
                 <option value="50">50</option>
@@ -486,8 +341,7 @@
               </select>
 
               <span>
-                Page {{ pageNumber() }}
-                of {{ totalPages() || 1 }}
+                Page {{ pageNumber() }} of {{ totalPages() || 1 }}
               </span>
 
               <button
@@ -508,41 +362,49 @@
             </div>
           </div>
         }
-
       }
     </div>
   </section>
+</div>
 
-  <!-- Create / Edit Role -->
-  @if (formMode(); as mode) {
+<!-- ========================================================= -->
+<!-- CREATE / EDIT ROLE DIALOG -->
+<!-- ========================================================= -->
+
+@if (formMode(); as mode) {
+  <div class="role-dialog-overlay" role="presentation">
     <section
-      class="form-card user-editor role-editor"
-      aria-label="Role editor">
+      class="role-dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="role-dialog-title"
+      aria-describedby="role-dialog-description"
+      tabindex="-1">
 
-      <div class="form-card-header">
+      <div class="role-dialog-header">
         <div>
-          <h2>
+          <span class="eyebrow">ACCESS CONTROL</span>
+          <h2 id="role-dialog-title">
             {{ mode === 'create' ? 'Create Role' : 'Edit Role' }}
           </h2>
-
-          <p>
+          <p id="role-dialog-description">
             {{ mode === 'create'
-              ? 'Define a new custom role for this company.'
+              ? 'Define a new custom role for this company. The role code will be generated automatically.'
               : 'Update the name and description of this custom role.' }}
           </p>
         </div>
 
         <button
           type="button"
-          class="button button-secondary"
+          class="role-dialog-close"
+          aria-label="Close role editor"
           [disabled]="isSavingRole()"
           (click)="closeRoleForm()">
-          Cancel
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
         </button>
       </div>
 
-      <div class="form-card-body">
-
+      <div class="role-dialog-body">
         @if (roleFormError(); as message) {
           <div class="alert alert-error" role="alert">
             <div class="alert-icon">!</div>
@@ -553,43 +415,27 @@
           </div>
         }
 
-        <form
-          [formGroup]="roleForm"
-          (ngSubmit)="saveRole()">
-
-          <div class="form-field">
-            <label for="roleCode">Role code</label>
-
-            <input
-              id="roleCode"
-              type="text"
-              maxlength="100"
-              autocomplete="off"
-              formControlName="code"
-              required
-              [attr.aria-invalid]="
-                roleForm.controls.code.touched &&
-                roleForm.controls.code.invalid">
-
-            @if (mode === 'edit') {
-              <small class="role-field-hint">
-                Role code cannot be changed after creation.
-              </small>
+        <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+          @if (mode === 'edit') {
+            @if (selectedRole(); as role) {
+              <div class="form-field">
+                <label for="roleCode">Role code</label>
+                <input
+                  id="roleCode"
+                  type="text"
+                  [value]="role.code"
+                  readonly
+                  aria-readonly="true"
+                  tabindex="-1">
+                <small class="role-field-hint">
+                  Role code is generated by the system and cannot be changed.
+                </small>
+              </div>
             }
-
-            @if (
-              roleForm.controls.code.touched &&
-              roleForm.controls.code.invalid
-            ) {
-              <small class="field-error">
-                Role code is required (maximum 100 characters).
-              </small>
-            }
-          </div>
+          }
 
           <div class="form-field">
             <label for="roleName">Role name</label>
-
             <input
               id="roleName"
               type="text"
@@ -597,47 +443,51 @@
               autocomplete="off"
               formControlName="name"
               required
-              [attr.aria-invalid]="
-                roleForm.controls.name.touched &&
-                roleForm.controls.name.invalid">
+              [attr.aria-invalid]="roleForm.controls.name.touched && roleForm.controls.name.invalid">
 
-            @if (
-              roleForm.controls.name.touched &&
-              roleForm.controls.name.invalid
-            ) {
+            @if (roleForm.controls.name.touched && roleForm.controls.name.invalid) {
               <small class="field-error">
                 Role name is required (maximum 200 characters).
               </small>
             }
           </div>
 
-          <div class="form-field">
+          <div class="form-field role-description-field">
             <label for="roleDescription">Description</label>
-
             <textarea
               id="roleDescription"
               rows="4"
-              maxlength="1000"
+              maxlength="500"
               formControlName="description"
               placeholder="Describe the purpose of this role"></textarea>
-
             <small class="role-field-hint">
-              Optional. Maximum 1000 characters.
+              Optional · Maximum 500 characters
             </small>
+
+            @if (roleForm.controls.description.touched && roleForm.controls.description.invalid) {
+              <small class="field-error">
+                Description must not exceed 500 characters.
+              </small>
+            }
           </div>
 
-          <div class="role-editor-note">
-            <span
-              class="material-symbols-rounded"
-              aria-hidden="true">info</span>
-
-            <span>
-              Role permissions are managed separately.
-              Creating a role does not automatically grant permissions.
-            </span>
+          <div class="role-editor-note" role="note">
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>
+            <div class="role-editor-note__content">
+              <strong>Role permissions</strong>
+              <p>
+                @if (mode === 'create') {
+                  The role code is generated automatically.
+                  Permissions can be assigned after creating the role.
+                } @else {
+                  Role code cannot be changed.
+                  Permissions are managed separately.
+                }
+              </p>
+            </div>
           </div>
 
-          <div class="user-editor-actions">
+          <div class="role-dialog-actions">
             <button
               type="button"
               class="button button-secondary"
@@ -649,26 +499,322 @@
             <button
               type="submit"
               class="button button-primary"
-              [disabled]="roleForm.invalid ||
-                isSavingRole() ||
-                changingStatusRoleId() !== null">
-
+              [disabled]="roleForm.invalid || isSavingRole() || changingStatusRoleId() !== null">
               @if (isSavingRole()) {
-                <span
-                  class="button-spinner"
-                  aria-hidden="true"></span>
+                <span class="button-spinner" aria-hidden="true"></span>
               }
-
               {{ isSavingRole()
                 ? 'Saving...'
-                : (mode === 'create'
-                  ? 'Create Role'
-                  : 'Save Changes') }}
+                : (mode === 'create' ? 'Create Role' : 'Save Changes') }}
             </button>
           </div>
         </form>
       </div>
     </section>
-  }
+  </div>
+}
 
-</div>
+<!-- ========================================================= -->
+<!-- ACTIVATE / DEACTIVATE CONFIRMATION -->
+<!-- ========================================================= -->
+
+@if (pendingConfirmation(); as pending) {
+  <div class="role-confirmation-overlay" role="presentation">
+    <section
+      class="role-confirmation-dialog"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="role-confirmation-title"
+      aria-describedby="role-confirmation-description"
+      tabindex="-1">
+
+      <div class="role-confirmation-header">
+        <div
+          class="role-confirmation-icon"
+          [class.role-confirmation-icon--activate]="pending.action === 'activate'"
+          aria-hidden="true">
+          <span class="material-symbols-rounded">
+            {{ pending.action === 'activate' ? 'check_circle' : 'block' }}
+          </span>
+        </div>
+
+        <div class="role-confirmation-heading">
+          <span class="eyebrow">ACCESS CONTROL</span>
+          <h2 id="role-confirmation-title">
+            {{ pending.action === 'activate' ? 'Activate Role?' : 'Deactivate Role?' }}
+          </h2>
+        </div>
+
+        <button
+          type="button"
+          class="role-dialog-close"
+          aria-label="Close confirmation"
+          (click)="cancelConfirmation()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </div>
+
+      <div class="role-confirmation-body">
+        <p id="role-confirmation-description">
+          @if (pending.action === 'activate') {
+            Are you sure you want to activate
+            <strong>{{ pending.role.name }}</strong>?
+            This role will become available for use.
+          } @else {
+            Are you sure you want to deactivate
+            <strong>{{ pending.role.name }}</strong>?
+            This role will no longer be available
+            for new active assignments.
+          }
+        </p>
+
+        <div class="role-confirmation-role">
+          <span>Role</span>
+          <strong>{{ pending.role.name }}</strong>
+          <span class="role-code">{{ pending.role.code }}</span>
+        </div>
+      </div>
+
+      <div class="role-confirmation-actions">
+        <button
+          type="button"
+          class="button button-secondary"
+          [disabled]="changingStatusRoleId() !== null"
+          (click)="cancelConfirmation()">
+          Cancel
+        </button>
+
+        <button
+          type="button"
+          class="button"
+          [class.button-primary]="pending.action === 'activate'"
+          [class.role-confirmation-danger]="pending.action === 'deactivate'"
+          [disabled]="changingStatusRoleId() !== null"
+          (click)="confirmPendingAction()">
+          <span class="material-symbols-rounded" aria-hidden="true">
+            {{ pending.action === 'activate' ? 'check_circle' : 'block' }}
+          </span>
+          {{ pending.action === 'activate' ? 'Activate Role' : 'Deactivate Role' }}
+        </button>
+      </div>
+    </section>
+  </div>
+}
+
+<!-- PREMIUM ROLE PERMISSION MANAGEMENT — API-BACKED -->
+@if (permissionRole(); as role) {
+  <div class="permission-overlay" role="presentation">
+    <section class="permission-dialog" role="dialog" aria-modal="true"
+      aria-labelledby="permission-dialog-title" tabindex="-1">
+      <header class="permission-header">
+        <div class="permission-brand-icon" aria-hidden="true">
+          <span class="material-symbols-rounded">admin_panel_settings</span>
+        </div>
+        <div class="permission-header-title">
+          <span class="eyebrow">SETTINGS / USERS &amp; ACCESS CONTROL / ROLES</span>
+          <h2 id="permission-dialog-title">Manage role permissions</h2>
+          <p><strong>{{ role.name }}</strong> · Review and control access to your company workspace.</p>
+        </div>
+        <span class="role-type-badge" [class.role-type-badge--system]="role.isSystemRole">
+          {{ role.isSystemRole ? 'System role · Read-only' : 'Custom role' }}
+        </span>
+        <button type="button" class="role-dialog-close" aria-label="Close permissions"
+          [disabled]="permissionSaving()" (click)="closePermissions()">
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      </header>
+
+      @if (permissionLoading()) {
+        <div class="permission-state" role="status" aria-live="polite">
+          <span class="button-spinner" aria-hidden="true"></span> Loading permissions from your workspace…
+        </div>
+      } @else if (permissionData(); as data) {
+        <div class="permission-stats" aria-label="Role permission overview">
+          <div class="permission-stat">
+            <span class="permission-stat-icon permission-stat-icon--blue material-symbols-rounded" aria-hidden="true">category</span>
+            <div><strong>{{ permissionModules().length }}</strong><span>Modules available</span></div>
+          </div>
+          <div class="permission-stat">
+            <span class="permission-stat-icon permission-stat-icon--violet material-symbols-rounded" aria-hidden="true">fact_check</span>
+            <div><strong>{{ data.permissions.length }}</strong><span>Total permissions</span></div>
+          </div>
+          <div class="permission-stat">
+            <span class="permission-stat-icon permission-stat-icon--green material-symbols-rounded" aria-hidden="true">verified_user</span>
+            <div><strong>{{ permissionDraft().length }}</strong><span>Currently allowed</span></div>
+          </div>
+        </div>
+
+        @if (data.isSystemRole) {
+          <div class="permission-banner" role="note">
+            <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+            This is a protected system role. You can review its access, but cannot change it.
+          </div>
+        } @else if (!data.isActive) {
+          <div class="permission-banner" role="note">
+            <span class="material-symbols-rounded" aria-hidden="true">info</span>
+            This role is inactive. Activate it before changing permissions.
+          </div>
+        }
+
+        @if (permissionError(); as message) {
+          <div class="alert alert-error permission-alert" role="alert">
+            <div class="alert-content">
+              <strong>{{ permissionConflict() ? 'This role was updated elsewhere' : 'Unable to update permissions' }}</strong>
+              <span>{{ message }}</span>
+            </div>
+            @if (permissionConflict()) {
+              <button type="button" class="button button-secondary" (click)="loadPermissions()">Reload latest</button>
+            }
+          </div>
+        }
+
+        <div class="permission-workspace">
+          <aside class="permission-explorer" aria-label="Browse permission modules">
+            <div class="permission-pane-heading">
+              <div><strong>Access areas</strong><p>Choose a module to review</p></div>
+            </div>
+            <button type="button" class="permission-module" [class.is-active]="permissionModule() === null"
+              [attr.aria-pressed]="permissionModule() === null" (click)="selectPermissionModule(null)">
+              <span class="material-symbols-rounded" aria-hidden="true">grid_view</span>
+              <span>All permissions</span><small>{{ data.permissions.length }}</small>
+            </button>
+            <div class="permission-explorer-label">AVAILABLE MODULES</div>
+            @for (module of permissionModules(); track module.name) {
+              <button type="button" class="permission-module"
+                [class.is-active]="permissionModule() === module.name"
+                [attr.aria-pressed]="permissionModule() === module.name"
+                (click)="selectPermissionModule(module.name)">
+                <span class="material-symbols-rounded" aria-hidden="true">folder_open</span>
+                <span>{{ module.name }}</span>
+                <small [attr.aria-label]="module.assigned + ' of ' + module.count + ' allowed'">
+                  {{ module.assigned }}/{{ module.count }}
+                </small>
+              </button>
+            } @empty {
+              <p class="permission-side-empty">No permission modules available.</p>
+            }
+          </aside>
+
+          <main class="permission-matrix">
+            <div class="permission-pane-heading permission-matrix-heading">
+              <div>
+                <span class="eyebrow">ACCESS PERMISSIONS</span>
+                <strong>{{ permissionModule() || 'All permissions' }}</strong>
+                <p>Checked means allowed. Unchecked means not allowed.</p>
+              </div>
+              <span class="permission-scope-count">
+                {{ visiblePermissions().length }} shown
+              </span>
+            </div>
+
+            <div class="permission-toolbar">
+              <label class="permission-search">
+                <span class="material-symbols-rounded" aria-hidden="true">search</span>
+                <input type="search" aria-label="Search permissions" placeholder="Find a permission by name or description"
+                  [value]="permissionSearch()" (input)="permissionSearch.set($any($event.target).value)">
+              </label>
+              <select aria-label="Show permissions" [value]="permissionFilter()"
+                (change)="permissionFilter.set($any($event.target).value)">
+                <option value="all">All access</option>
+                <option value="assigned">Allowed only</option>
+                <option value="unassigned">Not allowed</option>
+                <option value="changed">Changed only</option>
+              </select>
+            </div>
+
+            <div class="permission-bulk">
+              <span>Changes below are not saved until you select Save permissions.</span>
+              @if (canEditPermissions()) {
+                <button type="button" class="permission-text-button"
+                  [title]="permissionModule() ? 'Allow every permission in this module' : 'Allow every permission in this role'"
+                  (click)="selectAllPermissions(true, permissionModule())">
+                  <span class="material-symbols-rounded" aria-hidden="true">done_all</span>
+                  {{ permissionModule() ? 'Allow entire module' : 'Allow all permissions' }}
+                </button>
+                <button type="button" class="permission-text-button permission-text-button--danger"
+                  [title]="permissionModule() ? 'Remove all access in this module' : 'Remove all access from this role'"
+                  (click)="selectAllPermissions(false, permissionModule())">
+                  <span class="material-symbols-rounded" aria-hidden="true">block</span>
+                  {{ permissionModule() ? 'Remove module access' : 'Remove all access' }}
+                </button>
+              }
+            </div>
+
+            <div class="permission-table-wrap">
+              <table class="permission-table">
+                <thead><tr>
+                  <th scope="col">Permission</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Access</th>
+                </tr></thead>
+                <tbody>
+                  @for (item of visiblePermissions(); track item.code) {
+                    <tr [class.permission-changed]="isPermissionSelected(item.code) !== item.isAssigned">
+                      <td>
+                        <strong>{{ item.name }}</strong>
+                        @if (permissionModule() === null) {
+                          <span class="permission-module-tag">{{ item.module || 'General' }}</span>
+                        }
+                        @if (isPermissionSelected(item.code) !== item.isAssigned) {
+                          <span class="permission-edit-marker">
+                            {{ isPermissionSelected(item.code) ? 'Will allow' : 'Will remove' }}
+                          </span>
+                        }
+                      </td>
+                      <td class="permission-description">{{ item.description || 'No description provided.' }}</td>
+                      <td>
+                        <label class="permission-check" [class.permission-check--on]="isPermissionSelected(item.code)">
+                          <input type="checkbox" [checked]="isPermissionSelected(item.code)"
+                            [disabled]="!canEditPermissions()"
+                            [attr.aria-label]="item.name + ': ' + (isPermissionSelected(item.code) ? 'Allowed' : 'Not allowed')"
+                            (change)="togglePermission(item.code, $any($event.target).checked)">
+                          <span>{{ isPermissionSelected(item.code) ? 'Allowed' : 'Not allowed' }}</span>
+                        </label>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr><td colspan="3" class="permission-empty">
+                      No permissions match these filters. Try another search or access filter.
+                    </td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </main>
+        </div>
+
+        <footer class="permission-footer">
+          <div class="permission-change-summary" aria-live="polite">
+            @if (permissionChanges().hasChanges) {
+              <strong><span class="material-symbols-rounded" aria-hidden="true">edit_note</span>
+                {{ permissionChanges().addedCount + permissionChanges().removedCount }} unsaved changes</strong>
+              <span>{{ permissionChanges().addedCount }} access added · {{ permissionChanges().removedCount }} access removed</span>
+            } @else {
+              <strong class="permission-saved"><span class="material-symbols-rounded" aria-hidden="true">check_circle</span>
+                No unsaved changes</strong>
+              <span>Permissions are up to date.</span>
+            }
+          </div>
+          <div class="permission-footer-actions">
+            <button type="button" class="button button-secondary" [disabled]="permissionSaving()"
+              (click)="closePermissions()">Close</button>
+            <button type="button" class="button button-secondary"
+              [disabled]="!canEditPermissions() || !permissionChanges().hasChanges"
+              (click)="resetPermissionDraft()">Discard changes</button>
+            <button type="button" class="button button-primary"
+              [disabled]="!canEditPermissions() || !permissionChanges().hasChanges || !data.rowVersion"
+              (click)="savePermissions()">
+              @if (permissionSaving()) { <span class="button-spinner" aria-hidden="true"></span> }
+              <span class="material-symbols-rounded" aria-hidden="true">save</span>
+              {{ permissionSaving() ? 'Saving…' : 'Save permissions' }}
+            </button>
+          </div>
+        </footer>
+      } @else if (permissionError(); as message) {
+        <div class="permission-state" role="alert">{{ message }}
+          <button type="button" class="button button-secondary" (click)="loadPermissions()">Try again</button>
+        </div>
+      }
+    </section>
+  </div>
+}

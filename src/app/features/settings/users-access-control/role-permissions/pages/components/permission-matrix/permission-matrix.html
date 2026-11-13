@@ -1,0 +1,232 @@
+<!-- iPOS Enterprise | Permission Matrix -->
+<section class="permission-matrix" aria-label="Role permission matrix">
+  <header class="permission-matrix__header">
+    <div class="permission-matrix__heading">
+      <div class="permission-matrix__eyebrow">Permission management</div>
+      <h3 class="permission-matrix__title">{{ currentModuleTitle() }}</h3>
+      <p class="permission-matrix__subtitle">
+        Review and manage access permissions for the selected scope.
+      </p>
+    </div>
+
+    <span class="permission-matrix__visible-count" aria-live="polite">
+      {{ visiblePermissionCount() }} shown
+    </span>
+  </header>
+
+  <div class="permission-matrix__toolbar">
+    <div class="permission-matrix__search">
+      <span class="material-symbols-rounded" aria-hidden="true">search</span>
+      <label class="permission-matrix__sr-only" for="permission-matrix-search">
+        Search permissions
+      </label>
+      <input
+        #searchInput
+        id="permission-matrix-search"
+        type="search"
+        class="permission-matrix__search-input"
+        placeholder="Search permissions by name, code or description"
+        autocomplete="off"
+        [value]="searchText()"
+        [disabled]="disabled()"
+        (input)="setSearchText(searchInput.value)"
+      />
+      @if (searchText().length > 0) {
+        <button
+          type="button"
+          class="permission-matrix__clear-search"
+          aria-label="Clear permission search"
+          title="Clear search"
+          [disabled]="disabled()"
+          (click)="clearSearch()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
+        </button>
+      }
+    </div>
+
+    <div class="permission-matrix__filter-control">
+      <label for="permission-matrix-filter">Show</label>
+      <select
+        #filterSelect
+        id="permission-matrix-filter"
+        class="permission-matrix__filter"
+        [value]="activeFilter()"
+        [disabled]="disabled()"
+        (change)="setPermissionFilter(filterSelect.value)"
+      >
+        <option value="all">All permissions</option>
+        <option value="assigned">Granted</option>
+        <option value="unassigned">Not granted</option>
+        <option value="changed">Changed</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="permission-matrix__actions">
+    <div class="permission-matrix__scope">
+      <span class="material-symbols-rounded" aria-hidden="true">filter_alt</span>
+      <span>
+        Scope:
+        <strong>{{ currentModuleTitle() }}</strong>
+      </span>
+    </div>
+
+    <div class="permission-matrix__action-buttons">
+      @if (hasActiveFilters()) {
+        <button
+          type="button"
+          class="permission-matrix__button permission-matrix__button--subtle"
+          [disabled]="disabled()"
+          (click)="resetFilters()"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">filter_alt_off</span>
+          Reset filters
+        </button>
+      }
+
+      <button
+        type="button"
+        class="permission-matrix__button permission-matrix__button--grant"
+        [disabled]="!canModify()"
+        title="Request granting permissions in the selected module scope"
+        (click)="requestGrantAll()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">done_all</span>
+        Grant all
+      </button>
+
+      <button
+        type="button"
+        class="permission-matrix__button permission-matrix__button--revoke"
+        [disabled]="!canModify()"
+        title="Request revoking permissions in the selected module scope"
+        (click)="requestRevokeAll()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">remove_done</span>
+        Revoke all
+      </button>
+    </div>
+  </div>
+
+  <div class="permission-matrix__table-scroll">
+    <table class="permission-matrix__table">
+      <thead>
+        <tr>
+          <th scope="col" class="permission-matrix__permission-column">Permission</th>
+          <th scope="col" class="permission-matrix__module-column">Module</th>
+          <th scope="col" class="permission-matrix__change-column">Draft status</th>
+          <th scope="col" class="permission-matrix__access-column">Access</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (permission of permissions(); track permission.code) {
+          <tr
+            [class.is-modified]="permission.changeType !== 'unchanged'"
+            [class.is-granted]="permission.isAllowed"
+          >
+            <td class="permission-matrix__permission-cell">
+              <div class="permission-matrix__permission-name">{{ permission.name }}</div>
+              <code class="permission-matrix__permission-code">{{ permission.code }}</code>
+              @if (permission.description) {
+                <p class="permission-matrix__permission-description">
+                  {{ permission.description }}
+                </p>
+              }
+            </td>
+            <td class="permission-matrix__module-cell">
+              <span class="permission-matrix__module-badge">{{ permission.module }}</span>
+            </td>
+            <td class="permission-matrix__change-cell">
+              @switch (permission.changeType) {
+                @case ('added') {
+                  <span class="permission-matrix__change-badge permission-matrix__change-badge--added">
+                    <span class="material-symbols-rounded" aria-hidden="true">add_circle</span>
+                    To grant
+                  </span>
+                }
+                @case ('removed') {
+                  <span class="permission-matrix__change-badge permission-matrix__change-badge--removed">
+                    <span class="material-symbols-rounded" aria-hidden="true">remove_circle</span>
+                    To revoke
+                  </span>
+                }
+                @default {
+                  <span class="permission-matrix__change-badge permission-matrix__change-badge--unchanged">
+                    Unchanged
+                  </span>
+                }
+              }
+            </td>
+            <td class="permission-matrix__access-cell">
+              <label class="permission-matrix__toggle">
+                <input
+                  #permissionToggle
+                  type="checkbox"
+                  class="permission-matrix__toggle-input"
+                  [checked]="permission.isAllowed"
+                  [disabled]="!canModify()"
+                  [attr.aria-label]="
+                    (permission.isAllowed ? 'Revoke ' : 'Grant ') + permission.name
+                  "
+                  (change)="togglePermission(permission.code, permissionToggle.checked)"
+                />
+                <span class="permission-matrix__toggle-track" aria-hidden="true">
+                  <span class="permission-matrix__toggle-thumb"></span>
+                </span>
+                <span class="permission-matrix__toggle-label">
+                  {{ permission.isAllowed ? 'Allowed' : 'Denied' }}
+                </span>
+              </label>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="permission-matrix__empty-cell">
+              <div class="permission-matrix__empty" role="status">
+                <span class="material-symbols-rounded" aria-hidden="true">
+                  {{ hasActiveFilters() ? 'search_off' : 'rule_folder' }}
+                </span>
+                <strong>
+                  {{ hasActiveFilters() ? 'No matching permissions' : 'No permissions available' }}
+                </strong>
+                <p>
+                  @if (hasActiveFilters()) {
+                    Try a different search term or reset the filters.
+                  } @else {
+                    There are no permissions to display in this scope.
+                  }
+                </p>
+                @if (hasActiveFilters()) {
+                  <button
+                    type="button"
+                    class="permission-matrix__button permission-matrix__button--subtle"
+                    [disabled]="disabled()"
+                    (click)="resetFilters()"
+                  >
+                    Reset filters
+                  </button>
+                }
+              </div>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <footer class="permission-matrix__footer">
+    <span>
+      Showing <strong>{{ visiblePermissionCount() }}</strong>
+      {{ visiblePermissionCount() === 1 ? 'permission' : 'permissions' }}
+    </span>
+    <span>
+      @if (!canEdit()) {
+        <span class="material-symbols-rounded" aria-hidden="true">lock</span>
+        Read-only access
+      } @else {
+        Changes are saved using the parent editor's Save action.
+      }
+    </span>
+  </footer>
+</section>

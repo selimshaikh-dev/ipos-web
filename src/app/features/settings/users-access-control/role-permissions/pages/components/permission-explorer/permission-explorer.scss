@@ -1,0 +1,694 @@
+
+/* ============================================================
+   iPOS Enterprise — Permission Explorer
+   Scoped Corporate UI
+   ============================================================ */
+
+:host {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+
+/* ============================================================
+   Explorer Container
+   ============================================================ */
+
+.permission-explorer {
+  --pe-surface: var(--ipos-surface, #ffffff);
+  --pe-soft: var(--ipos-surface-soft, #f8fafc);
+  --pe-border: var(--ipos-border, #e4e8ee);
+  --pe-text: var(--ipos-text, #172033);
+  --pe-muted: var(--ipos-text-muted, #64748b);
+  --pe-primary: var(--ipos-primary, #2563eb);
+  --pe-radius: var(--ipos-radius-lg, 11px);
+
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+
+  color: var(--pe-text);
+  background: var(--pe-soft);
+  border-right: 1px solid var(--pe-border);
+  font-size: 13px;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+    }
+  }
+
+  button:focus-visible {
+    outline: 2px solid var(--pe-primary);
+    outline-offset: -2px;
+  }
+}
+
+/* ============================================================
+   Header
+   ============================================================ */
+
+.permission-explorer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--pe-border);
+}
+
+.permission-explorer__heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.permission-explorer__heading-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 35px;
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  color: var(--pe-primary);
+  background: #eaf2ff;
+
+  .material-symbols-rounded {
+    font-size: 20px;
+  }
+}
+
+.permission-explorer__heading-content {
+  min-width: 0;
+}
+
+.permission-explorer__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.35;
+}
+
+.permission-explorer__subtitle {
+  margin: 4px 0 0;
+  color: var(--pe-muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.permission-explorer__total-modules {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 27px;
+  height: 27px;
+  padding: 0 7px;
+  border: 1px solid var(--pe-border);
+  border-radius: 7px;
+  color: var(--pe-muted);
+  background: var(--pe-surface);
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Permission Overview
+   ============================================================ */
+
+.permission-explorer__overview {
+  flex: 0 0 auto;
+  margin: 12px 10px 10px;
+  padding: 13px;
+  border: 1px solid var(--pe-border);
+  border-radius: var(--pe-radius);
+  background: var(--pe-surface);
+}
+
+.permission-explorer__overview-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 11px;
+}
+
+.permission-explorer__overview-label {
+  color: var(--pe-muted);
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.permission-explorer__overview-percentage {
+  color: var(--pe-primary);
+  font-size: 13px;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Overall Progress Bar
+   ============================================================ */
+
+.permission-explorer__progress {
+  position: relative;
+  width: 100%;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9eef5;
+}
+
+.permission-explorer__progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--pe-primary);
+  transition: width 200ms ease;
+}
+
+.permission-explorer__overview-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--pe-muted);
+  font-size: 10px;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  strong {
+    color: var(--pe-text);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ============================================================
+   Module Navigation
+   ============================================================ */
+
+.permission-explorer__navigation {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+  padding: 8px 10px 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* ============================================================
+   Module Buttons
+   ============================================================ */
+
+.permission-explorer__module {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--pe-text);
+  background: transparent;
+  text-align: left;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+
+  &:hover:not(:disabled):not(.is-active) {
+    background: var(--pe-surface);
+  }
+
+  &.is-active {
+    color: var(--pe-primary);
+    background: var(--pe-surface);
+    border-color: #c9dcff;
+    box-shadow: 0 1px 4px rgb(15 23 42 / 5%);
+  }
+
+  &.is-active::before {
+    content: '';
+    position: absolute;
+    top: 9px;
+    bottom: 9px;
+    left: 0;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: var(--pe-primary);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+}
+
+.permission-explorer__module--all {
+  margin-bottom: 3px;
+}
+
+/* ============================================================
+   Module Icons
+   ============================================================ */
+
+.permission-explorer__module-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 33px;
+  width: 33px;
+  height: 33px;
+  border-radius: 8px;
+  color: var(--pe-muted);
+  background: #e9eef5;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+
+  .material-symbols-rounded {
+    font-size: 19px;
+  }
+
+  .is-active & {
+    color: var(--pe-primary);
+    background: #eaf2ff;
+  }
+}
+
+.permission-explorer__module-icon--all {
+  color: #6941c6;
+  background: #f1edff;
+
+  .is-active & {
+    color: var(--pe-primary);
+    background: #eaf2ff;
+  }
+}
+
+/* ============================================================
+   Module Content
+   ============================================================ */
+
+.permission-explorer__module-content {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.permission-explorer__module-name {
+  display: block;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permission-explorer__module-meta {
+  display: block;
+  color: var(--pe-muted);
+  font-size: 10px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+}
+
+.permission-explorer__module-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 6px;
+  color: var(--pe-muted);
+  background: #e9eef5;
+  font-size: 10px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+
+  .is-active & {
+    color: var(--pe-primary);
+    background: #eaf2ff;
+  }
+}
+
+/* ============================================================
+   Module Progress Bar
+   ============================================================ */
+
+.permission-explorer__module-progress {
+  display: block;
+  width: 100%;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e9eef5;
+}
+
+.permission-explorer__module-progress-fill {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #94a3b8;
+  transition: width 200ms ease;
+
+  .is-active & {
+    background: var(--pe-primary);
+  }
+}
+
+/* ============================================================
+   Section Heading
+   ============================================================ */
+
+.permission-explorer__section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex: 0 0 auto;
+  margin: 11px 3px 5px;
+  padding: 0 7px;
+  color: var(--pe-muted);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.permission-explorer__section-count {
+  color: var(--pe-muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: normal;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Empty State
+   ============================================================ */
+
+.permission-explorer__empty {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 170px;
+  padding: 22px 12px;
+  text-align: center;
+}
+
+.permission-explorer__empty-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: var(--pe-muted);
+  background: #e9eef5;
+
+  .material-symbols-rounded {
+    font-size: 24px;
+  }
+}
+
+.permission-explorer__empty-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.permission-explorer__empty-description {
+  max-width: 190px;
+  margin: 0;
+  color: var(--pe-muted);
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+/* ============================================================
+   Selected Module Footer
+   ============================================================ */
+
+.permission-explorer__footer {
+  flex: 0 0 auto;
+  padding: 14px 16px;
+  border-top: 1px solid var(--pe-border);
+  background: var(--pe-surface);
+}
+
+.permission-explorer__footer-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  color: var(--pe-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+
+  .material-symbols-rounded {
+    font-size: 16px;
+  }
+}
+
+.permission-explorer__footer-title {
+  display: block;
+  overflow: hidden;
+  color: var(--pe-text);
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.permission-explorer__footer-description {
+  margin: 5px 0 0;
+  color: var(--pe-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Responsive — Tablet
+   ============================================================ */
+
+@media (max-width: 1000px) {
+  .permission-explorer__header {
+    padding: 15px 12px 12px;
+  }
+
+  .permission-explorer__overview {
+    margin: 10px 8px 8px;
+    padding: 11px;
+  }
+
+  .permission-explorer__navigation {
+    padding-right: 8px;
+    padding-left: 8px;
+  }
+
+  .permission-explorer__module {
+    gap: 8px;
+    padding: 10px 8px;
+  }
+
+  .permission-explorer__footer {
+    padding: 12px;
+  }
+}
+
+/* ============================================================
+   Responsive — Mobile
+   ============================================================ */
+
+@media (max-width: 700px) {
+  :host {
+    height: auto;
+    min-height: 0;
+  }
+
+  .permission-explorer {
+    height: auto;
+    overflow: visible;
+    border-right: 0;
+    border-bottom: 1px solid var(--pe-border);
+  }
+
+  .permission-explorer__header {
+    padding: 12px 13px;
+  }
+
+  .permission-explorer__heading-icon {
+    flex-basis: 30px;
+    width: 30px;
+    height: 30px;
+
+    .material-symbols-rounded {
+      font-size: 18px;
+    }
+  }
+
+  .permission-explorer__title {
+    font-size: 12px;
+  }
+
+  .permission-explorer__subtitle {
+    font-size: 10px;
+  }
+
+  .permission-explorer__overview {
+    margin: 9px 13px;
+    padding: 10px 12px;
+  }
+
+  .permission-explorer__navigation {
+    flex-direction: row;
+    align-items: stretch;
+    flex: 0 0 auto;
+    gap: 7px;
+    padding: 9px 13px 12px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .permission-explorer__module {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 110px;
+    max-width: 200px;
+    padding: 10px 12px;
+    scroll-snap-align: start;
+  }
+
+  .permission-explorer__module--all {
+    margin-bottom: 0;
+  }
+
+  .permission-explorer__module-icon,
+  .permission-explorer__module-count,
+  .permission-explorer__module-meta,
+  .permission-explorer__module-progress {
+    display: none;
+  }
+
+  .permission-explorer__module-content {
+    gap: 0;
+  }
+
+  .permission-explorer__module-name {
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .permission-explorer__section-heading {
+    display: none;
+  }
+
+  .permission-explorer__empty {
+    min-width: 190px;
+    min-height: 80px;
+    padding: 12px;
+  }
+
+  .permission-explorer__empty-icon,
+  .permission-explorer__empty-description {
+    display: none;
+  }
+
+  .permission-explorer__footer {
+    display: none;
+  }
+}
+
+/* ============================================================
+   Responsive — Small Mobile
+   ============================================================ */
+
+@media (max-width: 480px) {
+  .permission-explorer__header {
+    padding: 11px 12px;
+  }
+
+  .permission-explorer__overview {
+    margin: 8px 12px;
+  }
+
+  .permission-explorer__overview-details {
+    gap: 5px;
+    font-size: 9px;
+  }
+
+  .permission-explorer__navigation {
+    padding: 8px 12px 11px;
+  }
+
+  .permission-explorer__module {
+    min-width: 95px;
+    max-width: 170px;
+    padding: 9px 10px;
+  }
+
+  .permission-explorer__module-name {
+    font-size: 10px;
+  }
+}
+
+/* ============================================================
+   Reduced Motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  .permission-explorer__module,
+  .permission-explorer__module-icon,
+  .permission-explorer__progress-fill,
+  .permission-explorer__module-progress-fill {
+    transition: none;
+  }
+
+  .permission-explorer__module:active:not(:disabled) {
+    transform: none;
+  }
+}

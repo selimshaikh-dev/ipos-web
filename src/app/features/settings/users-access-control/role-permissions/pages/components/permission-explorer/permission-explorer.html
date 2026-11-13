@@ -1,0 +1,272 @@
+
+<!-- ============================================================
+     iPOS Enterprise — Permission Explorer
+     Angular Standalone Presentational Component
+     ============================================================ -->
+
+<aside
+  class="permission-explorer"
+  aria-label="Permission modules"
+>
+  <!-- ========================================================
+       EXPLORER HEADER
+       ======================================================== -->
+
+  <header class="permission-explorer__header">
+    <div class="permission-explorer__heading">
+      <span
+        class="permission-explorer__heading-icon"
+        aria-hidden="true"
+      >
+        <span class="material-symbols-rounded">
+          account_tree
+        </span>
+      </span>
+
+      <div class="permission-explorer__heading-content">
+        <h3 class="permission-explorer__title">
+          Modules
+        </h3>
+
+        <p class="permission-explorer__subtitle">
+          Browse permission groups
+        </p>
+      </div>
+    </div>
+
+    <span
+      class="permission-explorer__total-modules"
+      [attr.aria-label]="totalModules() + ' modules'"
+      title="Total permission modules"
+    >
+      {{ totalModules() }}
+    </span>
+  </header>
+
+  <!-- ========================================================
+       PERMISSION OVERVIEW
+       ======================================================== -->
+
+  <div class="permission-explorer__overview">
+    <div class="permission-explorer__overview-heading">
+      <span class="permission-explorer__overview-label">
+        Permission Coverage
+      </span>
+
+      <strong class="permission-explorer__overview-percentage">
+        {{ overallGrantedPercentage() }}%
+      </strong>
+    </div>
+
+    <div
+      class="permission-explorer__progress"
+      role="progressbar"
+      aria-label="Overall granted permissions"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      [attr.aria-valuenow]="overallGrantedPercentage()"
+      [attr.aria-valuetext]="
+        grantedPermissions() +
+        ' of ' +
+        totalPermissions() +
+        ' permissions granted'
+      "
+    >
+      <span
+        class="permission-explorer__progress-fill"
+        [style.width.%]="overallGrantedPercentage()"
+      ></span>
+    </div>
+
+    <div class="permission-explorer__overview-details">
+      <span>
+        <strong>{{ grantedPermissions() }}</strong>
+        granted
+      </span>
+
+      <span>
+        <strong>{{ unassignedPermissions() }}</strong>
+        not granted
+      </span>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MODULE NAVIGATION
+       ======================================================== -->
+
+  <nav
+    class="permission-explorer__navigation"
+    aria-label="Select permission module"
+  >
+    <!-- ======================================================
+         ALL PERMISSIONS
+         ====================================================== -->
+
+    <button
+      type="button"
+      class="permission-explorer__module permission-explorer__module--all"
+      [class.is-active]="isAllSelected()"
+      [disabled]="disabled()"
+      [attr.aria-pressed]="isAllSelected()"
+      (click)="selectAllPermissions()"
+    >
+      <span
+        class="permission-explorer__module-icon permission-explorer__module-icon--all"
+        aria-hidden="true"
+      >
+        <span class="material-symbols-rounded">
+          apps
+        </span>
+      </span>
+
+      <span class="permission-explorer__module-content">
+        <span class="permission-explorer__module-name">
+          All Permissions
+        </span>
+
+        <span class="permission-explorer__module-meta">
+          {{ grantedPermissions() }}
+          /
+          {{ totalPermissions() }}
+          granted
+        </span>
+      </span>
+
+      <span class="permission-explorer__module-count">
+        {{ totalPermissions() }}
+      </span>
+    </button>
+
+    <!-- ======================================================
+         MODULE LIST LABEL
+         ====================================================== -->
+
+    <div
+      class="permission-explorer__section-heading"
+      aria-hidden="true"
+    >
+      <span>Permission Modules</span>
+
+      <span class="permission-explorer__section-count">
+        {{ totalModules() }}
+      </span>
+    </div>
+
+    <!-- ======================================================
+         DYNAMIC PERMISSION MODULES
+         ====================================================== -->
+
+    @for (module of modules(); track module.name) {
+      <button
+        type="button"
+        class="permission-explorer__module"
+        [class.is-active]="isModuleSelected(module.name)"
+        [disabled]="disabled()"
+        [attr.aria-pressed]="isModuleSelected(module.name)"
+        [attr.aria-label]="
+          module.name +
+          ', ' +
+          module.assigned +
+          ' of ' +
+          module.count +
+          ' permissions granted'
+        "
+        (click)="selectModule(module.name)"
+      >
+        <span
+          class="permission-explorer__module-icon"
+          aria-hidden="true"
+        >
+          <span class="material-symbols-rounded">
+            folder_open
+          </span>
+        </span>
+
+        <span class="permission-explorer__module-content">
+          <span class="permission-explorer__module-name">
+            {{ module.name }}
+          </span>
+
+          <span class="permission-explorer__module-meta">
+            {{ module.assigned }}
+            /
+            {{ module.count }}
+            granted
+          </span>
+
+          <span
+            class="permission-explorer__module-progress"
+            aria-hidden="true"
+          >
+            <span
+              class="permission-explorer__module-progress-fill"
+              [style.width.%]="getGrantedPercentage(module)"
+            ></span>
+          </span>
+        </span>
+
+        <span class="permission-explorer__module-count">
+          {{ module.count }}
+        </span>
+      </button>
+    } @empty {
+      <!-- ====================================================
+           EMPTY MODULE STATE
+           ==================================================== -->
+
+      <div
+        class="permission-explorer__empty"
+        role="status"
+      >
+        <span
+          class="permission-explorer__empty-icon"
+          aria-hidden="true"
+        >
+          <span class="material-symbols-rounded">
+            folder_off
+          </span>
+        </span>
+
+        <strong class="permission-explorer__empty-title">
+          No modules available
+        </strong>
+
+        <p class="permission-explorer__empty-description">
+          Permission modules will appear here when
+          permissions are available.
+        </p>
+      </div>
+    }
+  </nav>
+
+  <!-- ========================================================
+       SELECTED MODULE FOOTER
+       ======================================================== -->
+
+  @if (hasModules()) {
+    <footer class="permission-explorer__footer">
+      <div class="permission-explorer__footer-heading">
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true"
+        >
+          filter_alt
+        </span>
+
+        <span>Current Selection</span>
+      </div>
+
+      <strong class="permission-explorer__footer-title">
+        {{ activeModuleTitle() }}
+      </strong>
+
+      <p class="permission-explorer__footer-description">
+        {{ activeGrantedCount() }}
+        of
+        {{ activePermissionCount() }}
+        permissions granted
+      </p>
+    </footer>
+  }
+</aside>
