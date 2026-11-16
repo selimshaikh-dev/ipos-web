@@ -1,4 +1,3 @@
-
 import { Routes } from '@angular/router';
 
 import { AppShell } from './layout/app-shell/app-shell';
@@ -185,6 +184,26 @@ export const routes: Routes = [
         },
 
         title: 'Warehouse Management | iPOS'
+      },
+
+      {
+        path: 'settings/catalog/units-of-measurement',
+
+        loadComponent: () =>
+          import(
+            './features/settings/catalog/units-of-measurement/pages/units-of-measurement/units-of-measurement'
+          )
+            .then(m => m.UnitsOfMeasurement),
+
+        canActivate: [
+          permissionGuard
+        ],
+
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Units of Measurement | iPOS'
       },
 
       {

@@ -1,0 +1,86 @@
+<div class="company-profile-page warehouse-management-page uom-management-page">
+  <header class="page-header">
+    <div class="page-heading">
+      <div class="breadcrumb"><span>Settings</span><span class="breadcrumb-separator">/</span><span>Catalog</span><span class="breadcrumb-separator">/</span><span class="breadcrumb-current">Units of Measurement</span></div>
+      <h1>Units of Measurement</h1>
+      <p>Maintain consistent measurement units across your company and product catalog.</p>
+    </div>
+    <div class="page-actions page-header-actions">
+      @if (activeView() === 'directory') {
+        <button class="button button-primary company-add-button" type="button" [disabled]="isCreating() || isUpdating() || companyId() === null" (click)="openCreateUnit()"><span class="material-symbols-rounded company-add-icon" aria-hidden="true">add</span><span class="company-add-label">New Unit</span></button>
+      } @else {
+        <button class="button button-secondary" type="button" [disabled]="isCreating() || isUpdating()" (click)="showDirectory()">Back to units</button>
+      }
+    </div>
+  </header>
+
+  <nav class="company-view-switch" aria-label="Units of measurement views">
+    <button type="button" [class.is-active]="activeView() === 'directory'" [attr.aria-current]="activeView() === 'directory' ? 'page' : null" [disabled]="isCreating() || isUpdating()" (click)="showDirectory()"><span class="material-symbols-rounded" aria-hidden="true">straighten</span> Units directory</button>
+    <button type="button" [class.is-active]="activeView() === 'details'" [attr.aria-current]="activeView() === 'details' ? 'page' : null" [disabled]="selectedUnit() === null || isLoadingUnitDetails() || isCreating()" (click)="showDetails()"><span class="material-symbols-rounded" aria-hidden="true">inventory_2</span> Unit details</button>
+  </nav>
+
+  @if (companyId() === null) {
+    <div class="state-card" role="status"><span class="material-symbols-rounded" aria-hidden="true">business</span><div><h2>No company selected</h2><p>Select a company from your workspace to manage measurement units.</p></div></div>
+  } @else if (activeView() === 'directory') {
+    <div class="directory-intro"><div><span class="eyebrow">CATALOG DIRECTORY</span><h2>Company measurement units</h2><p>Create and manage standardized units for your selected company.</p></div></div>
+    <section class="form-card company-directory" aria-label="Units of measurement directory">
+      <div class="form-card-header"><div><h2>Units of measurement</h2><p>Codes are unique within the company and cannot be changed after creation.</p></div></div>
+
+      @if (isCreateOpen()) {
+        <div class="form-card-body company-create-panel">
+          <form class="company-create-form" [formGroup]="createForm" (ngSubmit)="createUnit()" novalidate>
+            <div class="company-create-heading"><div><h3>Create new unit</h3><p>Enter a unique code, descriptive name and display symbol.</p></div><button type="button" class="button button-secondary" [disabled]="isCreating()" (click)="cancelCreateUnit()">Cancel</button></div>
+            @if (createError()) { <div class="alert alert-error" role="alert"><div class="alert-icon">!</div><div class="alert-content"><strong>Unable to create unit</strong><span>{{ createError() }}</span></div></div> }
+            <div class="form-grid">
+              <div class="form-field"><label for="uom-create-code">Unit code <span class="required">*</span></label><input id="uom-create-code" type="text" formControlName="code" autocomplete="off" placeholder="e.g. PCS" [attr.aria-invalid]="createForm.controls.code.touched && createForm.controls.code.invalid" />@if (createForm.controls.code.touched && createForm.controls.code.invalid) { <small class="field-error">Enter a unit code.</small> }</div>
+              <div class="form-field"><label for="uom-create-name">Unit name <span class="required">*</span></label><input id="uom-create-name" type="text" formControlName="name" maxlength="200" placeholder="e.g. Pieces" [attr.aria-invalid]="createForm.controls.name.touched && createForm.controls.name.invalid" />@if (createForm.controls.name.touched && createForm.controls.name.invalid) { <small class="field-error">Enter a name (up to 200 characters).</small> }</div>
+              <div class="form-field"><label for="uom-create-symbol">Symbol <span class="required">*</span></label><input id="uom-create-symbol" type="text" formControlName="symbol" maxlength="20" placeholder="e.g. pcs" [attr.aria-invalid]="createForm.controls.symbol.touched && createForm.controls.symbol.invalid" />@if (createForm.controls.symbol.touched && createForm.controls.symbol.invalid) { <small class="field-error">Enter a symbol (up to 20 characters).</small> }</div>
+            </div>
+            <div class="company-create-actions"><button type="button" class="button button-secondary" [disabled]="isCreating()" (click)="cancelCreateUnit()">Cancel</button><button type="submit" class="button button-primary" [disabled]="isCreating()">@if (isCreating()) { <span class="button-spinner" aria-hidden="true"></span> Saving... } @else { Create unit }</button></div>
+          </form>
+        </div>
+      }
+
+      <div class="warehouse-directory-body">
+        <div class="warehouse-directory-toolbar">
+          <form class="uom-search-fields" (submit)="$event.preventDefault(); searchUnits(codeInput.value, nameInput.value, symbolInput.value)">
+            <div class="form-field"><label for="uom-search-code">Code</label><input id="uom-search-code" #codeInput type="search" [value]="searchCode()" placeholder="Search code" /></div>
+            <div class="form-field"><label for="uom-search-name">Name</label><input id="uom-search-name" #nameInput type="search" [value]="searchName()" placeholder="Search name" /></div>
+            <div class="form-field"><label for="uom-search-symbol">Symbol</label><input id="uom-search-symbol" #symbolInput type="search" [value]="searchSymbol()" placeholder="Search symbol" /></div>
+            <button class="button button-primary" type="submit" [disabled]="isLoadingUnits()">Search</button>
+          </form>
+          <div class="uom-filter-fields">
+            <div class="form-field"><label for="uom-status-filter">Status</label><select id="uom-status-filter" #statusFilter [value]="selectedIsActive() === null ? 'all' : selectedIsActive() ? 'active' : 'inactive'" (change)="filterByStatus(statusFilter.value === 'all' ? null : statusFilter.value === 'active')"><option value="all">All statuses</option><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+            <div class="form-field"><label for="uom-sort-by">Sort by</label><select id="uom-sort-by" #sortField [value]="sortBy()" (change)="changeSorting(sortField.value, sortOrder.value === 'desc' ? 'desc' : 'asc')"><option value="name">Name</option><option value="code">Code</option><option value="symbol">Symbol</option></select></div>
+            <div class="form-field"><label for="uom-sort-direction">Order</label><select id="uom-sort-direction" #sortOrder [value]="sortDirection()" (change)="changeSorting(sortField.value, sortOrder.value === 'desc' ? 'desc' : 'asc')"><option value="asc">Ascending</option><option value="desc">Descending</option></select></div>
+            <label class="warehouse-checkbox-label warehouse-directory-checkbox"><input type="checkbox" [checked]="includeInactive()" (change)="setIncludeInactive($any($event.target).checked)" /><span>Include inactive</span></label>
+            <div class="warehouse-directory-actions"><button type="button" class="button button-secondary" (click)="clearFilters(); codeInput.value = ''; nameInput.value = ''; symbolInput.value = ''">Reset filters</button><button type="button" class="button button-secondary" [disabled]="isLoadingUnits()" (click)="refreshDirectory()"><span class="material-symbols-rounded" aria-hidden="true">refresh</span> Refresh</button></div>
+          </div>
+        </div>
+        @if (directoryError()) { <div class="alert alert-error" role="alert"><div class="alert-icon">!</div><div class="alert-content"><strong>Unable to load directory</strong><span>{{ directoryError() }}</span></div></div> }
+        @if (isLoadingUnits()) { <div class="warehouse-directory-state" role="status"><span class="button-spinner" aria-hidden="true"></span> Loading measurement units...</div> }
+        @else if (!directoryError() && units().length === 0) { <div class="company-empty-state"><span class="material-symbols-rounded" aria-hidden="true">straighten</span><strong>No units found</strong><p>Try adjusting your search or create a new measurement unit.</p></div> }
+        @else if (!directoryError()) {
+          <div class="warehouse-table-scroll"><table class="warehouse-directory-table"><thead><tr><th scope="col">Code</th><th scope="col">Name</th><th scope="col">Symbol</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead><tbody>@for (unit of units(); track unit.id) { <tr><td><strong>{{ unit.code }}</strong></td><td>{{ unit.name }}</td><td>{{ unit.symbol }}</td><td><span class="status-badge" [class.status-active]="unit.isActive" [class.status-inactive]="!unit.isActive"><span class="status-dot"></span>{{ unit.isActive ? 'Active' : 'Inactive' }}</span></td><td><button type="button" class="button button-secondary uom-row-action" (click)="viewUnit(unit.id)">View details</button></td></tr> }</tbody></table></div>
+        }
+        <div class="warehouse-directory-pagination"><span class="warehouse-directory-count">{{ totalCount() }} total units</span><div class="warehouse-directory-page-controls"><label for="uom-page-size">Rows per page</label><select id="uom-page-size" #sizeSelect [value]="pageSize()" (change)="changePageSize(+sizeSelect.value)"><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option></select><span>Page {{ pageNumber() }} of {{ totalPages() || 1 }}</span><button type="button" class="button button-secondary" [disabled]="!hasPreviousPage() || isLoadingUnits()" (click)="previousPage()">Previous</button><button type="button" class="button button-secondary" [disabled]="!hasNextPage() || isLoadingUnits()" (click)="nextPage()">Next</button></div></div>
+      </div>
+    </section>
+  } @else {
+    <div class="profile-toolbar"><button type="button" class="back-link" [disabled]="isUpdating()" (click)="showDirectory()"><span class="material-symbols-rounded" aria-hidden="true">arrow_back</span> Back to units</button><span class="eyebrow">UNIT DETAILS</span></div>
+    @if (isLoadingUnitDetails()) { <div class="state-card" role="status"><span class="button-spinner" aria-hidden="true"></span><div><h2>Loading unit</h2><p>Retrieving the latest unit details.</p></div></div> }
+    @else if (unitDetailsError()) { <div class="alert alert-error" role="alert"><div class="alert-icon">!</div><div class="alert-content"><strong>Unable to load unit</strong><span>{{ unitDetailsError() }}</span></div></div> }
+    @else if (selectedUnit(); as unit) {
+      <div class="form-card organization-summary"><div class="company-avatar" aria-hidden="true">{{ unit.code.slice(0, 2) }}</div><div class="company-summary-content"><div class="company-summary-heading"><h2>{{ unit.name }}</h2><span class="status-badge" [class.status-active]="unit.isActive" [class.status-inactive]="!unit.isActive"><span class="status-dot"></span>{{ unit.isActive ? 'Active' : 'Inactive' }}</span></div><div class="company-meta"><span>Code: <strong>{{ unit.code }}</strong></span><span class="meta-divider"></span><span>Symbol: <strong>{{ unit.symbol }}</strong></span></div></div></div>
+      <section class="form-card" aria-label="Unit details and edit form"><div class="form-card-header"><div><h2>{{ isEditOpen() ? 'Edit measurement unit' : 'Measurement unit details' }}</h2><p>{{ isEditOpen() ? 'Update the name and symbol. The unit code is protected.' : 'Review the company measurement unit information.' }}</p></div>@if (!isEditOpen()) { <button type="button" class="button button-primary" (click)="openEditUnit()">Edit unit</button> }</div>
+        @if (isEditOpen()) {
+          <div class="form-card-body"><form [formGroup]="editForm" (ngSubmit)="updateUnit()" novalidate>
+            @if (updateError()) { <div class="alert alert-error" role="alert"><div class="alert-icon">!</div><div class="alert-content"><strong>Unable to update unit</strong><span>{{ updateError() }}</span></div></div> }
+            <div class="form-grid"><div class="form-field"><label>Unit code</label><div class="warehouse-readonly-value">{{ unit.code }}</div><small class="warehouse-field-hint">Unit codes cannot be changed.</small></div><div class="form-field"><label for="uom-edit-name">Unit name <span class="required">*</span></label><input id="uom-edit-name" formControlName="name" maxlength="200" [attr.aria-invalid]="editForm.controls.name.touched && editForm.controls.name.invalid" />@if (editForm.controls.name.touched && editForm.controls.name.invalid) { <small class="field-error">Enter a name (up to 200 characters).</small> }</div><div class="form-field"><label for="uom-edit-symbol">Symbol <span class="required">*</span></label><input id="uom-edit-symbol" formControlName="symbol" maxlength="20" [attr.aria-invalid]="editForm.controls.symbol.touched && editForm.controls.symbol.invalid" />@if (editForm.controls.symbol.touched && editForm.controls.symbol.invalid) { <small class="field-error">Enter a symbol (up to 20 characters).</small> }</div></div>
+            <div class="company-create-actions"><button type="button" class="button button-secondary" [disabled]="isUpdating()" (click)="closeEditUnit()">Cancel</button><button type="submit" class="button button-primary" [disabled]="isUpdating()">@if (isUpdating()) { <span class="button-spinner" aria-hidden="true"></span> Saving... } @else { Save changes }</button></div>
+          </form></div>
+        } @else { <div class="form-card-body"><div class="form-grid"><div class="form-field"><label>Unit code</label><div class="warehouse-readonly-value">{{ unit.code }}</div></div><div class="form-field"><label>Unit name</label><div class="warehouse-readonly-value">{{ unit.name }}</div></div><div class="form-field"><label>Symbol</label><div class="warehouse-readonly-value">{{ unit.symbol }}</div></div><div class="form-field"><label>Status</label><div class="warehouse-readonly-value">{{ unit.isActive ? 'Active' : 'Inactive' }}</div></div></div></div> }
+      </section>
+    }
+  }
+</div>

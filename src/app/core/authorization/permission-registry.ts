@@ -51,6 +51,15 @@ export const PermissionCodes = {
     deactivate: 'poscounter.deactivate'
   },
 
+  // Unit of Measurement Management
+  unitsOfMeasurement: {
+    view: 'uom.view',
+    create: 'uom.create',
+    update: 'uom.update',
+    activate: 'uom.activate',
+    deactivate: 'uom.deactivate'
+  },
+
   // User Management
   users: {
     view: 'user.view',
@@ -166,6 +175,12 @@ export const RoutePermissionRegistry: Readonly<
   '/settings/organization/pos-counter-management': {
     code: PermissionCodes.posCounters.view,
     scope: 'branch'
+  },
+
+  // Catalog / Unit of Measurement Management
+  '/settings/catalog/units-of-measurement': {
+    code: PermissionCodes.unitsOfMeasurement.view,
+    scope: 'company'
   },
 
   // Users & Access Control / User Management

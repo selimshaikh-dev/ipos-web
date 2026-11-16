@@ -76,7 +76,7 @@ export class Sidebar {
     return this.navigation
       .filter(item => mode === 'branch'
         ? item.label !== 'Dashboard'
-        : item.label === 'Dashboard' || item.label === 'Settings' || item.label === 'Help & Support')
+        : item.label === 'Dashboard' || item.label === 'Products' || item.label === 'Settings' || item.label === 'Help & Support')
       .map(item => this.filterNavigation(item, mode))
       .filter((item): item is NavigationItem => item !== null);
   });
@@ -85,16 +85,18 @@ export class Sidebar {
     item: NavigationItem,
     mode: 'company' | 'branch'
   ): NavigationItem | null {
-    // The company/branch split applies to Organization settings and
-    // Users & Access Control; unimplemented modules remain disabled.
+    // Company-owned master data and administration remain company-scoped.
+    // Unimplemented features remain disabled; navigation is not authorization.
     if (mode === 'company' && item.route === '/dashboard') {
       return { ...item, children: undefined };
     }
     if (item.route === '/settings/organization/company-management') return null;
+    if (item.workspaceScope && item.workspaceScope !== mode) return null;
     if (item.route === '/settings/organization/branch-management' ||
         item.route === '/settings/users-access-control/user-management' ||
         item.route === '/settings/users-access-control/role-management' ||
-        item.route === '/settings/users-access-control/company-branch-access') {
+        item.route === '/settings/users-access-control/company-branch-access' ||
+        item.route === '/settings/catalog/units-of-measurement') {
       return mode === 'company' ? item : null;
     }
     if (item.route === '/settings/organization/warehouse-management' ||
@@ -273,7 +275,7 @@ export class Sidebar {
         { label: 'Product Catalog', icon: 'view_list' },
         { label: 'Categories', icon: 'category' },
         { label: 'Brands', icon: 'branding_watermark' },
-        { label: 'Units of Measurement', icon: 'straighten' },
+        { label: 'Units of Measurement', icon: 'straighten', route: '/settings/catalog/units-of-measurement', workspaceScope: 'company', implemented: true },
         { label: 'Attributes & Variations', icon: 'tune' },
         { label: 'Barcodes & Labels', icon: 'qr_code' },
         { label: 'Barcode Bulk Printing', icon: 'print' },
