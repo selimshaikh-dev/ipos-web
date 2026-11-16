@@ -93,7 +93,8 @@ export class Sidebar {
     if (item.route === '/settings/organization/company-management') return null;
     if (item.route === '/settings/organization/branch-management' ||
         item.route === '/settings/users-access-control/user-management' ||
-        item.route === '/settings/users-access-control/role-management') {
+        item.route === '/settings/users-access-control/role-management' ||
+        item.route === '/settings/users-access-control/company-branch-access') {
       return mode === 'company' ? item : null;
     }
     if (item.route === '/settings/organization/warehouse-management' ||
@@ -465,7 +466,10 @@ export class Sidebar {
             },
             {
               label: 'Company / Branch Access',
-              icon: 'account_tree'
+              icon: 'account_tree',
+              route: '/settings/users-access-control/company-branch-access',
+              workspaceScope: 'company',
+              implemented: true
             },
             {
               label: 'User Sessions',

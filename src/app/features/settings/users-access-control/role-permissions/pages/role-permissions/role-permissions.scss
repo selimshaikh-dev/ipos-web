@@ -411,13 +411,21 @@
 }
 
 /* PermissionExplorer now owns its internal navigation styling.
+
    Keep the child sized correctly as a workspace grid item. */
+
 app-permission-explorer,
+
 app-permission-matrix {
+
   display: block;
+
   min-width: 0;
+
   min-height: 0;
+
   height: 100%;
+
 }
 
 /* ============================================================
@@ -426,14 +434,11 @@ app-permission-matrix {
 
    ============================================================ */
 
-
 /* ============================================================
 
    Bulk Actions
 
    ============================================================ */
-
-
 
 /* ============================================================
 
@@ -441,13 +446,11 @@ app-permission-matrix {
 
    ============================================================ */
 
-
 /* ============================================================
 
    Access Toggle
 
    ============================================================ */
-
 
 /* ============================================================
 
@@ -723,7 +726,6 @@ app-permission-matrix {
 
 }
 
-
 /* ============================================================
 
    Spinner
@@ -892,7 +894,6 @@ app-permission-matrix {
 
   }
 
-
 }
 
 /* ============================================================
@@ -958,12 +959,16 @@ app-permission-matrix {
   }
 
   app-permission-explorer,
-  app-permission-matrix {
-    flex: 0 0 auto;
-    height: auto;
-    min-height: 0;
-  }
 
+  app-permission-matrix {
+
+    flex: 0 0 auto;
+
+    height: auto;
+
+    min-height: 0;
+
+  }
 
   .role-permissions__footer {
 
@@ -998,7 +1003,6 @@ app-permission-matrix {
     max-width: 110px;
 
   }
-
 
   .role-permissions__footer {
 
@@ -1035,11 +1039,15 @@ app-permission-matrix {
 @media (prefers-reduced-motion: reduce) {
 
   .role-permissions__button {
+
     transition: none;
+
   }
 
   .role-permissions__spinner {
+
     animation-duration: 2s;
+
   }
 
 }

@@ -1,10 +1,14 @@
+
 import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection
 } from '@angular/core';
 
-import { provideRouter } from '@angular/router';
+import {
+  provideRouter,
+  withDebugTracing
+} from '@angular/router';
 
 import {
   provideHttpClient,
@@ -22,7 +26,10 @@ export const appConfig: ApplicationConfig = {
       eventCoalescing: true
     }),
 
-    provideRouter(routes),
+    provideRouter(
+      routes,
+      withDebugTracing()
+    ),
 
     provideHttpClient(
       withInterceptors([

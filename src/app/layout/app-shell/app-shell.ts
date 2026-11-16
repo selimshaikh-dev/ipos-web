@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   computed,
+  effect,
   inject,
   signal
 } from '@angular/core';
@@ -65,11 +66,8 @@ import type {
 })
 export class AppShell {
 
-  // =========================================================
-  // Dependencies
-  // =========================================================
-
-  private readonly destroyRef = inject(DestroyRef);
+  private readonly destroyRef =
+    inject(DestroyRef);
 
   private readonly authService =
     inject(AuthService);
@@ -85,10 +83,6 @@ export class AppShell {
 
   private readonly workspaceOptions =
     inject(WorkspaceOptionsService);
-
-  // =========================================================
-  // Route Workspace Scope
-  // =========================================================
 
   private readonly routeScopeState =
     signal<WorkspaceRouteScope>('company');
@@ -118,10 +112,6 @@ export class AppShell {
     () => this.routeScope() === 'branch'
   );
 
-  // =========================================================
-  // Authorized Company Options
-  // =========================================================
-
   private readonly availableCompaniesState =
     signal<readonly WorkspaceCompanyOption[]>([]);
 
@@ -141,10 +131,6 @@ export class AppShell {
 
   });
 
-  // =========================================================
-  // Workspace Initialization State
-  // =========================================================
-
   readonly initializationStatus =
     this.workspaceContext.initializationStatus;
 
@@ -160,19 +146,6 @@ export class AppShell {
   readonly canAccessBranchRoutes =
     this.workspaceContext.canAccessBranchRoutes;
 
-  // =========================================================
-  // Route-aware Workspace Access
-  // =========================================================
-
-  /**
-   * Determines whether the current route has its
-   * required workspace context.
-   *
-   * This is a UI visibility decision only.
-   *
-   * Backend authorization must independently enforce
-   * company, branch and permission access.
-   */
   readonly canAccessCurrentRoute = computed(() => {
 
     if (this.isPlatformRoute()) {
@@ -185,26 +158,13 @@ export class AppShell {
     }
 
     if (this.isBranchScopedRoute()) {
-
       return this.canAccessBranchRoutes();
-
     }
 
     return this.canAccessCompanyRoutes();
 
   });
 
-  // =========================================================
-  // Branch Selection Requirement
-  // =========================================================
-
-  /**
-   * Company-level routes never require a branch.
-   *
-   * Branch selection is required only for routes
-   * explicitly configured with workspaceScope:
-   * 'branch'.
-   */
   readonly requiresBranchSelection = computed(() => {
 
     return (
@@ -215,10 +175,6 @@ export class AppShell {
     );
 
   });
-
-  // =========================================================
-  // Existing Template Compatibility
-  // =========================================================
 
   readonly isWorkspaceReady =
     this.canAccessCurrentRoute;
@@ -248,21 +204,56 @@ export class AppShell {
 
   });
 
-  // =========================================================
-  // Constructor
-  // =========================================================
-
   constructor() {
 
     this.initializeRouteTracking();
 
     this.initializeWorkspace();
 
-  }
+    effect(() => {
 
-  // =========================================================
-  // Route Scope Tracking
-  // =========================================================
+      const status =
+        this.workspaceContext.initializationStatus();
+
+      const companyId =
+        this.workspaceContext.companyId();
+
+      const isSuperAdmin =
+        this.isSuperAdmin();
+
+      if (
+        this.router.url !== '/workspace' ||
+        !this.authService.isAuthenticated()
+      ) {
+        return;
+      }
+
+      if (
+        status === 'ready' &&
+        companyId !== null
+      ) {
+
+        void this.router.navigateByUrl(
+          '/dashboard',
+          { replaceUrl: true }
+        );
+
+      } else if (
+        status === 'idle' &&
+        isSuperAdmin &&
+        companyId === null
+      ) {
+
+        void this.router.navigateByUrl(
+          '/platform',
+          { replaceUrl: true }
+        );
+
+      }
+
+    });
+
+  }
 
   private initializeRouteTracking(): void {
 
@@ -307,23 +298,13 @@ export class AppShell {
 
   }
 
-  // =========================================================
-  // Workspace Initialization
-  // =========================================================
-
   private initializeWorkspace(): void {
-
-    // Reset in-memory context before loading the
-    // server-authorized workspace options.
 
     this.workspaceContext.clear();
 
     this.availableCompaniesState.set([]);
 
     this.workspaceContext.beginInitialization();
-
-    // Capture the authentication lifecycle that owns
-    // this initialization request.
 
     const requestedUserId =
       this.authService.getCurrentUser()?.userId;
@@ -348,8 +329,6 @@ export class AppShell {
 
         next: response => {
 
-          // Reject responses from obsolete sessions.
-
           if (
             !this.isCurrentSession(
               requestedUserId,
@@ -364,19 +343,7 @@ export class AppShell {
 
           this.availableCompaniesState.set(companies);
 
-          // =============================================
-          // Super Admin Workspace Initialization
-          // =============================================
-
           if (this.isSuperAdmin()) {
-
-            /*
-             * Super Admin can access Platform
-             * Administration without a company.
-             *
-             * However, an explicitly selected
-             * company must not be discarded.
-             */
 
             const selectedCompanyId =
               this.workspaceContext.companyId();
@@ -402,14 +369,6 @@ export class AppShell {
 
             }
 
-            /*
-             * No currently authorized company
-             * is selected.
-             *
-             * Preserve Platform access without
-             * assigning a company implicitly.
-             */
-
             this.workspaceContext.clear();
 
             if (this.router.url === '/dashboard') {
@@ -424,10 +383,6 @@ export class AppShell {
 
           }
 
-          // =============================================
-          // Standard User: No Authorized Companies
-          // =============================================
-
           if (companies.length === 0) {
 
             this.workspaceContext.failInitialization();
@@ -436,20 +391,7 @@ export class AppShell {
 
           }
 
-          // =============================================
-          // Standard User: Multiple Companies
-          // =============================================
-
           if (companies.length > 1) {
-
-            /*
-             * Never implicitly choose a company
-             * when multiple authorized companies
-             * are available.
-             *
-             * The AppShell company selection UI
-             * handles explicit selection.
-             */
 
             this.workspaceContext.clear();
 
@@ -457,20 +399,7 @@ export class AppShell {
 
           }
 
-          // =============================================
-          // Standard User: Single Company
-          // =============================================
-
           const company = companies[0];
-
-          /*
-           * A company-scoped route does not
-           * require branch selection.
-           *
-           * configureCompany() validates saved
-           * branch preferences against the
-           * authorized branch options.
-           */
 
           this.workspaceContext.configureCompany(
             company
@@ -497,17 +426,6 @@ export class AppShell {
 
   }
 
-  // =========================================================
-  // Explicit Company Selection
-  // =========================================================
-
-  /**
-   * Selects a company returned by the authenticated
-   * workspace/options API.
-   *
-   * A company selection changes the active context.
-   * It does not grant additional permissions.
-   */
   selectCompany(companyId: number): void {
 
     if (
@@ -536,15 +454,6 @@ export class AppShell {
 
   }
 
-  // =========================================================
-  // Authentication Session Validation
-  // =========================================================
-
-  /**
-   * Ensures that an asynchronous workspace response
-   * belongs to the current authenticated user and
-   * authentication lifecycle.
-   */
   private isCurrentSession(
     requestedUserId: string,
     requestedGeneration: number

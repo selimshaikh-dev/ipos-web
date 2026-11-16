@@ -1,0 +1,825 @@
+
+<div class="company-profile-page user-management-page company-branch-access-page">
+
+  <header class="page-header">
+    <div class="page-heading">
+      <div class="breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Users &amp; Access Control</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Company / Branch Access</span>
+      </div>
+
+      <h1>Company / Branch Access</h1>
+
+      <p>
+        Review and manage company membership and branch assignments
+        for authorized users.
+      </p>
+    </div>
+  </header>
+
+  <div class="directory-intro">
+    <div>
+      <span class="eyebrow">ORGANIZATION ACCESS CONTROL</span>
+      <h2>Company and branch permissions</h2>
+      <p>
+        Select a company user to review their organization access
+        and manage direct branch assignments.
+      </p>
+    </div>
+  </div>
+
+  <section
+    class="form-card company-directory"
+    aria-label="Company user directory">
+
+    <div class="form-card-header">
+      <div>
+        <h2>Company users</h2>
+        <p>
+          Select a user from the current company workspace
+          to review their access.
+        </p>
+      </div>
+
+      @if (companyId() !== null) {
+        <button
+          type="button"
+          class="button button-secondary"
+          [disabled]="isLoadingUsers() || isSavingAccess()"
+          (click)="refreshDirectory()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">refresh</span>
+
+          Refresh
+        </button>
+      }
+    </div>
+
+    <div class="form-card-body user-directory-body">
+
+      @if (companyId() === null) {
+
+        <div class="state-card" role="status">
+          <div>
+            <h2>Select a company</h2>
+            <p>
+              Select an authorized company from the workspace
+              to manage organization access.
+            </p>
+          </div>
+        </div>
+
+      } @else if (!isPermissionReady()) {
+
+        <div
+          class="user-directory-state"
+          role="status"
+          aria-live="polite">
+
+          @if (isLoadingUsers()) {
+            <span
+              class="button-spinner"
+              aria-hidden="true"></span>
+          }
+
+          <span>
+            Organization permissions are not ready.
+            Access operations are unavailable until authorization succeeds.
+          </span>
+        </div>
+
+      } @else if (!canView()) {
+
+        <div class="company-empty-state" role="status">
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">lock</span>
+
+          <strong>Access restricted</strong>
+
+          <p>
+            You do not have permission to view organization access
+            for the selected company.
+          </p>
+        </div>
+
+      } @else {
+
+        <div class="user-directory-toolbar">
+
+          <div class="user-search-fields">
+
+            <div class="form-field">
+              <label for="accessUserSearch">Search users</label>
+
+              <input
+                #accessUserSearch
+                id="accessUserSearch"
+                type="search"
+                maxlength="200"
+                [value]="searchText()"
+                placeholder="Search by full name or email"
+                [disabled]="isSavingAccess()"
+                (keyup.enter)="searchUsers(accessUserSearch.value)">
+            </div>
+
+            <button
+              type="button"
+              class="button button-primary"
+              [disabled]="isLoadingUsers() || isSavingAccess()"
+              (click)="searchUsers(accessUserSearch.value)">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">search</span>
+
+              Search
+            </button>
+          </div>
+
+          <div class="user-filter-fields">
+
+            <div class="form-field">
+              <label for="accessUserStatus">Status</label>
+
+              <select
+                #accessUserStatus
+                id="accessUserStatus"
+                [value]="selectedIsActive() === null
+                  ? ''
+                  : (selectedIsActive() ? 'true' : 'false')"
+                [disabled]="isLoadingUsers() || isSavingAccess()"
+                (change)="filterByStatus(
+                  accessUserStatus.value === ''
+                    ? null
+                    : accessUserStatus.value === 'true'
+                )">
+
+                <option value="">All statuses</option>
+                <option value="true">Active</option>
+                <option value="false">Inactive</option>
+              </select>
+            </div>
+
+            <div class="user-directory-actions">
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isLoadingUsers() || isSavingAccess()"
+                (click)="clearFilters()">
+                Reset filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        @if (directoryError(); as message) {
+          <div class="alert alert-error" role="alert">
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to load users</strong>
+              <span>{{ message }}</span>
+            </div>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="refreshDirectory()">
+              Try again
+            </button>
+          </div>
+        }
+
+        @if (isLoadingUsers()) {
+
+          <div
+            class="user-directory-state"
+            role="status"
+            aria-live="polite">
+
+            <span
+              class="button-spinner"
+              aria-hidden="true"></span>
+
+            <span>Loading users...</span>
+          </div>
+
+        } @else if (!directoryError() && users().length === 0) {
+
+          <div class="company-empty-state" role="status">
+            <span
+              class="material-symbols-rounded"
+              aria-hidden="true">group_off</span>
+
+            <strong>No users found</strong>
+
+            <p>
+              No users match the current company and filters.
+            </p>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              (click)="clearFilters()">
+              Clear filters
+            </button>
+          </div>
+
+        } @else if (!directoryError()) {
+
+          <div class="user-table-scroll">
+            <table class="user-directory-table">
+              <thead>
+                <tr>
+                  <th scope="col">User</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (user of users(); track user.id) {
+                  <tr
+                    [class.access-selected-row]="selectedUserId() === user.id">
+
+                    <td>
+                      <div class="user-identity">
+                        <div
+                          class="user-avatar"
+                          aria-hidden="true">
+                          {{ user.fullName.charAt(0).toUpperCase() || 'U' }}
+                        </div>
+
+                        <strong>{{ user.fullName }}</strong>
+                      </div>
+                    </td>
+
+                    <td>
+                      {{ user.email || 'Not provided' }}
+                    </td>
+
+                    <td>
+                      <span
+                        class="status-badge"
+                        [class.status-active]="user.isActive"
+                        [class.status-inactive]="!user.isActive">
+
+                        <span class="status-dot"></span>
+
+                        {{ user.isActive ? 'Active' : 'Inactive' }}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div class="user-directory-actions">
+                        <button
+                          type="button"
+                          class="button"
+                          [class.button-primary]="selectedUserId() !== user.id"
+                          [class.button-secondary]="selectedUserId() === user.id"
+                          [disabled]="isSavingAccess() || isLoadingAccess()"
+                          [attr.aria-label]="'View organization access for ' + user.fullName"
+                          (click)="selectUser(user)">
+
+                          <span
+                            class="material-symbols-rounded"
+                            aria-hidden="true">
+                            {{ selectedUserId() === user.id
+                              ? 'check_circle'
+                              : 'account_tree' }}
+                          </span>
+
+                          {{ selectedUserId() === user.id
+                            ? 'Selected'
+                            : 'Manage access' }}
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        @if (!directoryError() && !isLoadingUsers()) {
+          <div class="user-directory-pagination">
+
+            <span class="user-directory-count">
+              {{ totalCount() }} user(s) found
+            </span>
+
+            <div class="user-directory-page-controls">
+
+              <label for="accessPageSize">
+                Rows per page
+              </label>
+
+              <select
+                #accessPageSize
+                id="accessPageSize"
+                [value]="pageSize()"
+                [disabled]="isSavingAccess()"
+                (change)="changePageSize(+accessPageSize.value)">
+
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+
+              <span>
+                Page {{ pageNumber() }}
+                of {{ totalPages() || 1 }}
+              </span>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="!hasPreviousPage() || isSavingAccess()"
+                (click)="previousPage()">
+                Previous
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="!hasNextPage() || isSavingAccess()"
+                (click)="nextPage()">
+                Next
+              </button>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </section>
+
+  @if (companyId() !== null && canView() && selectedUserId()) {
+
+    <section
+      class="form-card access-details-card"
+      aria-label="User organization access">
+
+      <div class="form-card-header">
+        <div>
+          <h2>Organization access</h2>
+          <p>
+            Review company membership and direct branch assignments
+            for the selected user.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="button button-secondary"
+          [disabled]="isLoadingAccess() || isSavingAccess()"
+          (click)="refreshAccess()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">refresh</span>
+
+          Refresh access
+        </button>
+      </div>
+
+      <div class="form-card-body">
+
+        @if (mutationError(); as message) {
+          <div class="alert alert-error" role="alert">
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to update organization access</strong>
+              <span>{{ message }}</span>
+            </div>
+          </div>
+        }
+
+        @if (accessError(); as message) {
+          <div class="alert alert-error" role="alert">
+            <div class="alert-icon">!</div>
+
+            <div class="alert-content">
+              <strong>Unable to load organization access</strong>
+              <span>{{ message }}</span>
+            </div>
+
+            <button
+              type="button"
+              class="button button-secondary"
+              [disabled]="isSavingAccess()"
+              (click)="refreshAccess()">
+              Try again
+            </button>
+          </div>
+        }
+
+        @if (pendingConfirmation(); as pending) {
+          <div
+            class="ipos-confirmation"
+            role="group"
+            aria-labelledby="access-confirmation-title">
+
+            <div
+              class="ipos-confirmation__icon"
+              aria-hidden="true">
+              <span class="material-symbols-rounded">help</span>
+            </div>
+
+            <div class="ipos-confirmation__content">
+              <strong id="access-confirmation-title">
+                Confirm access change
+              </strong>
+
+              <p>
+                @switch (pending.action) {
+
+                  @case ('company-grant') {
+                    Send a company access invitation to
+                    <strong>{{ pending.userName }}</strong>?
+                    Access will become active only after
+                    the invitation is accepted.
+                  }
+
+                  @case ('branch-grant') {
+                    Grant direct access to
+                    <strong>{{ pending.branchName }}</strong>
+                    for
+                    <strong>{{ pending.userName }}</strong>?
+                  }
+
+                  @case ('branch-revoke') {
+                    Revoke direct access to
+                    <strong>{{ pending.branchName }}</strong>
+                    for
+                    <strong>{{ pending.userName }}</strong>?
+                  }
+                }
+              </p>
+            </div>
+
+            <div class="ipos-confirmation__actions">
+              <button
+                type="button"
+                class="button button-secondary"
+                [disabled]="isSavingAccess()"
+                (click)="cancelConfirmation()">
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                class="button button-primary"
+                [disabled]="isSavingAccess()"
+                (click)="confirmPendingAction()">
+
+                @if (isSavingAccess()) {
+                  <span
+                    class="button-spinner"
+                    aria-hidden="true"></span>
+                }
+
+                {{ isSavingAccess() ? 'Processing...' : 'Confirm' }}
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (isLoadingAccess()) {
+
+          <div
+            class="user-directory-state"
+            role="status"
+            aria-live="polite">
+
+            <span
+              class="button-spinner"
+              aria-hidden="true"></span>
+
+            <span>Loading organization access...</span>
+          </div>
+
+        } @else if (organizationAccess(); as access) {
+
+          <div class="access-user-summary">
+            <div class="user-identity">
+              <div
+                class="user-avatar"
+                aria-hidden="true">
+                {{ access.fullName.charAt(0).toUpperCase() || 'U' }}
+              </div>
+
+              <div class="access-user-summary__identity">
+                <strong>{{ access.fullName }}</strong>
+                <span>{{ access.email }}</span>
+              </div>
+            </div>
+
+            <span
+              class="status-badge"
+              [class.status-active]="access.isGlobalAccountActive"
+              [class.status-inactive]="!access.isGlobalAccountActive">
+
+              <span class="status-dot"></span>
+
+              {{ access.isGlobalAccountActive
+                ? 'Global account active'
+                : 'Global account inactive' }}
+            </span>
+          </div>
+
+          <div class="access-section-heading">
+            <div>
+              <h3>Company membership</h3>
+              <p>
+                Company access is required before branch access
+                can be assigned.
+              </p>
+            </div>
+          </div>
+
+          <div class="access-membership-row">
+            <div class="access-membership-row__details">
+              <span class="access-field-label">Company access</span>
+
+              <span
+                class="status-badge"
+                [class.status-active]="access.isCompanyAccessActive"
+                [class.status-inactive]="!access.isCompanyAccessActive">
+
+                <span class="status-dot"></span>
+
+                {{ access.isCompanyAccessActive
+                  ? 'Active membership'
+                  : 'No active membership' }}
+              </span>
+            </div>
+
+            @if (!access.isCompanyAccessActive && canGrantCompany()) {
+              <button
+                type="button"
+                class="button button-primary"
+                [disabled]="
+                  isBusy() ||
+                  !access.isGlobalAccountActive ||
+                  pendingConfirmation() !== null
+                "
+                (click)="requestCompanyGrant()">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">forward_to_inbox</span>
+
+                Send invitation
+              </button>
+            }
+          </div>
+
+          @if (!access.isGlobalAccountActive) {
+            <div class="access-information" role="status">
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">info</span>
+
+              <p>
+                This global account is inactive. Access grants
+                are unavailable until the account is active.
+              </p>
+            </div>
+          }
+
+          @if (!access.isCompanyAccessActive) {
+            <div class="access-information" role="status">
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">info</span>
+
+              <p>
+                This user has no active membership in the selected
+                company. A company invitation may be required
+                before branch assignments can be managed.
+              </p>
+            </div>
+          }
+
+          <div class="access-section-heading">
+            <div>
+              <h3>Branch assignments</h3>
+              <p>
+                Manage direct branch access within the selected company.
+              </p>
+            </div>
+
+            <span class="access-assignment-count">
+              {{ assignedBranchCount() }} assigned
+            </span>
+          </div>
+
+          @if (branches().length === 0) {
+
+            <div class="company-empty-state" role="status">
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">account_tree</span>
+
+              <strong>No branches available</strong>
+
+              <p>
+                No branches were returned for the selected company.
+              </p>
+            </div>
+
+          } @else {
+
+            <div class="user-table-scroll">
+              <table class="user-directory-table access-branch-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Branch</th>
+                    <th scope="col">Branch status</th>
+                    <th scope="col">Direct assignment</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (branch of branches(); track branch.branchId) {
+                    <tr>
+                      <td>
+                        <div class="access-branch-identity">
+                          <strong>{{ branch.name }}</strong>
+
+                          <span>{{ branch.code }}</span>
+
+                          @if (branch.isHeadOffice) {
+                            <span class="access-branch-type">
+                              Head office
+                            </span>
+                          }
+                        </div>
+                      </td>
+
+                      <td>
+                        <span
+                          class="status-badge"
+                          [class.status-active]="branch.isBranchActive"
+                          [class.status-inactive]="!branch.isBranchActive">
+
+                          <span class="status-dot"></span>
+
+                          {{ branch.isBranchActive
+                            ? 'Active'
+                            : 'Inactive' }}
+                        </span>
+                      </td>
+
+                      <td>
+                        <span
+                          class="status-badge"
+                          [class.status-active]="
+                            branch.hasDirectAssignment &&
+                            branch.isDirectAssignmentActive
+                          "
+                          [class.status-inactive]="
+                            !branch.hasDirectAssignment ||
+                            !branch.isDirectAssignmentActive
+                          ">
+
+                          <span class="status-dot"></span>
+
+                          @if (
+                            branch.hasDirectAssignment &&
+                            branch.isDirectAssignmentActive
+                          ) {
+                            Assigned
+                          } @else if (branch.hasDirectAssignment) {
+                            Assignment inactive
+                          } @else {
+                            Not assigned
+                          }
+                        </span>
+                      </td>
+
+                      <td>
+                        <div class="user-directory-actions">
+
+                          @if (
+                            branch.hasDirectAssignment &&
+                            branch.isDirectAssignmentActive
+                          ) {
+
+                            @if (canRevokeBranch()) {
+                              <button
+                                type="button"
+                                class="button button-secondary"
+                                [disabled]="
+                                  isBusy() ||
+                                  !access.isCompanyAccessActive ||
+                                  pendingConfirmation() !== null
+                                "
+                                [attr.aria-label]="'Revoke access to ' + branch.name"
+                                (click)="requestBranchRevoke(branch)">
+
+                                <span
+                                  class="material-symbols-rounded"
+                                  aria-hidden="true">person_remove</span>
+
+                                Revoke access
+                              </button>
+                            }
+
+                          } @else {
+
+                            @if (canGrantBranch()) {
+                              <button
+                                type="button"
+                                class="button button-primary"
+                                [disabled]="
+                                  isBusy() ||
+                                  !access.isGlobalAccountActive ||
+                                  !access.isCompanyAccessActive ||
+                                  !branch.isBranchActive ||
+                                  pendingConfirmation() !== null
+                                "
+                                [attr.aria-label]="'Grant access to ' + branch.name"
+                                (click)="requestBranchGrant(branch)">
+
+                                <span
+                                  class="material-symbols-rounded"
+                                  aria-hidden="true">person_add</span>
+
+                                Grant access
+                              </button>
+                            }
+                          }
+
+                          @if (!canGrantBranch() && !canRevokeBranch()) {
+                            <span class="access-readonly-label">
+                              View only
+                            </span>
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+        } @else if (!accessError()) {
+
+          <div class="company-empty-state" role="status">
+            <span
+              class="material-symbols-rounded"
+              aria-hidden="true">manage_accounts</span>
+
+            <strong>Organization access unavailable</strong>
+
+            <p>
+              Select a user or refresh the access details
+              to continue.
+            </p>
+          </div>
+        }
+      </div>
+    </section>
+
+  } @else if (
+    companyId() !== null &&
+    canView() &&
+    !selectedUserId()
+  ) {
+
+    <section
+      class="form-card access-details-card"
+      aria-label="Organization access details">
+
+      <div class="form-card-body">
+        <div class="company-empty-state" role="status">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">manage_accounts</span>
+
+          <strong>Select a user to manage access</strong>
+
+          <p>
+            Choose a user from the directory above
+            to review company membership and branch assignments.
+          </p>
+        </div>
+      </div>
+    </section>
+  }
+
+</div>

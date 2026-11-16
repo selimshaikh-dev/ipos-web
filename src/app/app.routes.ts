@@ -7,49 +7,18 @@ import { Dashboard } from './features/dashboard/pages/dashboard/dashboard';
 import { authGuard } from './core/auth/guards/auth.guard';
 import { guestGuard } from './core/auth/guards/guest.guard';
 import { platformGuard } from './core/auth/guards/platform.guard';
+import { permissionGuard } from './core/authorization/permission.guard';
 
-// =========================================================
-// Workspace Route Scope
-// =========================================================
-
-/**
- * Defines the workspace context required by a route.
- *
- * platform:
- *   Platform administration context.
- *
- * company:
- *   Requires an authorized company.
- *
- * branch:
- *   Requires an authorized company and a selected
- *   authorized branch.
- *
- * Route metadata is not an authorization mechanism.
- * Guards and backend policies must enforce access.
- */
 export type WorkspaceRouteScope =
   'platform' | 'company' | 'branch';
 
-// =========================================================
-// Application Routes
-// =========================================================
-
 export const routes: Routes = [
-
-  // =======================================================
-  // Default Route
-  // =======================================================
 
   {
     path: '',
     pathMatch: 'full',
     redirectTo: 'login'
   },
-
-  // =======================================================
-  // Guest Routes
-  // =======================================================
 
   {
     path: 'login',
@@ -65,27 +34,6 @@ export const routes: Routes = [
     title: 'Sign In | iPOS'
   },
 
-  // =======================================================
-  // Invitation Acceptance
-  // =======================================================
-
-  /**
-   * Allows invited users to accept invitations.
-   *
-   * New users:
-   *   Accept invitation and establish a password.
-   *
-   * Existing users:
-   *   Accept invitation using their authenticated
-   *   identity.
-   *
-   * This route is intentionally outside AppShell.
-   *
-   * Do not apply authGuard or guestGuard here.
-   *
-   * Backend must validate invitation tokens,
-   * expiration, identity and authorization.
-   */
   {
     path: 'invitations/accept',
 
@@ -98,9 +46,21 @@ export const routes: Routes = [
     title: 'Accept Invitation | iPOS'
   },
 
-  // =======================================================
-  // Authenticated Application Shell
-  // =======================================================
+  {
+    path: 'workspace',
+
+    component: AppShell,
+
+    canActivate: [
+      authGuard
+    ],
+
+    data: {
+      workspaceScope: 'company' satisfies WorkspaceRouteScope
+    },
+
+    title: 'Workspace Selection | iPOS'
+  },
 
   {
     path: '',
@@ -112,10 +72,6 @@ export const routes: Routes = [
     ],
 
     children: [
-
-      // ===================================================
-      // Platform Administration
-      // ===================================================
 
       {
         path: 'platform',
@@ -135,14 +91,14 @@ export const routes: Routes = [
         title: 'Platform Administration | iPOS'
       },
 
-      // ===================================================
-      // Dashboard
-      // ===================================================
-
       {
         path: 'dashboard',
 
         component: Dashboard,
+
+        canActivate: [
+          permissionGuard
+        ],
 
         data: {
           workspaceScope: 'company' satisfies WorkspaceRouteScope
@@ -150,10 +106,6 @@ export const routes: Routes = [
 
         title: 'Dashboard | iPOS'
       },
-
-      // ===================================================
-      // Organization / Company Management
-      // ===================================================
 
       {
         path: 'settings/organization/company-management',
@@ -175,10 +127,6 @@ export const routes: Routes = [
         title: 'Company Management | iPOS'
       },
 
-      // ===================================================
-      // Organization / Branch Management
-      // ===================================================
-
       {
         path: 'settings/organization/branch-management',
 
@@ -188,16 +136,16 @@ export const routes: Routes = [
           )
             .then(m => m.BranchManagement),
 
+        canActivate: [
+          permissionGuard
+        ],
+
         data: {
           workspaceScope: 'company' satisfies WorkspaceRouteScope
         },
 
         title: 'Branch Management | iPOS'
       },
-
-      // ===================================================
-      // Organization / POS Counter Management
-      // ===================================================
 
       {
         path: 'settings/organization/pos-counter-management',
@@ -208,16 +156,16 @@ export const routes: Routes = [
           )
             .then(m => m.PosCounterManagement),
 
+        canActivate: [
+          permissionGuard
+        ],
+
         data: {
           workspaceScope: 'branch' satisfies WorkspaceRouteScope
         },
 
         title: 'POS Counter Management | iPOS'
       },
-
-      // ===================================================
-      // Organization / Warehouse Management
-      // ===================================================
 
       {
         path: 'settings/organization/warehouse-management',
@@ -228,16 +176,16 @@ export const routes: Routes = [
           )
             .then(m => m.WarehouseManagement),
 
+        canActivate: [
+          permissionGuard
+        ],
+
         data: {
           workspaceScope: 'branch' satisfies WorkspaceRouteScope
         },
 
         title: 'Warehouse Management | iPOS'
       },
-
-      // ===================================================
-      // Users & Access Control / User Management
-      // ===================================================
 
       {
         path: 'settings/users-access-control/user-management',
@@ -248,16 +196,16 @@ export const routes: Routes = [
           )
             .then(m => m.UserManagement),
 
+        canActivate: [
+          permissionGuard
+        ],
+
         data: {
           workspaceScope: 'company' satisfies WorkspaceRouteScope
         },
 
         title: 'Users Management | iPOS'
       },
-
-      // ===================================================
-      // Users & Access Control / Roles & Permissions
-      // ===================================================
 
       {
         path: 'settings/users-access-control/role-management',
@@ -268,19 +216,39 @@ export const routes: Routes = [
           )
             .then(m => m.RoleManagement),
 
+        canActivate: [
+          permissionGuard
+        ],
+
         data: {
           workspaceScope: 'company' satisfies WorkspaceRouteScope
         },
 
         title: 'Roles & Permissions | iPOS'
+      },
+
+      {
+        path: 'settings/users-access-control/company-branch-access',
+
+        loadComponent: () =>
+          import(
+            './features/settings/users-access-control/company-branch-access/pages/company-branch-access/company-branch-access'
+          )
+            .then(m => m.CompanyBranchAccess),
+
+        canActivate: [
+          permissionGuard
+        ],
+
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+
+        title: 'Company / Branch Access | iPOS'
       }
 
     ]
   },
-
-  // =======================================================
-  // Fallback Route
-  // =======================================================
 
   {
     path: '**',

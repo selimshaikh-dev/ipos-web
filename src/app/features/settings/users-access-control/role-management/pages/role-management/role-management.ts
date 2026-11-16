@@ -6,9 +6,9 @@ import {
   ElementRef,
   HostListener,
   effect,
-  computed,
   inject,
   signal,
+  viewChild,
   untracked
 } from '@angular/core';
 
@@ -29,15 +29,11 @@ import {
   RoleDirectoryItem,
   RoleListQuery,
   RolePagedResult,
-  UpdateRoleRequest,
-  RolePermissions,
-  RolePermissionItem,
-  PermissionMatrixViewMode,
-  calculatePermissionChanges,
-  buildPermissionUpdateRequest
+  UpdateRoleRequest
 } from '../../models/role.model';
 
 import { RoleService } from '../../services/role.service';
+import { RolePermissions as RolePermissionsEditor } from '../../../role-permissions/pages/role-permissions/role-permissions';
 
 import {
   WorkspaceContextService
@@ -50,7 +46,7 @@ import {
 @Component({
   selector: 'app-role-management',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, RolePermissionsEditor],
   templateUrl: './role-management.html',
   styleUrl: './role-management.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -152,10 +148,6 @@ export class RoleManagement {
   private saveSubscription: Subscription | null = null;
   private saveRequestVersion = 0;
 
-  private permissionSubscription: Subscription | null = null;
-  private permissionSaveSubscription: Subscription | null = null;
-  private permissionRequestVersion = 0;
-  private permissionSaveVersion = 0;
 
   private statusSubscription: Subscription | null = null;
   private statusRequestVersion = 0;
@@ -181,7 +173,6 @@ export class RoleManagement {
       this.cancelDirectoryRequest();
       this.cancelSaveRequest();
       this.cancelStatusRequest();
-      this.cancelPermissionRequests();
       this.clearDialogTimers();
       this.previousFocusedElement = null;
     });
@@ -785,7 +776,12 @@ export class RoleManagement {
       event.stopPropagation();
 
       if (permissionOpen) {
-        this.closePermissions();
+        const editor = this.permissionEditor();
+        if (editor?.pendingBulkAction()) {
+          editor.cancelBulkAction();
+        } else {
+          editor?.requestClose();
+        }
       } else if (confirmationOpen) {
         this.cancelConfirmation();
       } else if (!this.isSavingRole()) {
@@ -800,7 +796,11 @@ export class RoleManagement {
     }
 
     const dialog = permissionOpen
-      ? this.host.nativeElement.querySelector<HTMLElement>('.permission-dialog')
+      ? this.host.nativeElement.querySelector<HTMLElement>(
+          this.permissionEditor()?.pendingBulkAction()
+            ? '.role-permissions__confirm-dialog'
+            : '.permission-dialog'
+        )
       : confirmationOpen
         ? this.getConfirmationDialog()
         : this.getRoleDialog();
@@ -927,10 +927,7 @@ export class RoleManagement {
     this.cancelDirectoryRequest();
     this.cancelSaveRequest();
     this.cancelStatusRequest();
-    this.cancelPermissionRequests();
     this.permissionRole.set(null);
-    this.permissionData.set(null);
-    this.permissionDraft.set([]);
 
     this.pendingConfirmation.set(null);
     this.clearDialogTimers();
@@ -1076,76 +1073,23 @@ export class RoleManagement {
   }
 
   // =========================================================
-  // Hybrid Permission Matrix — company-isolated draft editor
+  // Permission editor dialog (reusable child owns the draft/API)
   // =========================================================
+
   readonly permissionRole = signal<RoleDirectoryItem | null>(null);
-  readonly permissionData = signal<RolePermissions | null>(null);
-  readonly permissionDraft = signal<string[]>([]);
-  readonly permissionLoading = signal(false);
-  readonly permissionSaving = signal(false);
-  readonly permissionError = signal<string | null>(null);
-  readonly permissionConflict = signal(false);
-  readonly permissionSearch = signal('');
-  readonly permissionFilter = signal<PermissionMatrixViewMode>('all');
-  readonly permissionModule = signal<string | null>(null);
-  readonly expandedModules = signal<string[]>([]);
-
-  readonly permissionChanges = computed(() =>
-    calculatePermissionChanges(
-      (this.permissionData()?.permissions ?? []).filter(p => p.isAssigned).map(p => p.code),
-      this.permissionDraft()
-    )
-  );
-
-  readonly permissionModules = computed(() => {
-    const permissions = this.permissionData()?.permissions ?? [];
-    const selected = new Set(this.permissionDraft());
-    const modules = new Map<string, RolePermissionItem[]>();
-    for (const permission of permissions) {
-      const key = permission.module || 'General';
-      modules.set(key, [...(modules.get(key) ?? []), permission]);
-    }
-    return [...modules.entries()].map(([name, items]) => ({
-      name,
-      count: items.length,
-      assigned: items.filter(item => selected.has(item.code)).length
-    })).sort((a, b) => a.name.localeCompare(b.name));
-  });
-
-  readonly visiblePermissions = computed(() => {
-    const data = this.permissionData();
-    if (!data) return [] as RolePermissionItem[];
-    const module = this.permissionModule();
-    const query = this.permissionSearch().trim().toLocaleLowerCase();
-    const selected = new Set(this.permissionDraft());
-    const filter = this.permissionFilter();
-    return data.permissions.filter(item => {
-      if (module && item.module !== module) return false;
-      if (query && !`${item.name} ${item.code} ${item.description} ${item.module}`.toLocaleLowerCase().includes(query)) return false;
-      const assigned = selected.has(item.code);
-      if (filter === 'assigned' && !assigned) return false;
-      if (filter === 'unassigned' && assigned) return false;
-      if (filter === 'changed' && assigned === item.isAssigned) return false;
-      return true;
-    });
-  });
-
-  readonly canEditPermissions = computed(() => {
-    const data = this.permissionData();
-    return !!data && !data.isSystemRole && data.isActive && !this.permissionSaving() && !this.permissionConflict();
-  });
+  readonly permissionEditor = viewChild(RolePermissionsEditor);
 
   openPermissions(role: RoleDirectoryItem): void {
     const companyId = this.companyId();
-    if (companyId === null || companyId <= 0 || this.formMode() !== null ||
-        this.pendingConfirmation() !== null || this.permissionRole() !== null ||
-        this.isLoadingRoles() || this.isSavingRole() || this.changingStatusRoleId() !== null) return;
+    if (companyId === null || companyId <= 0 ||
+        this.formMode() !== null || this.pendingConfirmation() !== null ||
+        this.permissionRole() !== null || this.isLoadingRoles() ||
+        this.isSavingRole() || this.changingStatusRoleId() !== null) {
+      return;
+    }
+
     this.captureFocusedElement();
     this.permissionRole.set(role);
-    this.permissionSearch.set('');
-    this.permissionFilter.set('all');
-    this.permissionModule.set(null);
-    this.loadPermissions();
     this.clearDialogTimers();
     this.focusTimer = setTimeout(() => {
       this.focusTimer = null;
@@ -1153,128 +1097,12 @@ export class RoleManagement {
     }, 0);
   }
 
-  loadPermissions(): void {
-    const companyId = this.companyId();
-    const role = this.permissionRole();
-    this.cancelPermissionLoad();
-    const version = this.permissionRequestVersion;
-    if (!role || companyId === null || companyId <= 0) return;
-    this.permissionLoading.set(true);
-    this.permissionError.set(null);
-    this.permissionConflict.set(false);
-    this.permissionData.set(null);
-    this.permissionDraft.set([]);
-    this.permissionSubscription = this.roleService.getRolePermissions(companyId, role.id)
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
-        if (version === this.permissionRequestVersion) this.permissionLoading.set(false);
-      }))
-      .subscribe({
-        next: data => {
-          if (version !== this.permissionRequestVersion || this.companyId() !== companyId || this.permissionRole()?.id !== role.id) return;
-          this.permissionData.set(data);
-          this.permissionDraft.set(data.permissions.filter(item => item.isAssigned).map(item => item.code));
-          const names = [...new Set(data.permissions.map(item => item.module || 'General'))].sort();
-          this.expandedModules.set(names);
-          this.permissionModule.set(null);
-        },
-        error: (error: HttpErrorResponse) => {
-          if (version !== this.permissionRequestVersion || this.companyId() !== companyId) return;
-          this.permissionError.set(this.getApiErrorMessage(error, 'Unable to load permissions.'));
-        }
-      });
-  }
-
-  selectPermissionModule(module: string | null): void {
-    this.permissionModule.set(module);
-  }
-
-  toggleModuleExpanded(module: string): void {
-    this.expandedModules.update(items => items.includes(module)
-      ? items.filter(item => item !== module) : [...items, module]);
-  }
-
-  isPermissionSelected(code: string): boolean {
-    return this.permissionDraft().includes(code);
-  }
-
-  togglePermission(code: string, checked: boolean): void {
-    if (!this.canEditPermissions() || !this.permissionData()?.permissions.some(item => item.code === code)) return;
-    this.permissionDraft.update(items => checked
-      ? [...new Set([...items, code])] : items.filter(item => item !== code));
-  }
-
-  selectAllPermissions(checked: boolean, module: string | null = null): void {
-    if (!this.canEditPermissions()) return;
-    const codes = (this.permissionData()?.permissions ?? [])
-      .filter(item => module === null || item.module === module).map(item => item.code);
-    const affected = new Set(codes);
-    this.permissionDraft.update(items => checked
-      ? [...new Set([...items, ...codes])]
-      : items.filter(code => !affected.has(code)));
-  }
-
-  resetPermissionDraft(): void {
-    if (!this.canEditPermissions()) return;
-    this.permissionDraft.set((this.permissionData()?.permissions ?? [])
-      .filter(item => item.isAssigned).map(item => item.code));
-  }
-
-  savePermissions(): void {
-    const companyId = this.companyId();
-    const role = this.permissionRole();
-    const data = this.permissionData();
-    if (companyId === null || companyId <= 0 || !role || !data ||
-        !this.canEditPermissions() || !this.permissionChanges().hasChanges || !data.rowVersion) return;
-    this.permissionSaveSubscription?.unsubscribe();
-    const version = ++this.permissionSaveVersion;
-    this.permissionSaving.set(true);
-    this.permissionError.set(null);
-    const request = buildPermissionUpdateRequest(this.permissionDraft(), data.rowVersion);
-    this.permissionSaveSubscription = this.roleService.updateRolePermissions(companyId, role.id, request)
-      .pipe(takeUntilDestroyed(this.destroyRef), finalize(() => {
-        if (version === this.permissionSaveVersion) this.permissionSaving.set(false);
-      }))
-      .subscribe({
-        next: () => {
-          if (version !== this.permissionSaveVersion || this.companyId() !== companyId || this.permissionRole()?.id !== role.id) return;
-          this.notificationService.success('Role permissions updated successfully.', { title: 'Permissions Saved' });
-          this.loadRoles();
-          this.loadPermissions();
-        },
-        error: (error: HttpErrorResponse) => {
-          if (version !== this.permissionSaveVersion || this.companyId() !== companyId) return;
-          if (error.status === 409) this.permissionConflict.set(true);
-          this.permissionError.set(this.getApiErrorMessage(error, 'Unable to save permissions.'));
-        }
-      });
+  onPermissionsSaved(): void {
+    this.loadRoles();
   }
 
   closePermissions(): void {
-    if (this.permissionSaving()) return;
-    if (this.permissionChanges().hasChanges && !this.permissionConflict() &&
-        !this.document.defaultView?.confirm('Discard unsaved permission changes?')) return;
-    this.cancelPermissionRequests();
     this.permissionRole.set(null);
-    this.permissionData.set(null);
-    this.permissionDraft.set([]);
-    this.permissionError.set(null);
-    this.permissionConflict.set(false);
     this.restorePreviousFocus();
   }
-
-  private cancelPermissionLoad(): void {
-    ++this.permissionRequestVersion;
-    this.permissionSubscription?.unsubscribe();
-    this.permissionSubscription = null;
-    this.permissionLoading.set(false);
-  }
-
-  private cancelPermissionRequests(): void {
-    this.cancelPermissionLoad();
-    ++this.permissionSaveVersion;
-    this.permissionSaveSubscription?.unsubscribe();
-    this.permissionSaveSubscription = null;
-    this.permissionSaving.set(false);
-  }
-
 }
