@@ -86,7 +86,6 @@ export class UnitsOfMeasurement {
   private updateRequestVersion = 0;
 
   readonly createForm = this.formBuilder.nonNullable.group({
-    code: ['', [Validators.required]],
     name: ['', [Validators.required, Validators.maxLength(200)]],
     symbol: ['', [Validators.required, Validators.maxLength(20)]]
   });
@@ -384,7 +383,7 @@ export class UnitsOfMeasurement {
       );
       return;
     }
-    this.createForm.reset({ code: '', name: '', symbol: '' });
+    this.createForm.reset({ name: '', symbol: '' });
     this.createError.set(null);
     this.isCreateOpen.set(true);
     this.activeView.set('directory');
@@ -409,15 +408,15 @@ export class UnitsOfMeasurement {
       return;
     }
     const value = this.createForm.getRawValue();
-    const code = value.code.trim();
     const name = value.name.trim();
     const symbol = value.symbol.trim();
-    if (!code || !name || !symbol) {
+    if (!name || !symbol) {
       this.createForm.markAllAsTouched();
-      this.createError.set('Code, name and symbol are required.');
+      this.createError.set('Name and symbol are required.');
       return;
     }
-    const request: CreateUnitOfMeasureRequest = { code, name, symbol };
+    // Preserve the current API contract. The backend generates the code.
+    const request: CreateUnitOfMeasureRequest = { code: '', name, symbol };
     this.cancelCreateRequest();
     const requestVersion = this.createRequestVersion;
     this.createError.set(null);

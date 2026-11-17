@@ -52,17 +52,21 @@ export class Sidebar {
 
   private readonly activeUrl = signal(this.router.url);
 
-  // Workspace mode follows the active route, not merely a saved branchId.
-  readonly isPlatformMode = computed(() =>
-    this.isSuperAdmin() && (
-      this.activeUrl().split(/[?#]/, 1)[0] === '/platform' ||
-      this.activeUrl().split(/[?#]/, 1)[0] === '/settings/organization/company-management'
-    )
-  );
+  // Workspace mode is determined by the active route, including browser refresh.
+  // A branch selection alone must never silently change the company navigation.
+  readonly isPlatformMode = computed(() => {
+    const path = this.activeUrl().split(/[?#]/, 1)[0];
+    return this.isSuperAdmin() && (
+      path === '/platform' ||
+      path === '/settings/organization/company-management'
+    );
+  });
 
   readonly isBranchMode = computed(() => {
     const path = this.activeUrl().split(/[?#]/, 1)[0];
-    return path === '/settings/organization/warehouse-management' ||
+    return path === '/branch/dashboard' ||
+      path.startsWith('/branch/') ||
+      path === '/settings/organization/warehouse-management' ||
       path === '/settings/organization/pos-counter-management';
   });
 
@@ -70,13 +74,25 @@ export class Sidebar {
     this.isPlatformMode() ? 'platform' : this.isBranchMode() ? 'branch' : 'company'
   );
 
+  private readonly companyModules = new Set([
+    'Dashboard', 'Sales', 'Purchases', 'Inventory', 'Products',
+    'Customers', 'Suppliers', 'Expenses', 'Accounting & Finance',
+    'HR & Payroll', 'Reports & Analytics', 'Integrations',
+    'Settings', 'Help & Support'
+  ]);
+
+  private readonly branchModules = new Set([
+    'Dashboard', 'Point of Sale', 'Sales', 'Purchases', 'Inventory',
+    'Products', 'Customers', 'Suppliers', 'Expenses', 'HR & Payroll',
+    'Reports & Analytics', 'Settings', 'Help & Support'
+  ]);
+
   readonly visibleNavigation = computed<readonly NavigationItem[]>(() => {
     const mode = this.workspaceMode();
     if (mode === 'platform') return [];
+    const allowed = mode === 'branch' ? this.branchModules : this.companyModules;
     return this.navigation
-      .filter(item => mode === 'branch'
-        ? item.label !== 'Dashboard'
-        : item.label === 'Dashboard' || item.label === 'Products' || item.label === 'Settings' || item.label === 'Help & Support')
+      .filter(item => allowed.has(item.label))
       .map(item => this.filterNavigation(item, mode))
       .filter((item): item is NavigationItem => item !== null);
   });
@@ -85,39 +101,45 @@ export class Sidebar {
     item: NavigationItem,
     mode: 'company' | 'branch'
   ): NavigationItem | null {
-    // Company-owned master data and administration remain company-scoped.
-    // Unimplemented features remain disabled; navigation is not authorization.
-    if (mode === 'company' && item.route === '/dashboard') {
-      return { ...item, children: undefined };
-    }
-    if (item.route === '/settings/organization/company-management') return null;
     if (item.workspaceScope && item.workspaceScope !== mode) return null;
-    if (item.route === '/settings/organization/branch-management' ||
-        item.route === '/settings/users-access-control/user-management' ||
-        item.route === '/settings/users-access-control/role-management' ||
-        item.route === '/settings/users-access-control/company-branch-access' ||
-        item.route === '/settings/catalog/units-of-measurement') {
-      return mode === 'company' ? item : null;
+    if (item.route === '/settings/organization/company-management') return null;
+
+    if (item.label === 'Dashboard') {
+      return mode === 'company'
+        ? { ...item, route: '/dashboard', implemented: true, children: undefined }
+        : { ...item, route: '/branch/dashboard', implemented: true, children: undefined };
     }
-    if (item.route === '/settings/organization/warehouse-management' ||
-        item.route === '/settings/organization/pos-counter-management') {
-      return mode === 'branch' ? item : null;
-    }
-    if (mode === 'company' && item.label === 'Settings') {
-      // Company administration owns organization and access-control settings.
+
+    if (item.label === 'Settings') {
+      const allowedSettings = mode === 'company'
+        ? new Set([
+            'Organization', 'Users & Access Control', 'Tax Configuration',
+            'Document Configuration', 'Regional Settings', 'Notifications',
+            'Approval Workflows', 'Data Management', 'System Preferences',
+            'Backup & Restore', 'Audit Logs', 'System Health'
+          ])
+        : new Set([
+            'Organization', 'POS Configuration', 'Document Configuration',
+            'Regional Settings', 'Notifications'
+          ]);
       const children = (item.children ?? [])
-        .filter(child => child.label === 'Organization' || child.label === 'Users & Access Control')
+        .filter(child => allowedSettings.has(child.label))
         .map(child => this.filterNavigation(child, mode))
         .filter((child): child is NavigationItem => child !== null);
       return { ...item, children };
     }
-    if (mode === 'branch' && item.label === 'Settings') {
+
+    if (item.label === 'Organization') {
+      const allowedOrganization = mode === 'company'
+        ? new Set(['Branches'])
+        : new Set(['Warehouses', 'POS Counters']);
       const children = (item.children ?? [])
-        .filter(child => child.label !== 'Users & Access Control')
+        .filter(child => allowedOrganization.has(child.label))
         .map(child => this.filterNavigation(child, mode))
         .filter((child): child is NavigationItem => child !== null);
       return { ...item, children };
     }
+
     if (!item.children) return item;
     const children = item.children
       .map(child => this.filterNavigation(child, mode))
@@ -135,10 +157,11 @@ export class Sidebar {
   }
 
   enterBranchWorkspace(): void {
-    if (!this.workspace.hasCompany()) return;
+    if (!this.canEnterBranch()) return;
     this.closeBranchSelector();
-    // This branch-scoped route prompts for an authorized branch when needed.
-    void this.router.navigateByUrl('/settings/organization/warehouse-management');
+    // Branch dashboard is the stable workspace entry point.
+    // AppShell presents the authorized branch picker when no branch is selected.
+    void this.router.navigateByUrl('/branch/dashboard');
   }
 
   constructor() {

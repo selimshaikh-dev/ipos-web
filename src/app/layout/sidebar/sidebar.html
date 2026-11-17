@@ -73,7 +73,7 @@
         <button type="button" class="workspace-mode-button"
                 [class.workspace-mode-button-active]="isBranchMode()"
                 [attr.aria-pressed]="isBranchMode()"
-                [disabled]="!workspace.hasCompany()"
+                [disabled]="!canEnterBranch()"
                 (click)="enterBranchWorkspace()">
           <span class="material-symbols-rounded" aria-hidden="true">store</span>
           Branch
@@ -547,7 +547,7 @@
     </div>
 
     <div class="version">
-      iPOS v1.0 ┬╖ Enterprise Suite
+      iPOS v1.0 — Enterprise Suite
     </div>
 
   </div>
