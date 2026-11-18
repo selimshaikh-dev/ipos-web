@@ -1,0 +1,1246 @@
+
+<section class="company-profile-page warehouse-management-page product-categories-page">
+
+  <!-- =====================================================
+       PAGE HEADER
+  ====================================================== -->
+
+  <header class="page-header">
+
+    <div class="page-heading">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Catalog</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Product Categories</span>
+      </nav>
+
+      <h1>Product Categories</h1>
+
+      <p>
+        Organize your product catalog with company-specific
+        categories and parent relationships.
+      </p>
+
+    </div>
+
+    <div class="page-actions page-header-actions">
+
+      <button
+        type="button"
+        class="button button-secondary"
+        (click)="refreshDirectory()"
+        [disabled]="!canView() || isLoadingCategories() || companyId() === null"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          refresh
+        </span>
+        Refresh
+      </button>
+
+      @if (canCreate()) {
+        <button
+          type="button"
+          class="button button-primary company-add-button"
+          (click)="openCreateCategory()"
+          [disabled]="isCreating() || isUpdating() || isChangingStatus() || companyId() === null"
+        >
+          <span
+            class="material-symbols-rounded company-add-icon"
+            aria-hidden="true"
+          >
+            add
+          </span>
+
+          <span class="company-add-label">
+            Add Category
+          </span>
+        </button>
+      }
+
+    </div>
+
+  </header>
+
+  <!-- =====================================================
+       WORKSPACE AND PERMISSION STATES
+  ====================================================== -->
+
+  @if (companyId() === null) {
+
+    <div class="state-card" role="status">
+
+      <span class="material-symbols-rounded" aria-hidden="true">
+        business
+      </span>
+
+      <div>
+        <h2>Company selection required</h2>
+        <p>Select a company to manage its product categories.</p>
+      </div>
+
+    </div>
+
+  } @else if (!canView()) {
+
+    <div class="state-card" role="status">
+
+      <span class="material-symbols-rounded" aria-hidden="true">
+        lock
+      </span>
+
+      <div>
+        <h2>Categories unavailable</h2>
+        <p>
+          Category access requires the appropriate company permission.
+        </p>
+      </div>
+
+    </div>
+
+  } @else {
+
+    <!-- ===================================================
+         VIEW NAVIGATION
+    ==================================================== -->
+
+    <nav class="company-view-switch" aria-label="Category views">
+
+      <button
+        type="button"
+        [class.is-active]="activeView() === 'directory'"
+        [attr.aria-current]="activeView() === 'directory' ? 'page' : null"
+        (click)="showDirectory()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          view_list
+        </span>
+        Directory
+      </button>
+
+      <button
+        type="button"
+        [class.is-active]="activeView() === 'details'"
+        [disabled]="selectedCategory() === null || isCreating()"
+        [attr.aria-current]="activeView() === 'details' ? 'page' : null"
+        (click)="showDetails()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          category
+        </span>
+        Details
+      </button>
+
+    </nav>
+
+    <!-- ===================================================
+         CATEGORY DIRECTORY
+    ==================================================== -->
+
+    @if (activeView() === 'directory') {
+
+      <div class="directory-intro">
+
+        <div>
+          <span class="eyebrow">CATALOG MANAGEMENT</span>
+
+          <h2>Category directory</h2>
+
+          <p>
+            Search, filter, and maintain your company's
+            product classification.
+          </p>
+        </div>
+
+      </div>
+
+      <section
+        class="form-card company-directory"
+        aria-labelledby="category-directory-heading"
+      >
+
+        <!-- Directory Header -->
+
+        <div class="form-card-header">
+
+          <div>
+            <h2 id="category-directory-heading">
+              All product categories
+            </h2>
+
+            <p>
+              Results are loaded from the active company workspace.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- ===============================================
+             CREATE CATEGORY PANEL
+        ================================================ -->
+
+        @if (isCreateOpen()) {
+
+          <div class="company-create-panel">
+
+            <form
+              class="company-create-form"
+              [formGroup]="createForm"
+              (ngSubmit)="createCategory()"
+            >
+
+              <div class="company-create-heading">
+
+                <div>
+                  <h3>Create product category</h3>
+
+                  <p>
+                    Category code is generated automatically
+                    by the system.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="cancelCreateCategory()"
+                  [disabled]="isCreating()"
+                >
+                  Cancel
+                </button>
+
+              </div>
+
+              <!-- Create Error -->
+
+              @if (createError()) {
+
+                <div class="alert alert-error" role="alert">
+
+                  <span class="alert-icon">!</span>
+
+                  <div class="alert-content">
+                    {{ createError() }}
+                  </div>
+
+                </div>
+
+              }
+
+              <!-- Automatic Code Information -->
+
+              <div class="company-auto-code-note">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true"
+                >
+                  info
+                </span>
+
+                <span>
+                  <strong>Automatic category code</strong>
+
+                  <small>
+                    The code is assigned by the backend
+                    when you save.
+                  </small>
+                </span>
+
+              </div>
+
+              <!-- Create Form Fields -->
+
+              <div class="form-grid">
+
+                <div class="form-field">
+
+                  <label for="category-create-name">
+                    Category name
+                    <span class="required">*</span>
+                  </label>
+
+                  <input
+                    id="category-create-name"
+                    type="text"
+                    maxlength="200"
+                    formControlName="name"
+                    autocomplete="off"
+                    placeholder="Enter category name"
+                    [attr.aria-invalid]="createForm.controls.name.invalid && createForm.controls.name.touched"
+                  />
+
+                  @if (
+                    createForm.controls.name.invalid &&
+                    createForm.controls.name.touched
+                  ) {
+                    <span class="field-error">
+                      Enter a category name (maximum 200 characters).
+                    </span>
+                  }
+
+                </div>
+
+                <div class="form-field">
+
+                  <label for="category-create-parent">
+                    Parent category
+                  </label>
+
+                  <select
+                    id="category-create-parent"
+                    formControlName="parentCategoryId"
+                    [disabled]="isLoadingParentCategories()"
+                  >
+
+                    <option [ngValue]="0">
+                      No parent (root category)
+                    </option>
+
+                    @for (
+                      parent of availableCreateParents();
+                      track parent.id
+                    ) {
+                      <option [ngValue]="parent.id">
+                        {{ parent.name }} ({{ parent.code }})
+                      </option>
+                    }
+
+                  </select>
+
+                  <small class="warehouse-field-hint">
+                    Optional. Choose an active parent category.
+                  </small>
+
+                </div>
+
+              </div>
+
+              <!-- Parent Options Error -->
+
+              @if (parentCategoriesError()) {
+
+                <p class="field-error" role="alert">
+                  Parent category options could not be loaded.
+                  {{ parentCategoriesError() }}
+                </p>
+
+              }
+
+              <!-- Create Actions -->
+
+              <div class="company-create-actions">
+
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="cancelCreateCategory()"
+                  [disabled]="isCreating()"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  class="button button-primary"
+                  [disabled]="isCreating() || createForm.invalid || isLoadingParentCategories() || parentCategoriesError() !== null"
+                >
+
+                  @if (isCreating()) {
+                    <span
+                      class="button-spinner"
+                      aria-hidden="true"
+                    ></span>
+                  }
+
+                  Create Category
+
+                </button>
+
+              </div>
+
+            </form>
+
+          </div>
+
+        }
+
+        <!-- ===============================================
+             DIRECTORY BODY
+        ================================================ -->
+
+        <div class="warehouse-directory-body">
+
+          <!-- Search and Filters -->
+
+          <div class="warehouse-directory-toolbar">
+
+            <!-- Category Search -->
+
+            <form
+              class="category-search-fields"
+              (submit)="$event.preventDefault(); searchCategories(codeSearch.value, nameSearch.value)"
+            >
+
+              <div class="form-field">
+
+                <label for="category-search-code">
+                  Category code
+                </label>
+
+                <input
+                  #codeSearch
+                  id="category-search-code"
+                  type="search"
+                  [value]="searchCode()"
+                  placeholder="Search by code"
+                />
+
+              </div>
+
+              <div class="form-field">
+
+                <label for="category-search-name">
+                  Category name
+                </label>
+
+                <input
+                  #nameSearch
+                  id="category-search-name"
+                  type="search"
+                  [value]="searchName()"
+                  placeholder="Search by name"
+                />
+
+              </div>
+
+              <button
+                type="submit"
+                class="button button-primary"
+                [disabled]="isLoadingCategories()"
+              >
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true"
+                >
+                  search
+                </span>
+
+                Search
+
+              </button>
+
+            </form>
+
+            <!-- Directory Filters -->
+
+            <div class="category-filter-fields">
+
+              <!-- Status Filter -->
+
+              <div class="form-field">
+
+                <label for="category-filter-status">
+                  Status
+                </label>
+
+                <select
+                  #statusFilter
+                  id="category-filter-status"
+                  [value]="selectedIsActive() === null ? 'all' : (selectedIsActive() ? 'true' : 'false')"
+                  (change)="filterByStatus(statusFilter.value === 'all' ? null : statusFilter.value === 'true')"
+                >
+
+                  <option value="all">All statuses</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+
+                </select>
+
+              </div>
+
+              <!-- Parent Filter -->
+
+              <div class="form-field">
+
+                <label for="category-filter-parent">
+                  Parent
+                </label>
+
+                <select
+                  #parentFilter
+                  id="category-filter-parent"
+                  [value]="selectedParentCategoryId() ?? ''"
+                  (change)="filterByParent(parentFilter.value ? +parentFilter.value : null)"
+                >
+
+                  <option value="">All parents</option>
+
+                  @for (
+                    parent of parentCategories();
+                    track parent.id
+                  ) {
+                    <option [value]="parent.id">
+                      {{ parent.name }}
+                    </option>
+                  }
+
+                </select>
+
+              </div>
+
+              <!-- Sort Field -->
+
+              <div class="form-field">
+
+                <label for="category-sort">
+                  Sort by
+                </label>
+
+                <select
+                  #sortField
+                  id="category-sort"
+                  [value]="sortBy()"
+                  (change)="changeSorting(sortField.value, sortDirection())"
+                >
+
+                  <option value="name">Name</option>
+                  <option value="code">Code</option>
+
+                </select>
+
+              </div>
+
+              <!-- Sort Direction -->
+
+              <div class="form-field">
+
+                <label for="category-sort-direction">
+                  Direction
+                </label>
+
+                <select
+                  #sortOrder
+                  id="category-sort-direction"
+                  [value]="sortDirection()"
+                  (change)="changeSorting(sortBy(), sortOrder.value === 'desc' ? 'desc' : 'asc')"
+                >
+
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+
+                </select>
+
+              </div>
+
+              <!-- Include Inactive -->
+
+              <label
+                class="warehouse-checkbox-label warehouse-directory-checkbox"
+              >
+
+                <input
+                  type="checkbox"
+                  [checked]="includeInactive()"
+                  (change)="setIncludeInactive($any($event.target).checked)"
+                />
+
+                <span>Include inactive</span>
+
+              </label>
+
+              <!-- Clear Filters -->
+
+              <div class="warehouse-directory-actions">
+
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="clearFilters()"
+                >
+                  Clear filters
+                </button>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- =============================================
+               DIRECTORY ERROR
+          ============================================== -->
+
+          @if (directoryError()) {
+
+            <div class="alert alert-error" role="alert">
+
+              <span class="alert-icon">!</span>
+
+              <div class="alert-content">
+
+                <strong>
+                  Unable to load categories
+                </strong>
+
+                {{ directoryError() }}
+
+              </div>
+
+            </div>
+
+          }
+
+          <!-- =============================================
+               DIRECTORY LOADING / EMPTY / TABLE
+          ============================================== -->
+
+          @if (isLoadingCategories()) {
+
+            <div
+              class="warehouse-directory-state"
+              role="status"
+            >
+
+              <span
+                class="button-spinner"
+                aria-hidden="true"
+              ></span>
+
+              Loading categories...
+
+            </div>
+
+          } @else if (
+            !directoryError() &&
+            categories().length === 0
+          ) {
+
+            <div class="company-empty-state">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true"
+              >
+                category
+              </span>
+
+              <strong>No categories found</strong>
+
+              <p>
+                Adjust your filters or create a category
+                to get started.
+              </p>
+
+            </div>
+
+          } @else if (!directoryError()) {
+
+            <!-- Category Table -->
+
+            <div class="warehouse-table-scroll">
+
+              <table class="warehouse-directory-table">
+
+                <thead>
+                  <tr>
+                    <th scope="col">Code</th>
+                    <th scope="col">Category name</th>
+                    <th scope="col">Parent category</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+
+                  @for (
+                    category of categories();
+                    track category.id
+                  ) {
+
+                    <tr>
+
+                      <td>
+                        <strong>
+                          {{ category.code }}
+                        </strong>
+                      </td>
+
+                      <td>
+                        {{ category.name }}
+                      </td>
+
+                      <td>
+                        {{ getParentCategoryName(category.parentCategoryId) }}
+                      </td>
+
+                      <td>
+
+                        <span
+                          class="status-badge"
+                          [class.status-active]="category.isActive"
+                          [class.status-inactive]="!category.isActive"
+                        >
+
+                          <span class="status-dot"></span>
+
+                          {{ category.isActive ? 'Active' : 'Inactive' }}
+
+                        </span>
+
+                      </td>
+
+                      <td>
+
+                        <button
+                          type="button"
+                          class="button button-secondary category-row-action"
+                          (click)="viewCategory(category.id)"
+                        >
+                          View details
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  }
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          }
+
+          <!-- =============================================
+               DIRECTORY PAGINATION
+          ============================================== -->
+
+          <div class="warehouse-directory-pagination">
+
+            <div class="warehouse-directory-count">
+              {{ totalCount() }}
+              {{ totalCount() === 1 ? 'category' : 'categories' }}
+            </div>
+
+            <div class="warehouse-directory-page-controls">
+
+              <label for="category-page-size">
+                Rows per page
+              </label>
+
+              <select
+                #pageSizeSelect
+                id="category-page-size"
+                [value]="pageSize()"
+                (change)="changePageSize(+pageSizeSelect.value)"
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+
+              <span>
+                Page {{ pageNumber() }} of {{ totalPages() || 1 }}
+              </span>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="previousPage()"
+                [disabled]="!hasPreviousPage() || isLoadingCategories()"
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="nextPage()"
+                [disabled]="!hasNextPage() || isLoadingCategories()"
+              >
+                Next
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    } @else {
+
+      <!-- ===================================================
+           CATEGORY DETAILS VIEW
+      ==================================================== -->
+
+      <div class="profile-toolbar">
+
+        <button
+          type="button"
+          class="back-link"
+          (click)="showDirectory()"
+        >
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true"
+          >
+            arrow_back
+          </span>
+
+          Back to directory
+
+        </button>
+
+        <span class="profile-toolbar-caption">
+          CATEGORY PROFILE
+        </span>
+
+      </div>
+
+      <!-- ===============================================
+           DETAILS LOADING
+      ================================================ -->
+
+      @if (isLoadingCategoryDetails()) {
+
+        <div class="state-card" role="status">
+
+          <span
+            class="button-spinner"
+            aria-hidden="true"
+          ></span>
+
+          <div>
+            <h2>Loading category</h2>
+
+            <p>
+              Retrieving the latest category information.
+            </p>
+          </div>
+
+        </div>
+
+      }
+
+      <!-- ===============================================
+           DETAILS ERROR
+      ================================================ -->
+
+      @if (categoryDetailsError()) {
+
+        <div class="alert alert-error" role="alert">
+
+          <span class="alert-icon">!</span>
+
+          <div class="alert-content">
+            {{ categoryDetailsError() }}
+          </div>
+
+        </div>
+
+      }
+
+      <!-- ===============================================
+           SELECTED CATEGORY
+      ================================================ -->
+
+      @if (selectedCategory(); as category) {
+
+        <!-- Category Summary -->
+
+        <section class="organization-summary">
+
+          <div class="company-avatar">
+
+            <span
+              class="material-symbols-rounded"
+              aria-hidden="true"
+            >
+              category
+            </span>
+
+          </div>
+
+          <div class="company-summary-content">
+
+            <div class="company-summary-heading">
+
+              <h2>
+                {{ category.name }}
+              </h2>
+
+              <span
+                class="status-badge"
+                [class.status-active]="category.isActive"
+                [class.status-inactive]="!category.isActive"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ category.isActive ? 'Active' : 'Inactive' }}
+
+              </span>
+
+            </div>
+
+            <div class="company-meta">
+
+              <span>
+                Code:
+                <strong>{{ category.code }}</strong>
+              </span>
+
+              <span class="meta-divider"></span>
+
+              <span>
+                Parent:
+                <strong>{{ selectedParentName() }}</strong>
+              </span>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- =============================================
+             CATEGORY DETAILS CARD
+        ============================================== -->
+
+        <section
+          class="form-card"
+          aria-labelledby="category-details-heading"
+        >
+
+          <div class="form-card-header">
+
+            <div>
+
+              <h2 id="category-details-heading">
+                Category details
+              </h2>
+
+              <p>
+                Review category information and manage
+                permitted changes.
+              </p>
+
+            </div>
+
+            <div class="category-detail-actions">
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="refreshCategoryDetails()"
+                [disabled]="isUpdating() || isChangingStatus()"
+              >
+                Refresh
+              </button>
+
+              @if (canUpdate() && !isEditOpen()) {
+
+                <button
+                  type="button"
+                  class="button button-primary"
+                  (click)="openEditCategory()"
+                  [disabled]="isUpdating() || isChangingStatus()"
+                >
+                  Edit category
+                </button>
+
+              }
+
+            </div>
+
+          </div>
+
+          <div class="form-card-body">
+
+            <!-- Status Error -->
+
+            @if (statusError()) {
+
+              <div class="alert alert-error" role="alert">
+
+                <span class="alert-icon">!</span>
+
+                <div class="alert-content">
+                  {{ statusError() }}
+                </div>
+
+              </div>
+
+            }
+
+            <!-- ===========================================
+                 EDIT CATEGORY FORM
+            ============================================ -->
+
+            @if (isEditOpen()) {
+
+              <form
+                [formGroup]="editForm"
+                (ngSubmit)="updateCategory()"
+              >
+
+                @if (updateError()) {
+
+                  <div class="alert alert-error" role="alert">
+
+                    <span class="alert-icon">!</span>
+
+                    <div class="alert-content">
+                      {{ updateError() }}
+                    </div>
+
+                  </div>
+
+                }
+
+                <div class="form-grid">
+
+                  <!-- Edit Category Name -->
+
+                  <div class="form-field">
+
+                    <label for="category-edit-name">
+                      Category name
+                      <span class="required">*</span>
+                    </label>
+
+                    <input
+                      id="category-edit-name"
+                      type="text"
+                      maxlength="200"
+                      formControlName="name"
+                      [attr.aria-invalid]="editForm.controls.name.invalid && editForm.controls.name.touched"
+                    />
+
+                    @if (
+                      editForm.controls.name.invalid &&
+                      editForm.controls.name.touched
+                    ) {
+
+                      <span class="field-error">
+                        Enter a category name (maximum 200 characters).
+                      </span>
+
+                    }
+
+                  </div>
+
+                  <!-- Edit Parent Category -->
+
+                  <div class="form-field">
+
+                    <label for="category-edit-parent">
+                      Parent category
+                    </label>
+
+                    <select
+                      id="category-edit-parent"
+                      formControlName="parentCategoryId"
+                    >
+
+                      <option [ngValue]="0">
+                        No parent (root category)
+                      </option>
+
+                      @for (
+                        parent of availableEditParents();
+                        track parent.id
+                      ) {
+
+                        <option [ngValue]="parent.id">
+                          {{ parent.name }} ({{ parent.code }})
+                        </option>
+
+                      }
+
+                    </select>
+
+                    <small class="warehouse-field-hint">
+                      A category cannot be its own parent.
+                    </small>
+
+                  </div>
+
+                </div>
+
+                <!-- Parent Loading Error -->
+
+                @if (parentCategoriesError()) {
+
+                  <p class="field-error" role="alert">
+                    {{ parentCategoriesError() }}
+                  </p>
+
+                }
+
+                <!-- Edit Actions -->
+
+                <div class="company-create-actions">
+
+                  <button
+                    type="button"
+                    class="button button-secondary"
+                    (click)="closeEditCategory()"
+                    [disabled]="isUpdating()"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="button button-primary"
+                    [disabled]="isUpdating() || editForm.invalid || isLoadingParentCategories() || parentCategoriesError() !== null"
+                  >
+
+                    @if (isUpdating()) {
+
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                    }
+
+                    Save changes
+
+                  </button>
+
+                </div>
+
+              </form>
+
+            } @else {
+
+              <!-- =========================================
+                   READ-ONLY CATEGORY INFORMATION
+              ========================================== -->
+
+              <div class="form-grid">
+
+                <div class="form-field">
+
+                  <label>Category code</label>
+
+                  <div class="warehouse-readonly-value">
+                    {{ category.code }}
+                  </div>
+
+                </div>
+
+                <div class="form-field">
+
+                  <label>Category name</label>
+
+                  <div class="warehouse-readonly-value">
+                    {{ category.name }}
+                  </div>
+
+                </div>
+
+                <div class="form-field">
+
+                  <label>Parent category</label>
+
+                  <div class="warehouse-readonly-value">
+                    {{ selectedParentName() }}
+                  </div>
+
+                </div>
+
+                <div class="form-field">
+
+                  <label>Status</label>
+
+                  <div class="warehouse-readonly-value">
+                    {{ category.isActive ? 'Active' : 'Inactive' }}
+                  </div>
+
+                </div>
+
+              </div>
+
+              <!-- =========================================
+                   CATEGORY STATUS ACTIONS
+              ========================================== -->
+
+              <div class="category-status-actions">
+
+                @if (!category.isActive && canActivate()) {
+
+                  <button
+                    type="button"
+                    class="button button-primary"
+                    (click)="activateCategory()"
+                    [disabled]="isChangingStatus()"
+                  >
+
+                    @if (isChangingStatus()) {
+
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                    }
+
+                    Activate category
+
+                  </button>
+
+                }
+
+                @if (category.isActive && canDeactivate()) {
+
+                  <button
+                    type="button"
+                    class="button button-secondary"
+                    (click)="deactivateCategory()"
+                    [disabled]="isChangingStatus()"
+                  >
+
+                    @if (isChangingStatus()) {
+
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true"
+                      ></span>
+
+                    }
+
+                    Deactivate category
+
+                  </button>
+
+                }
+
+              </div>
+
+            }
+
+          </div>
+
+        </section>
+
+      }
+
+    }
+
+  }
+
+</section>

@@ -296,7 +296,13 @@ export class Sidebar {
       icon: 'category',
       children: [
         { label: 'Product Catalog', icon: 'view_list' },
-        { label: 'Categories', icon: 'category' },
+        {
+          label: 'Categories',
+          icon: 'category',
+          route: '/settings/catalog/product-categories',
+          workspaceScope: 'company',
+          implemented: true
+        },
         { label: 'Brands', icon: 'branding_watermark' },
         { label: 'Units of Measurement', icon: 'straighten', route: '/settings/catalog/units-of-measurement', workspaceScope: 'company', implemented: true },
         { label: 'Attributes & Variations', icon: 'tune' },

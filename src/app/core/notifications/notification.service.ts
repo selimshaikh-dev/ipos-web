@@ -178,7 +178,7 @@ export class NotificationService {
         return 6500;
 
       case 'error':
-        return 0;
+        return 7000;
     }
   }
 

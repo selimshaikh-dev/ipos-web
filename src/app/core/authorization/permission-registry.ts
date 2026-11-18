@@ -60,6 +60,15 @@ export const PermissionCodes = {
     deactivate: 'uom.deactivate'
   },
 
+  // Product Category Management
+  productCategories: {
+    view: 'product.category.view',
+    create: 'product.category.create',
+    update: 'product.category.update',
+    activate: 'product.category.activate',
+    deactivate: 'product.category.deactivate'
+  },
+
   // User Management
   users: {
     view: 'user.view',
@@ -180,6 +189,12 @@ export const RoutePermissionRegistry: Readonly<
   // Catalog / Unit of Measurement Management
   '/settings/catalog/units-of-measurement': {
     code: PermissionCodes.unitsOfMeasurement.view,
+    scope: 'company'
+  },
+
+  // Catalog / Product Category Management
+  '/settings/catalog/product-categories': {
+    code: PermissionCodes.productCategories.view,
     scope: 'company'
   },
 
