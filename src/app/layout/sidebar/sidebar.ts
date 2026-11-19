@@ -303,7 +303,13 @@ export class Sidebar {
           workspaceScope: 'company',
           implemented: true
         },
-        { label: 'Brands', icon: 'branding_watermark' },
+        {
+          label: 'Brands',
+          icon: 'branding_watermark',
+          route: '/settings/catalog/product-brands',
+          workspaceScope: 'company',
+          implemented: true
+        },
         { label: 'Units of Measurement', icon: 'straighten', route: '/settings/catalog/units-of-measurement', workspaceScope: 'company', implemented: true },
         { label: 'Attributes & Variations', icon: 'tune' },
         { label: 'Barcodes & Labels', icon: 'qr_code' },

@@ -1,0 +1,742 @@
+<section class="company-profile-page warehouse-management-page product-categories-page product-brands-page">
+
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="page-heading">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Catalog</span>
+        <span class="breadcrumb-separator">/</span>
+        <span class="breadcrumb-current">Product Brands</span>
+      </nav>
+
+      <h1>Product Brands</h1>
+      <p>
+        Manage company-specific product brands with
+        consistent catalog information and controlled access.
+      </p>
+    </div>
+
+    <div class="page-actions page-header-actions">
+      <button
+        type="button"
+        class="button button-secondary"
+        (click)="refreshDirectory()"
+        [disabled]="!canView() || isLoadingBrands() || companyId() === null"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          refresh
+        </span>
+        Refresh
+      </button>
+
+      @if (canCreate()) {
+        <button
+          type="button"
+          class="button button-primary company-add-button"
+          (click)="openCreateBrand()"
+          [disabled]="isCreating() || isUpdating() || isChangingStatus() || companyId() === null"
+        >
+          <span
+            class="material-symbols-rounded company-add-icon"
+            aria-hidden="true"
+          >
+            add
+          </span>
+          <span class="company-add-label">Add Brand</span>
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Workspace / Authorization States -->
+  @if (companyId() === null) {
+    <div class="state-card" role="status">
+      <span class="material-symbols-rounded" aria-hidden="true">
+        business
+      </span>
+      <div>
+        <h2>Company selection required</h2>
+        <p>Select a company to manage its product brands.</p>
+      </div>
+    </div>
+  } @else if (!canView()) {
+    <div class="state-card" role="status">
+      <span class="material-symbols-rounded" aria-hidden="true">
+        lock
+      </span>
+      <div>
+        <h2>Brands unavailable</h2>
+        <p>
+          Brand access requires the appropriate company permission.
+        </p>
+      </div>
+    </div>
+  } @else {
+
+    <!-- Directory / Details Navigation -->
+    <nav class="company-view-switch" aria-label="Brand views">
+      <button
+        type="button"
+        [class.is-active]="activeView() === 'directory'"
+        [attr.aria-current]="activeView() === 'directory' ? 'page' : null"
+        (click)="showDirectory()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          view_list
+        </span>
+        Directory
+      </button>
+
+      <button
+        type="button"
+        [class.is-active]="activeView() === 'details'"
+        [disabled]="selectedBrand() === null || isCreating() || isChangingStatus()"
+        [attr.aria-current]="activeView() === 'details' ? 'page' : null"
+        (click)="showDetails()"
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">
+          sell
+        </span>
+        Details
+      </button>
+    </nav>
+
+    @if (activeView() === 'directory') {
+
+      <!-- Directory Introduction -->
+      <div class="directory-intro">
+        <div>
+          <span class="eyebrow">CATALOG MANAGEMENT</span>
+          <h2>Brand directory</h2>
+          <p>
+            Search, filter, and maintain your company's
+            product brand catalog.
+          </p>
+        </div>
+      </div>
+
+      <!-- Brand Directory -->
+      <section
+        class="form-card company-directory"
+        aria-labelledby="brand-directory-heading"
+      >
+        <div class="form-card-header">
+          <div>
+            <h2 id="brand-directory-heading">All product brands</h2>
+            <p>
+              Results are loaded from the active company workspace.
+            </p>
+          </div>
+        </div>
+
+        <!-- Create Brand -->
+        @if (isCreateOpen()) {
+          <div class="company-create-panel">
+            <form
+              class="company-create-form"
+              [formGroup]="createForm"
+              (ngSubmit)="createBrand()"
+            >
+              <div class="company-create-heading">
+                <div>
+                  <h3>Create product brand</h3>
+                  <p>
+                    The brand code is generated automatically
+                    by the system.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="cancelCreateBrand()"
+                  [disabled]="isCreating()"
+                >
+                  Cancel
+                </button>
+              </div>
+
+              @if (createError()) {
+                <div class="alert alert-error" role="alert">
+                  <span class="alert-icon">!</span>
+                  <div class="alert-content">
+                    {{ createError() }}
+                  </div>
+                </div>
+              }
+
+              <div class="company-auto-code-note">
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true"
+                >
+                  info
+                </span>
+                <span>
+                  <strong>Automatic brand code</strong>
+                  <small>
+                    A unique brand code is assigned by the
+                    backend when you save.
+                  </small>
+                </span>
+              </div>
+
+              <div class="form-grid">
+                <div class="form-field">
+                  <label for="brand-create-name">
+                    Brand name <span class="required">*</span>
+                  </label>
+
+                  <input
+                    id="brand-create-name"
+                    type="text"
+                    maxlength="200"
+                    formControlName="name"
+                    autocomplete="off"
+                    placeholder="Enter brand name"
+                    [attr.aria-invalid]="createForm.controls.name.invalid && createForm.controls.name.touched"
+                  />
+
+                  @if (
+                    createForm.controls.name.invalid &&
+                    createForm.controls.name.touched
+                  ) {
+                    <span class="field-error">
+                      Enter a brand name (maximum 200 characters).
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <div class="company-create-actions">
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="cancelCreateBrand()"
+                  [disabled]="isCreating()"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  class="button button-primary"
+                  [disabled]="isCreating() || createForm.invalid"
+                >
+                  @if (isCreating()) {
+                    <span
+                      class="button-spinner"
+                      aria-hidden="true"
+                    ></span>
+                  }
+                  Create Brand
+                </button>
+              </div>
+            </form>
+          </div>
+        }
+
+        <div class="warehouse-directory-body">
+
+          <!-- Search and Filters -->
+          <div class="warehouse-directory-toolbar">
+            <form
+              class="category-search-fields"
+              (submit)="$event.preventDefault(); searchBrands(codeSearch.value, nameSearch.value)"
+            >
+              <div class="form-field">
+                <label for="brand-search-code">Brand code</label>
+                <input
+                  #codeSearch
+                  id="brand-search-code"
+                  type="search"
+                  [value]="searchCode()"
+                  placeholder="Search by code"
+                />
+              </div>
+
+              <div class="form-field">
+                <label for="brand-search-name">Brand name</label>
+                <input
+                  #nameSearch
+                  id="brand-search-name"
+                  type="search"
+                  [value]="searchName()"
+                  placeholder="Search by name"
+                />
+              </div>
+
+              <button
+                class="button button-primary"
+                type="submit"
+                [disabled]="isLoadingBrands()"
+              >
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true"
+                >
+                  search
+                </span>
+                Search
+              </button>
+            </form>
+
+            <div class="category-filter-fields">
+              <div class="form-field">
+                <label for="brand-filter-status">Status</label>
+                <select
+                  #statusFilter
+                  id="brand-filter-status"
+                  [value]="selectedIsActive() === null ? 'all' : (selectedIsActive() ? 'true' : 'false')"
+                  (change)="filterByStatus(statusFilter.value === 'all' ? null : statusFilter.value === 'true')"
+                >
+                  <option value="all">All statuses</option>
+                  <option value="true">Active</option>
+                  <option value="false">Inactive</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="brand-sort">Sort by</label>
+                <select
+                  #sortField
+                  id="brand-sort"
+                  [value]="sortBy()"
+                  (change)="changeSorting(sortField.value, sortDirection())"
+                >
+                  <option value="name">Name</option>
+                  <option value="code">Code</option>
+                </select>
+              </div>
+
+              <div class="form-field">
+                <label for="brand-sort-direction">Direction</label>
+                <select
+                  #sortOrder
+                  id="brand-sort-direction"
+                  [value]="sortDirection()"
+                  (change)="changeSorting(sortBy(), sortOrder.value === 'desc' ? 'desc' : 'asc')"
+                >
+                  <option value="asc">Ascending</option>
+                  <option value="desc">Descending</option>
+                </select>
+              </div>
+
+              <label
+                class="warehouse-checkbox-label warehouse-directory-checkbox"
+              >
+                <input
+                  type="checkbox"
+                  [checked]="includeInactive()"
+                  (change)="setIncludeInactive($any($event.target).checked)"
+                />
+                <span>Include inactive</span>
+              </label>
+
+              <div class="warehouse-directory-actions">
+                <button
+                  type="button"
+                  class="button button-secondary"
+                  (click)="clearFilters(); codeSearch.value = ''; nameSearch.value = ''"
+                >
+                  Clear filters
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Directory Error -->
+          @if (directoryError()) {
+            <div class="alert alert-error" role="alert">
+              <span class="alert-icon">!</span>
+              <div class="alert-content">
+                <strong>Unable to load brands</strong>
+                {{ directoryError() }}
+              </div>
+            </div>
+          }
+
+          <!-- Directory Results -->
+          @if (isLoadingBrands()) {
+            <div class="warehouse-directory-state" role="status">
+              <span
+                class="button-spinner"
+                aria-hidden="true"
+              ></span>
+              Loading brandsΓÇª
+            </div>
+          } @else if (!directoryError() && brands().length === 0) {
+            <div class="company-empty-state">
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true"
+              >
+                sell
+              </span>
+              <strong>No brands found</strong>
+              <p>
+                Adjust your filters or create a brand to get started.
+              </p>
+            </div>
+          } @else if (!directoryError()) {
+            <div class="warehouse-table-scroll">
+              <table class="warehouse-directory-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Code</th>
+                    <th scope="col">Brand name</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Action</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (brand of brands(); track brand.id) {
+                    <tr>
+                      <td>
+                        <strong>{{ brand.code }}</strong>
+                      </td>
+
+                      <td>{{ brand.name }}</td>
+
+                      <td>
+                        <span
+                          class="status-badge"
+                          [class.status-active]="brand.isActive"
+                          [class.status-inactive]="!brand.isActive"
+                        >
+                          <span class="status-dot"></span>
+                          {{ brand.isActive ? 'Active' : 'Inactive' }}
+                        </span>
+                      </td>
+
+                      <td>
+                        <button
+                          type="button"
+                          class="button button-secondary category-row-action"
+                          (click)="viewBrand(brand.id)"
+                        >
+                          View details
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+          <!-- Pagination -->
+          <div class="warehouse-directory-pagination">
+            <div class="warehouse-directory-count">
+              {{ totalCount() }}
+              {{ totalCount() === 1 ? 'brand' : 'brands' }}
+            </div>
+
+            <div class="warehouse-directory-page-controls">
+              <label for="brand-page-size">Rows per page</label>
+
+              <select
+                #pageSizeSelect
+                id="brand-page-size"
+                [value]="pageSize()"
+                (change)="changePageSize(+pageSizeSelect.value)"
+              >
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+
+              <span>
+                Page {{ pageNumber() }} of {{ totalPages() || 1 }}
+              </span>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="previousPage()"
+                [disabled]="!hasPreviousPage() || isLoadingBrands()"
+              >
+                Previous
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="nextPage()"
+                [disabled]="!hasNextPage() || isLoadingBrands()"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    } @else {
+
+      <!-- Details Toolbar -->
+      <div class="profile-toolbar">
+        <button
+          type="button"
+          class="back-link"
+          (click)="showDirectory()"
+        >
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true"
+          >
+            arrow_back
+          </span>
+          Back to directory
+        </button>
+
+        <span class="profile-toolbar-caption">
+          BRAND PROFILE
+        </span>
+      </div>
+
+      <!-- Details Loading -->
+      @if (isLoadingBrandDetails()) {
+        <div class="state-card" role="status">
+          <span
+            class="button-spinner"
+            aria-hidden="true"
+          ></span>
+          <div>
+            <h2>Loading brand</h2>
+            <p>Retrieving the latest brand information.</p>
+          </div>
+        </div>
+      }
+
+      <!-- Details Error -->
+      @if (brandDetailsError()) {
+        <div class="alert alert-error" role="alert">
+          <span class="alert-icon">!</span>
+          <div class="alert-content">
+            {{ brandDetailsError() }}
+          </div>
+        </div>
+      }
+
+      @if (selectedBrand(); as brand) {
+
+        <!-- Brand Summary -->
+        <section class="organization-summary">
+          <div class="company-avatar">
+            <span
+              class="material-symbols-rounded"
+              aria-hidden="true"
+            >
+              sell
+            </span>
+          </div>
+
+          <div class="company-summary-content">
+            <div class="company-summary-heading">
+              <h2>{{ brand.name }}</h2>
+
+              <span
+                class="status-badge"
+                [class.status-active]="brand.isActive"
+                [class.status-inactive]="!brand.isActive"
+              >
+                <span class="status-dot"></span>
+                {{ brand.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+
+            <div class="company-meta">
+              <span>
+                Code: <strong>{{ brand.code }}</strong>
+              </span>
+              <span class="meta-divider"></span>
+              <span>
+                Company ID:
+                <strong>{{ brand.companyId }}</strong>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Brand Details Card -->
+        <section
+          class="form-card"
+          aria-labelledby="brand-details-heading"
+        >
+          <div class="form-card-header">
+            <div>
+              <h2 id="brand-details-heading">Brand details</h2>
+              <p>
+                Review brand information and manage permitted changes.
+              </p>
+            </div>
+
+            <div class="category-detail-actions">
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="refreshBrandDetails()"
+                [disabled]="isUpdating() || isChangingStatus() || isLoadingBrandDetails()"
+              >
+                Refresh
+              </button>
+
+              @if (!isEditOpen() && brand.isActive && canDeactivate()) {
+                <button type="button" class="button button-secondary brand-status-action"
+                  (click)="changeBrandStatus(false)"
+                  [disabled]="isChangingStatus() || isUpdating() || isLoadingBrandDetails()">
+                  @if (isChangingStatus()) {
+                    <span class="button-spinner" aria-hidden="true"></span>
+                  }
+                  Deactivate
+                </button>
+              }
+
+              @if (!isEditOpen() && !brand.isActive && canActivate()) {
+                <button type="button" class="button button-primary brand-status-action"
+                  (click)="changeBrandStatus(true)"
+                  [disabled]="isChangingStatus() || isUpdating() || isLoadingBrandDetails()">
+                  @if (isChangingStatus()) {
+                    <span class="button-spinner" aria-hidden="true"></span>
+                  }
+                  Activate
+                </button>
+              }
+
+              @if (canUpdate() && !isEditOpen()) {
+                <button
+                  type="button"
+                  class="button button-primary"
+                  (click)="openEditBrand()"
+                  [disabled]="isUpdating() || isChangingStatus() || isLoadingBrandDetails()"
+                >
+                  Edit brand
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-card-body">
+
+            @if (statusError()) {
+              <div class="alert alert-error" role="alert">
+                <span class="alert-icon">!</span>
+                <div class="alert-content">{{ statusError() }}</div>
+              </div>
+            }
+
+            @if (isEditOpen()) {
+
+              <!-- Edit Form -->
+              <form
+                [formGroup]="editForm"
+                (ngSubmit)="updateBrand()"
+              >
+                @if (updateError()) {
+                  <div class="alert alert-error" role="alert">
+                    <span class="alert-icon">!</span>
+                    <div class="alert-content">
+                      {{ updateError() }}
+                    </div>
+                  </div>
+                }
+
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label for="brand-edit-name">
+                      Brand name
+                      <span class="required">*</span>
+                    </label>
+
+                    <input
+                      id="brand-edit-name"
+                      type="text"
+                      maxlength="200"
+                      formControlName="name"
+                      autocomplete="off"
+                      [attr.aria-invalid]="editForm.controls.name.invalid && editForm.controls.name.touched"
+                    />
+
+                    @if (
+                      editForm.controls.name.invalid &&
+                      editForm.controls.name.touched
+                    ) {
+                      <span class="field-error">
+                        Enter a brand name (maximum 200 characters).
+                      </span>
+                    }
+                  </div>
+                </div>
+
+                <div class="company-create-actions">
+                  <button
+                    type="button"
+                    class="button button-secondary"
+                    (click)="closeEditBrand()"
+                    [disabled]="isUpdating()"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="button button-primary"
+                    [disabled]="isUpdating() || editForm.invalid"
+                  >
+                    @if (isUpdating()) {
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true"
+                      ></span>
+                    }
+                    Save changes
+                  </button>
+                </div>
+              </form>
+
+            } @else {
+
+              <!-- Readonly Details -->
+              <div class="form-grid">
+                <div class="form-field">
+                  <label>Brand code</label>
+                  <div class="warehouse-readonly-value">
+                    {{ brand.code }}
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label>Brand name</label>
+                  <div class="warehouse-readonly-value">
+                    {{ brand.name }}
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label>Status</label>
+                  <div class="warehouse-readonly-value">
+                    {{ brand.isActive ? 'Active' : 'Inactive' }}
+                  </div>
+                </div>
+
+                <div class="form-field">
+                  <label>Company ID</label>
+                  <div class="warehouse-readonly-value">
+                    {{ brand.companyId }}
+                  </div>
+                </div>
+              </div>
+
+            }
+          </div>
+        </section>
+      }
+    }
+  }
+</section>

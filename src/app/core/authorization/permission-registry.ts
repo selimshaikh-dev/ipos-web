@@ -69,6 +69,15 @@ export const PermissionCodes = {
     deactivate: 'product.category.deactivate'
   },
 
+  // Product Brand Management
+  productBrands: {
+    view: 'product.brand.view',
+    create: 'product.brand.create',
+    update: 'product.brand.update',
+    activate: 'product.brand.activate',
+    deactivate: 'product.brand.deactivate'
+  },
+
   // User Management
   users: {
     view: 'user.view',
@@ -195,6 +204,12 @@ export const RoutePermissionRegistry: Readonly<
   // Catalog / Product Category Management
   '/settings/catalog/product-categories': {
     code: PermissionCodes.productCategories.view,
+    scope: 'company'
+  },
+
+  // Catalog / Product Brand Management
+  '/settings/catalog/product-brands': {
+    code: PermissionCodes.productBrands.view,
     scope: 'company'
   },
 

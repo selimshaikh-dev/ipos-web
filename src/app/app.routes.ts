@@ -149,6 +149,18 @@ export const routes: Routes = [
         title: 'Product Categories | iPOS'
       },
       {
+        path: 'settings/catalog/product-brands',
+        loadComponent: () =>
+          import(
+            './features/settings/catalog/product-brands/pages/product-brands/product-brands'
+          ).then(m => m.ProductBrands),
+        canActivate: [permissionGuard],
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+        title: 'Product Brands | iPOS'
+      },
+      {
         path: 'settings/users-access-control/user-management',
         loadComponent: () =>
           import(
