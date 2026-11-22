@@ -311,7 +311,13 @@ export class Sidebar {
           implemented: true
         },
         { label: 'Units of Measurement', icon: 'straighten', route: '/settings/catalog/units-of-measurement', workspaceScope: 'company', implemented: true },
-        { label: 'Attributes & Variations', icon: 'tune' },
+        {
+          label: 'Product Attributes',
+          icon: 'tune',
+          route: '/settings/catalog/product-attributes',
+          workspaceScope: 'company',
+          implemented: true
+        },
         { label: 'Barcodes & Labels', icon: 'qr_code' },
         { label: 'Barcode Bulk Printing', icon: 'print' },
         { label: 'Product Bundles', icon: 'all_inbox' },
