@@ -1,0 +1,1847 @@
+
+<section class="company-profile-page product-catalog-page">
+
+  <!-- ===================================================== -->
+  <!-- PAGE HEADER -->
+  <!-- ===================================================== -->
+
+  <header class="page-header">
+
+    <div class="page-heading">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <span>Settings</span>
+        <span class="breadcrumb-separator">/</span>
+        <span>Catalog</span>
+        <span class="breadcrumb-separator">/</span>
+        <span aria-current="page">Products</span>
+      </nav>
+
+      <h1>Product Management</h1>
+
+      <p class="page-description">
+        Manage your company's product master with
+        fast search, organized catalog data and
+        secure product operations.
+      </p>
+
+    </div>
+
+    <div class="page-actions">
+
+      @if (companyId() !== null && canView()) {
+
+        <button
+          type="button"
+          class="button button-secondary"
+          (click)="refreshDirectory()"
+          [disabled]="isLoadingProducts() || isCreating() || isUpdating() || isChangingStatus()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">
+            refresh
+          </span>
+
+          Refresh
+
+        </button>
+
+      }
+
+      @if (companyId() !== null && canCreate()) {
+
+        <button
+          type="button"
+          class="button button-primary"
+          (click)="openCreateProduct()"
+          [disabled]="isCreating() || isUpdating() || isChangingStatus()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">
+            add
+          </span>
+
+          Add Product
+
+        </button>
+
+      }
+
+    </div>
+
+  </header>
+
+  <!-- ===================================================== -->
+  <!-- WORKSPACE / PERMISSION STATE -->
+  <!-- ===================================================== -->
+
+  @if (companyId() === null) {
+
+    <div class="state-card">
+
+      <span
+        class="material-symbols-rounded state-icon"
+        aria-hidden="true">
+        domain
+      </span>
+
+      <h2>Select a company</h2>
+
+      <p>
+        Select a company workspace to manage
+        its product catalog.
+      </p>
+
+    </div>
+
+  } @else if (!canView()) {
+
+    <div class="state-card">
+
+      <span
+        class="material-symbols-rounded state-icon"
+        aria-hidden="true">
+        lock
+      </span>
+
+      <h2>Access restricted</h2>
+
+      <p>
+        You do not have permission to view
+        products in the selected company.
+      </p>
+
+    </div>
+
+  } @else {
+
+    <!-- =================================================== -->
+    <!-- VIEW NAVIGATION -->
+    <!-- =================================================== -->
+
+    <div
+      class="company-view-switch"
+      role="group"
+      aria-label="Product management views">
+
+      <button
+        type="button"
+        class="view-switch-button"
+        [class.is-active]="activeView() === 'directory'"
+        [attr.aria-pressed]="activeView() === 'directory'"
+        (click)="showDirectory()">
+
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true">
+          inventory_2
+        </span>
+
+        Product Directory
+
+      </button>
+
+      <button
+        type="button"
+        class="view-switch-button"
+        [class.is-active]="activeView() === 'details'"
+        [attr.aria-pressed]="activeView() === 'details'"
+        [disabled]="selectedProduct() === null"
+        (click)="showDetails()">
+
+        <span
+          class="material-symbols-rounded"
+          aria-hidden="true">
+          article
+        </span>
+
+        Product Details
+
+      </button>
+
+    </div>
+
+    <!-- =================================================== -->
+    <!-- DIRECTORY VIEW -->
+    <!-- =================================================== -->
+
+    @if (activeView() === 'directory') {
+
+      <!-- ================================================ -->
+      <!-- DIRECTORY INTRODUCTION -->
+      <!-- ================================================ -->
+
+      <div class="directory-intro">
+
+        <div>
+
+          <p class="eyebrow">
+            ENTERPRISE PRODUCT CATALOG
+          </p>
+
+          <h2>Product Directory</h2>
+
+          <p>
+            Find, organize and maintain products
+            within your selected company workspace.
+          </p>
+
+        </div>
+
+        <div class="directory-summary">
+
+          <span class="directory-summary-value">
+            {{ totalCount() }}
+          </span>
+
+          <span class="directory-summary-label">
+            Matching products
+          </span>
+
+        </div>
+
+      </div>
+
+      <!-- ================================================ -->
+      <!-- CREATE PRODUCT -->
+      <!-- ================================================ -->
+
+      @if (isCreateOpen() && canCreate()) {
+
+        <section
+          class="form-card company-create-panel"
+          aria-labelledby="create-product-title">
+
+          <div class="form-card-header">
+
+            <div class="company-create-heading">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">
+                add_box
+              </span>
+
+              <div>
+
+                <h3 id="create-product-title">
+                  Create New Product
+                </h3>
+
+                <p>
+                  Register a product in the current
+                  company catalog.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+          <form
+            class="form-card-body company-create-form"
+            [formGroup]="createForm"
+            (ngSubmit)="createProduct()"
+            novalidate>
+
+            <div class="form-grid">
+
+              <!-- Product Name -->
+
+              <div class="form-field">
+
+                <label for="product-create-name">
+                  Product Name
+                  <span class="required">*</span>
+                </label>
+
+                <input
+                  id="product-create-name"
+                  type="text"
+                  formControlName="name"
+                  maxlength="200"
+                  placeholder="Enter a descriptive product name"
+                  autocomplete="off" />
+
+                @if (
+                  createForm.controls.name.touched &&
+                  createForm.controls.name.invalid
+                ) {
+
+                  <span class="field-error">
+                    Enter a valid product name
+                    (maximum 200 characters).
+                  </span>
+
+                }
+
+              </div>
+
+              <!-- Category -->
+
+              <div class="form-field">
+
+                <label for="product-create-category">
+                  Category
+                  <span class="required">*</span>
+                </label>
+
+                <select
+                  id="product-create-category"
+                  formControlName="categoryId">
+
+                  <option [ngValue]="null">
+                    Select category
+                  </option>
+
+                  @for (
+                    category of categories();
+                    track category.id
+                  ) {
+
+                    <option [ngValue]="category.id">
+                      {{ category.name }}
+                      ({{ category.code }})
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  createForm.controls.categoryId.touched &&
+                  createForm.controls.categoryId.invalid
+                ) {
+
+                  <span class="field-error">
+                    Select an active category.
+                  </span>
+
+                }
+
+              </div>
+
+              <!-- Unit -->
+
+              <div class="form-field">
+
+                <label for="product-create-uom">
+                  Unit of Measurement
+                  <span class="required">*</span>
+                </label>
+
+                <select
+                  id="product-create-uom"
+                  formControlName="unitOfMeasureId">
+
+                  <option [ngValue]="null">
+                    Select unit
+                  </option>
+
+                  @for (
+                    unit of unitsOfMeasurement();
+                    track unit.id
+                  ) {
+
+                    <option [ngValue]="unit.id">
+                      {{ unit.name }}
+                      ({{ unit.symbol }})
+                    </option>
+
+                  }
+
+                </select>
+
+                @if (
+                  createForm.controls.unitOfMeasureId.touched &&
+                  createForm.controls.unitOfMeasureId.invalid
+                ) {
+
+                  <span class="field-error">
+                    Select an active unit of measurement.
+                  </span>
+
+                }
+
+              </div>
+
+              <!-- Brand -->
+
+              <div class="form-field">
+
+                <label for="product-create-brand">
+
+                  Brand
+
+                  <span class="optional-label">
+                    (Optional)
+                  </span>
+
+                </label>
+
+                <select
+                  id="product-create-brand"
+                  formControlName="brandId">
+
+                  <option [ngValue]="null">
+                    No brand
+                  </option>
+
+                  @for (
+                    brand of brands();
+                    track brand.id
+                  ) {
+
+                    <option [ngValue]="brand.id">
+                      {{ brand.name }}
+                    </option>
+
+                  }
+
+                </select>
+
+              </div>
+
+              <!-- Description -->
+
+              <div class="form-field form-field-full">
+
+                <label for="product-create-description">
+
+                  Description
+
+                  <span class="optional-label">
+                    (Optional)
+                  </span>
+
+                </label>
+
+                <textarea
+                  id="product-create-description"
+                  formControlName="description"
+                  rows="3"
+                  placeholder="Add useful product information"></textarea>
+
+              </div>
+
+            </div>
+
+            <!-- Automatic Product Code -->
+
+            <div class="company-auto-code-note">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">
+                verified
+              </span>
+
+              Product code is generated automatically
+              after successful creation.
+              No manual code entry is required.
+
+            </div>
+
+            @if (referenceDataError()) {
+
+              <div
+                class="alert alert-error"
+                role="alert">
+
+                {{ referenceDataError() }}
+
+              </div>
+
+            }
+
+            @if (createError()) {
+
+              <div
+                class="alert alert-error"
+                role="alert">
+
+                {{ createError() }}
+
+              </div>
+
+            }
+
+            <div class="company-create-actions">
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="cancelCreateProduct()"
+                [disabled]="isCreating()">
+
+                Cancel
+
+              </button>
+
+              <button
+                type="submit"
+                class="button button-primary"
+                [disabled]="isCreating() || isLoadingReferenceData()">
+
+                @if (isCreating()) {
+
+                  <span
+                    class="button-spinner"
+                    aria-hidden="true">
+                  </span>
+
+                  Creating...
+
+                } @else {
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true">
+                    check
+                  </span>
+
+                  Create Product
+
+                }
+
+              </button>
+
+            </div>
+
+          </form>
+
+        </section>
+
+      }
+
+      <!-- ================================================ -->
+      <!-- PRODUCT DIRECTORY -->
+      <!-- ================================================ -->
+
+      <section
+        class="form-card company-directory"
+        aria-labelledby="product-directory-title">
+
+        <div class="form-card-header">
+
+          <div>
+
+            <h3 id="product-directory-title">
+              Product Directory
+            </h3>
+
+            <p>
+              Search products by name, product code,
+              variant SKU or barcode.
+            </p>
+
+          </div>
+
+        </div>
+
+        <div class="warehouse-directory-body">
+
+          <!-- ============================================= -->
+          <!-- UNIFIED SMART SEARCH AND FILTERS -->
+          <!-- ============================================= -->
+
+          <form
+            class="warehouse-directory-toolbar product-search-toolbar"
+            role="search"
+            (submit)="$event.preventDefault(); searchProducts(productSearch.value)">
+
+            <!-- Unified Search -->
+
+            <div class="product-unified-search">
+
+              <div class="form-field">
+
+                <label for="product-unified-search-input">
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true">
+                    manage_search
+                  </span>
+
+                  Search Products
+
+                </label>
+
+                <div class="product-search-input-wrap">
+
+                  <span
+                    class="material-symbols-rounded product-search-leading-icon"
+                    aria-hidden="true">
+                    search
+                  </span>
+
+                  <input
+                    #productSearch
+                    id="product-unified-search-input"
+                    class="product-search-input"
+                    type="search"
+                    name="productSearch"
+                    [value]="searchTerm()"
+                    (input)="onSearchInput(productSearch.value)"
+                    placeholder="Search product name, code, SKU or barcode"
+                    autocomplete="off"
+                    spellcheck="false"
+                    aria-describedby="product-search-help" />
+
+                </div>
+
+                <p
+                  id="product-search-help"
+                  class="product-search-help">
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true">
+                    bolt
+                  </span>
+
+                  Smart search across product name,
+                  generated code, SKU and barcode.
+                  Results update as you type.
+
+                </p>
+
+              </div>
+
+            </div>
+
+            <!-- Filter Fields -->
+
+            <div class="category-filter-fields">
+
+              <!-- Status -->
+
+              <div class="form-field">
+
+                <label for="product-filter-status">
+                  Status
+                </label>
+
+                <select
+                  id="product-filter-status"
+                  [value]="selectedIsActive() === null ? 'all' : selectedIsActive() ? 'active' : 'inactive'"
+                  (change)="filterByStatus($any($event.target).value)">
+
+                  <option value="all">
+                    All statuses
+                  </option>
+
+                  <option value="active">
+                    Active
+                  </option>
+
+                  <option value="inactive">
+                    Inactive
+                  </option>
+
+                </select>
+
+              </div>
+
+              <!-- Category -->
+
+              <div class="form-field">
+
+                <label for="product-filter-category">
+                  Category
+                </label>
+
+                <select
+                  id="product-filter-category"
+                  [value]="selectedCategoryId() ?? ''"
+                  (change)="filterByCategory($any($event.target).value)">
+
+                  <option value="">
+                    All categories
+                  </option>
+
+                  @for (
+                    category of categories();
+                    track category.id
+                  ) {
+
+                    <option [value]="category.id">
+                      {{ category.name }}
+                    </option>
+
+                  }
+
+                </select>
+
+              </div>
+
+              <!-- Brand -->
+
+              <div class="form-field">
+
+                <label for="product-filter-brand">
+                  Brand
+                </label>
+
+                <select
+                  id="product-filter-brand"
+                  [value]="selectedBrandId() ?? ''"
+                  (change)="filterByBrand($any($event.target).value)">
+
+                  <option value="">
+                    All brands
+                  </option>
+
+                  @for (
+                    brand of brands();
+                    track brand.id
+                  ) {
+
+                    <option [value]="brand.id">
+                      {{ brand.name }}
+                    </option>
+
+                  }
+
+                </select>
+
+              </div>
+
+              <!-- Sort -->
+
+              <div class="form-field">
+
+                <label for="product-filter-sort">
+                  Sort By
+                </label>
+
+                <select
+                  id="product-filter-sort"
+                  [value]="sortBy() + ':' + sortDirection()"
+                  (change)="changeSorting($any($event.target).value)">
+
+                  <option value="name:asc">
+                    Name (A-Z)
+                  </option>
+
+                  <option value="name:desc">
+                    Name (Z-A)
+                  </option>
+
+                  <option value="code:asc">
+                    Code (Ascending)
+                  </option>
+
+                  <option value="code:desc">
+                    Code (Descending)
+                  </option>
+
+                </select>
+
+              </div>
+
+            </div>
+
+            <!-- Filter Actions -->
+
+            <div class="warehouse-directory-actions">
+
+              <label class="warehouse-directory-checkbox">
+
+                <input
+                  type="checkbox"
+                  [checked]="includeInactive()"
+                  (change)="setIncludeInactive($any($event.target).checked)" />
+
+                <span class="warehouse-checkbox-label">
+                  Include inactive
+                </span>
+
+              </label>
+
+              <button
+                type="submit"
+                class="button button-primary"
+                [disabled]="isLoadingProducts()">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">
+                  search
+                </span>
+
+                Search
+
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="clearFilters(); productSearch.value = ''">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">
+                  filter_alt_off
+                </span>
+
+                Clear Filters
+
+              </button>
+
+            </div>
+
+          </form>
+
+          <!-- ============================================= -->
+          <!-- DIRECTORY FEEDBACK -->
+          <!-- ============================================= -->
+
+          @if (directoryError()) {
+
+            <div
+              class="alert alert-error"
+              role="alert">
+
+              {{ directoryError() }}
+
+            </div>
+
+          }
+
+          @if (isLoadingProducts()) {
+
+            <div
+              class="directory-loading"
+              role="status"
+              aria-live="polite">
+
+              <span
+                class="button-spinner"
+                aria-hidden="true">
+              </span>
+
+              Searching product catalog...
+
+            </div>
+
+          } @else if (products().length === 0) {
+
+            <div class="company-empty-state">
+
+              <span
+                class="material-symbols-rounded"
+                aria-hidden="true">
+                inventory_2
+              </span>
+
+              <h4>No products found</h4>
+
+              <p>
+                Try another product name, code,
+                SKU or barcode, or adjust your filters.
+              </p>
+
+              @if (canCreate()) {
+
+                <button
+                  type="button"
+                  class="button button-primary"
+                  (click)="openCreateProduct()">
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true">
+                    add
+                  </span>
+
+                  Add Product
+
+                </button>
+
+              }
+
+            </div>
+
+          } @else {
+
+            <!-- =========================================== -->
+            <!-- PRODUCT TABLE -->
+            <!-- =========================================== -->
+
+            <div class="warehouse-table-scroll">
+
+              <table class="warehouse-directory-table">
+
+                <thead>
+
+                  <tr>
+
+                    <th scope="col">
+                      Product
+                    </th>
+
+                    <th scope="col">
+                      Product Code
+                    </th>
+
+                    <th scope="col">
+                      Category
+                    </th>
+
+                    <th scope="col">
+                      Unit
+                    </th>
+
+                    <th scope="col">
+                      Brand
+                    </th>
+
+                    <th scope="col">
+                      Status
+                    </th>
+
+                    <th
+                      scope="col"
+                      class="table-action-column">
+                      Action
+                    </th>
+
+                  </tr>
+
+                </thead>
+
+                <tbody>
+
+                  @for (
+                    product of products();
+                    track product.id
+                  ) {
+
+                    <tr>
+
+                      <!-- Product Identity -->
+
+                      <td>
+
+                        <div class="product-name-cell">
+
+                          <span class="product-name">
+                            {{ product.name }}
+                          </span>
+
+                          @if (product.description) {
+
+                            <span class="product-description">
+                              {{ product.description }}
+                            </span>
+
+                          }
+
+                        </div>
+
+                      </td>
+
+                      <!-- Generated Code -->
+
+                      <td>
+
+                        <span class="product-code">
+                          {{ product.code }}
+                        </span>
+
+                      </td>
+
+                      <!-- Category -->
+
+                      <td>
+                        {{ categoryName(product.categoryId) }}
+                      </td>
+
+                      <!-- Unit -->
+
+                      <td>
+                        {{ unitName(product.unitOfMeasureId) }}
+                      </td>
+
+                      <!-- Brand -->
+
+                      <td>
+                        {{ brandName(product.brandId) }}
+                      </td>
+
+                      <!-- Status -->
+
+                      <td>
+
+                        <span
+                          class="status-badge"
+                          [class.status-active]="product.isActive"
+                          [class.status-inactive]="!product.isActive">
+
+                          <span class="status-dot"></span>
+
+                          {{ product.isActive ? 'Active' : 'Inactive' }}
+
+                        </span>
+
+                      </td>
+
+                      <!-- Actions -->
+
+                      <td class="table-action-column">
+
+                        <button
+                          type="button"
+                          class="category-row-action"
+                          (click)="viewProduct(product.id)"
+                          [disabled]="isChangingStatus() || isUpdating()"
+                          [attr.aria-label]="'View details for ' + product.name">
+
+                          View Details
+
+                          <span
+                            class="material-symbols-rounded"
+                            aria-hidden="true">
+                            arrow_forward
+                          </span>
+
+                        </button>
+
+                      </td>
+
+                    </tr>
+
+                  }
+
+                </tbody>
+
+              </table>
+
+            </div>
+
+          }
+
+          <!-- ============================================= -->
+          <!-- PAGINATION -->
+          <!-- ============================================= -->
+
+          <div class="warehouse-directory-pagination">
+
+            <div class="warehouse-directory-count">
+
+              {{ totalCount() }}
+              {{ totalCount() === 1 ? 'product' : 'products' }}
+
+            </div>
+
+            <div class="warehouse-directory-page-controls">
+
+              <label for="product-page-size">
+                Rows per page
+              </label>
+
+              <select
+                id="product-page-size"
+                [value]="pageSize()"
+                (change)="changePageSize(+$any($event.target).value)">
+
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+                <option [value]="100">100</option>
+
+              </select>
+
+              <span class="pagination-page-info">
+
+                Page {{ pageNumber() }}
+                of {{ totalPages() || 1 }}
+
+              </span>
+
+              <button
+                type="button"
+                class="button button-secondary pagination-button"
+                (click)="previousPage()"
+                [disabled]="!hasPreviousPage() || isLoadingProducts()">
+
+                Previous
+
+              </button>
+
+              <button
+                type="button"
+                class="button button-secondary pagination-button"
+                (click)="nextPage()"
+                [disabled]="!hasNextPage() || isLoadingProducts()">
+
+                Next
+
+              </button>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+    }
+
+    <!-- =================================================== -->
+    <!-- PRODUCT DETAILS VIEW -->
+    <!-- =================================================== -->
+
+    @if (activeView() === 'details') {
+
+      <div class="profile-toolbar">
+
+        <button
+          type="button"
+          class="back-link"
+          (click)="showDirectory()">
+
+          <span
+            class="material-symbols-rounded"
+            aria-hidden="true">
+            arrow_back
+          </span>
+
+          Back to Product Directory
+
+        </button>
+
+      </div>
+
+      @if (isLoadingProductDetails()) {
+
+        <div class="state-card" role="status">
+
+          <span
+            class="button-spinner"
+            aria-hidden="true">
+          </span>
+
+          <p>
+            Loading product details...
+          </p>
+
+        </div>
+
+      } @else if (productDetailsError()) {
+
+        <div
+          class="alert alert-error"
+          role="alert">
+
+          {{ productDetailsError() }}
+
+        </div>
+
+      } @else if (selectedProduct(); as product) {
+
+        <!-- =============================================== -->
+        <!-- PRODUCT SUMMARY -->
+        <!-- =============================================== -->
+
+        <section class="organization-summary">
+
+          <div
+            class="company-avatar"
+            aria-hidden="true">
+
+            <span class="material-symbols-rounded">
+              inventory_2
+            </span>
+
+          </div>
+
+          <div class="company-summary-content">
+
+            <div class="company-summary-heading">
+
+              <div>
+
+                <p class="eyebrow">
+                  PRODUCT MASTER RECORD
+                </p>
+
+                <h2>
+                  {{ product.name }}
+                </h2>
+
+              </div>
+
+              <span
+                class="status-badge"
+                [class.status-active]="product.isActive"
+                [class.status-inactive]="!product.isActive">
+
+                <span class="status-dot"></span>
+
+                {{ product.isActive ? 'Active' : 'Inactive' }}
+
+              </span>
+
+            </div>
+
+            <div class="company-meta">
+
+              <span>
+
+                <strong>
+                  Code:
+                </strong>
+
+                {{ product.code }}
+
+              </span>
+
+              <span
+                class="meta-divider"
+                aria-hidden="true">
+              </span>
+
+              <span>
+
+                <strong>
+                  Company:
+                </strong>
+
+                {{ product.companyId }}
+
+              </span>
+
+              <span
+                class="meta-divider"
+                aria-hidden="true">
+              </span>
+
+              <span>
+
+                <strong>
+                  Category:
+                </strong>
+
+                {{ categoryName(product.categoryId) }}
+
+              </span>
+
+            </div>
+
+          </div>
+
+        </section>
+
+        <!-- =============================================== -->
+        <!-- PRODUCT INFORMATION -->
+        <!-- =============================================== -->
+
+        <section class="form-card product-details-card">
+
+          <div class="form-card-header">
+
+            <div>
+
+              <h3>
+                Product Information
+              </h3>
+
+              <p>
+                Review and maintain the selected
+                product's master information.
+              </p>
+
+            </div>
+
+            <div class="category-detail-actions">
+
+              <button
+                type="button"
+                class="button button-secondary"
+                (click)="refreshProductDetails()"
+                [disabled]="isLoadingProductDetails() || isUpdating() || isChangingStatus()">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">
+                  refresh
+                </span>
+
+                Refresh
+
+              </button>
+
+              @if (canUpdate() && !isEditOpen()) {
+
+                <button
+                  type="button"
+                  class="button button-primary"
+                  (click)="openEditProduct()"
+                  [disabled]="isUpdating() || isChangingStatus()">
+
+                  <span
+                    class="material-symbols-rounded"
+                    aria-hidden="true">
+                    edit
+                  </span>
+
+                  Edit Product
+
+                </button>
+
+              }
+
+            </div>
+
+          </div>
+
+          <div class="form-card-body">
+
+            @if (isEditOpen() && canUpdate()) {
+
+              <!-- ========================================= -->
+              <!-- EDIT PRODUCT -->
+              <!-- ========================================= -->
+
+              <form
+                [formGroup]="editForm"
+                (ngSubmit)="updateProduct()"
+                novalidate>
+
+                <div class="form-grid">
+
+                  <!-- Name -->
+
+                  <div class="form-field">
+
+                    <label for="product-edit-name">
+
+                      Product Name
+
+                      <span class="required">
+                        *
+                      </span>
+
+                    </label>
+
+                    <input
+                      id="product-edit-name"
+                      type="text"
+                      formControlName="name"
+                      maxlength="200"
+                      autocomplete="off" />
+
+                    @if (
+                      editForm.controls.name.touched &&
+                      editForm.controls.name.invalid
+                    ) {
+
+                      <span class="field-error">
+                        Enter a valid product name.
+                      </span>
+
+                    }
+
+                  </div>
+
+                  <!-- Category -->
+
+                  <div class="form-field">
+
+                    <label for="product-edit-category">
+
+                      Category
+
+                      <span class="required">
+                        *
+                      </span>
+
+                    </label>
+
+                    <select
+                      id="product-edit-category"
+                      formControlName="categoryId">
+
+                      @for (
+                        category of categories();
+                        track category.id
+                      ) {
+
+                        <option [ngValue]="category.id">
+                          {{ category.name }}
+                        </option>
+
+                      }
+
+                    </select>
+
+                    @if (
+                      editForm.controls.categoryId.touched &&
+                      editForm.controls.categoryId.invalid
+                    ) {
+
+                      <span class="field-error">
+                        Select a valid category.
+                      </span>
+
+                    }
+
+                  </div>
+
+                  <!-- Unit -->
+
+                  <div class="form-field">
+
+                    <label for="product-edit-uom">
+
+                      Unit of Measurement
+
+                      <span class="required">
+                        *
+                      </span>
+
+                    </label>
+
+                    <select
+                      id="product-edit-uom"
+                      formControlName="unitOfMeasureId">
+
+                      @for (
+                        unit of unitsOfMeasurement();
+                        track unit.id
+                      ) {
+
+                        <option [ngValue]="unit.id">
+
+                          {{ unit.name }}
+                          ({{ unit.symbol }})
+
+                        </option>
+
+                      }
+
+                    </select>
+
+                    @if (
+                      editForm.controls.unitOfMeasureId.touched &&
+                      editForm.controls.unitOfMeasureId.invalid
+                    ) {
+
+                      <span class="field-error">
+                        Select a valid unit.
+                      </span>
+
+                    }
+
+                  </div>
+
+                  <!-- Brand -->
+
+                  <div class="form-field">
+
+                    <label for="product-edit-brand">
+
+                      Brand
+
+                      <span class="optional-label">
+                        (Optional)
+                      </span>
+
+                    </label>
+
+                    <select
+                      id="product-edit-brand"
+                      formControlName="brandId">
+
+                      <option [ngValue]="null">
+                        No brand
+                      </option>
+
+                      @for (
+                        brand of brands();
+                        track brand.id
+                      ) {
+
+                        <option [ngValue]="brand.id">
+                          {{ brand.name }}
+                        </option>
+
+                      }
+
+                    </select>
+
+                  </div>
+
+                  <!-- Description -->
+
+                  <div class="form-field form-field-full">
+
+                    <label for="product-edit-description">
+                      Description
+                    </label>
+
+                    <textarea
+                      id="product-edit-description"
+                      formControlName="description"
+                      rows="3"
+                      placeholder="Product description"></textarea>
+
+                  </div>
+
+                </div>
+
+                @if (updateError()) {
+
+                  <div
+                    class="alert alert-error"
+                    role="alert">
+
+                    {{ updateError() }}
+
+                  </div>
+
+                }
+
+                <div class="company-create-actions">
+
+                  <button
+                    type="button"
+                    class="button button-secondary"
+                    (click)="closeEditProduct()"
+                    [disabled]="isUpdating()">
+
+                    Cancel
+
+                  </button>
+
+                  <button
+                    type="submit"
+                    class="button button-primary"
+                    [disabled]="isUpdating()">
+
+                    @if (isUpdating()) {
+
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true">
+                      </span>
+
+                      Saving...
+
+                    } @else {
+
+                      <span
+                        class="material-symbols-rounded"
+                        aria-hidden="true">
+                        save
+                      </span>
+
+                      Save Changes
+
+                    }
+
+                  </button>
+
+                </div>
+
+              </form>
+
+            } @else {
+
+              <!-- ========================================= -->
+              <!-- READ-ONLY PRODUCT INFORMATION -->
+              <!-- ========================================= -->
+
+              <div class="product-readonly-grid">
+
+                <div class="product-readonly-field">
+
+                  <span>
+                    Product Code
+                  </span>
+
+                  <strong>
+                    {{ product.code }}
+                  </strong>
+
+                </div>
+
+                <div class="product-readonly-field">
+
+                  <span>
+                    Product Name
+                  </span>
+
+                  <strong>
+                    {{ product.name }}
+                  </strong>
+
+                </div>
+
+                <div class="product-readonly-field">
+
+                  <span>
+                    Category
+                  </span>
+
+                  <strong>
+                    {{ categoryName(product.categoryId) }}
+                  </strong>
+
+                </div>
+
+                <div class="product-readonly-field">
+
+                  <span>
+                    Unit of Measurement
+                  </span>
+
+                  <strong>
+                    {{ unitName(product.unitOfMeasureId) }}
+                  </strong>
+
+                </div>
+
+                <div class="product-readonly-field">
+
+                  <span>
+                    Brand
+                  </span>
+
+                  <strong>
+                    {{ brandName(product.brandId) }}
+                  </strong>
+
+                </div>
+
+                <div
+                  class="product-readonly-field product-readonly-field-full">
+
+                  <span>
+                    Description
+                  </span>
+
+                  <p>
+                    {{ product.description || 'No description provided.' }}
+                  </p>
+
+                </div>
+
+              </div>
+
+            }
+
+          </div>
+
+        </section>
+
+        <!-- =============================================== -->
+        <!-- PRODUCT STATUS -->
+        <!-- =============================================== -->
+
+        <section class="form-card product-status-card">
+
+          <div class="form-card-header">
+
+            <div>
+
+              <h3>
+                Product Status
+              </h3>
+
+              <p>
+                Control product availability
+                within the selected company.
+              </p>
+
+            </div>
+
+          </div>
+
+          <div class="form-card-body">
+
+            <div class="product-status-layout">
+
+              <div class="product-status-description">
+
+                <span
+                  class="status-badge"
+                  [class.status-active]="product.isActive"
+                  [class.status-inactive]="!product.isActive">
+
+                  <span class="status-dot"></span>
+
+                  {{ product.isActive ? 'Active' : 'Inactive' }}
+
+                </span>
+
+                <p>
+                  Changing the product status does
+                  not automatically change the status
+                  of its variants.
+                </p>
+
+              </div>
+
+              <div class="category-status-actions">
+
+                @if (
+                  product.isActive &&
+                  canDeactivate()
+                ) {
+
+                  <button
+                    type="button"
+                    class="button button-danger-outline"
+                    (click)="changeProductStatus(false)"
+                    [disabled]="isChangingStatus() || isUpdating() || isEditOpen()">
+
+                    @if (isChangingStatus()) {
+
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true">
+                      </span>
+
+                    } @else {
+
+                      <span
+                        class="material-symbols-rounded"
+                        aria-hidden="true">
+                        block
+                      </span>
+
+                    }
+
+                    Deactivate
+
+                  </button>
+
+                }
+
+                @if (
+                  !product.isActive &&
+                  canActivate()
+                ) {
+
+                  <button
+                    type="button"
+                    class="button button-primary"
+                    (click)="changeProductStatus(true)"
+                    [disabled]="isChangingStatus() || isUpdating() || isEditOpen()">
+
+                    @if (isChangingStatus()) {
+
+                      <span
+                        class="button-spinner"
+                        aria-hidden="true">
+                      </span>
+
+                    } @else {
+
+                      <span
+                        class="material-symbols-rounded"
+                        aria-hidden="true">
+                        check_circle
+                      </span>
+
+                    }
+
+                    Activate
+
+                  </button>
+
+                }
+
+              </div>
+
+            </div>
+
+            @if (statusError()) {
+
+              <div
+                class="alert alert-error"
+                role="alert">
+
+                {{ statusError() }}
+
+              </div>
+
+            }
+
+          </div>
+
+        </section>
+
+        <!-- =============================================== -->
+        <!-- VARIANT MANAGEMENT PREVIEW -->
+        <!-- =============================================== -->
+
+        <section class="form-card product-variants-preview">
+
+          <div class="form-card-header">
+
+            <div>
+
+              <h3>
+                SKU Variants &amp; Barcodes
+              </h3>
+
+              <p>
+                Manage product variants,
+                attribute combinations and
+                barcode mappings.
+              </p>
+
+            </div>
+
+          </div>
+
+          <div class="form-card-body">
+
+            <div class="product-feature-preview">
+
+              <div class="product-feature-preview-icon">
+
+                <span
+                  class="material-symbols-rounded"
+                  aria-hidden="true">
+                  qr_code_2
+                </span>
+
+              </div>
+
+              <div>
+
+                <h4>
+                  Variant Management
+                </h4>
+
+                <p>
+                  Variant and barcode management
+                  will be available in the next
+                  integration phase.
+                </p>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </section>
+
+      }
+
+    }
+
+  }
+
+</section>

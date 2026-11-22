@@ -1,3 +1,4 @@
+
 import { Component, computed, inject, signal } from '@angular/core';
 import {
   NavigationEnd,
@@ -89,8 +90,13 @@ export class Sidebar {
 
   readonly visibleNavigation = computed<readonly NavigationItem[]>(() => {
     const mode = this.workspaceMode();
+
     if (mode === 'platform') return [];
-    const allowed = mode === 'branch' ? this.branchModules : this.companyModules;
+
+    const allowed = mode === 'branch'
+      ? this.branchModules
+      : this.companyModules;
+
     return this.navigation
       .filter(item => allowed.has(item.label))
       .map(item => this.filterNavigation(item, mode))
@@ -101,31 +107,60 @@ export class Sidebar {
     item: NavigationItem,
     mode: 'company' | 'branch'
   ): NavigationItem | null {
-    if (item.workspaceScope && item.workspaceScope !== mode) return null;
-    if (item.route === '/settings/organization/company-management') return null;
+
+    if (item.workspaceScope && item.workspaceScope !== mode) {
+      return null;
+    }
+
+    if (item.route === '/settings/organization/company-management') {
+      return null;
+    }
 
     if (item.label === 'Dashboard') {
       return mode === 'company'
-        ? { ...item, route: '/dashboard', implemented: true, children: undefined }
-        : { ...item, route: '/branch/dashboard', implemented: true, children: undefined };
+        ? {
+            ...item,
+            route: '/dashboard',
+            implemented: true,
+            children: undefined
+          }
+        : {
+            ...item,
+            route: '/branch/dashboard',
+            implemented: true,
+            children: undefined
+          };
     }
 
     if (item.label === 'Settings') {
       const allowedSettings = mode === 'company'
         ? new Set([
-            'Organization', 'Users & Access Control', 'Tax Configuration',
-            'Document Configuration', 'Regional Settings', 'Notifications',
-            'Approval Workflows', 'Data Management', 'System Preferences',
-            'Backup & Restore', 'Audit Logs', 'System Health'
+            'Organization',
+            'Users & Access Control',
+            'Tax Configuration',
+            'Document Configuration',
+            'Regional Settings',
+            'Notifications',
+            'Approval Workflows',
+            'Data Management',
+            'System Preferences',
+            'Backup & Restore',
+            'Audit Logs',
+            'System Health'
           ])
         : new Set([
-            'Organization', 'POS Configuration', 'Document Configuration',
-            'Regional Settings', 'Notifications'
+            'Organization',
+            'POS Configuration',
+            'Document Configuration',
+            'Regional Settings',
+            'Notifications'
           ]);
+
       const children = (item.children ?? [])
         .filter(child => allowedSettings.has(child.label))
         .map(child => this.filterNavigation(child, mode))
         .filter((child): child is NavigationItem => child !== null);
+
       return { ...item, children };
     }
 
@@ -133,22 +168,31 @@ export class Sidebar {
       const allowedOrganization = mode === 'company'
         ? new Set(['Branches'])
         : new Set(['Warehouses', 'POS Counters']);
+
       const children = (item.children ?? [])
         .filter(child => allowedOrganization.has(child.label))
         .map(child => this.filterNavigation(child, mode))
         .filter((child): child is NavigationItem => child !== null);
+
       return { ...item, children };
     }
 
-    if (!item.children) return item;
+    if (!item.children) {
+      return item;
+    }
+
     const children = item.children
       .map(child => this.filterNavigation(child, mode))
       .filter((child): child is NavigationItem => child !== null);
-    return children.length ? { ...item, children } : null;
+
+    return children.length
+      ? { ...item, children }
+      : null;
   }
 
   readonly canEnterBranch = computed(() =>
-    this.workspace.hasCompany() && this.workspace.branchOptions().length > 0
+    this.workspace.hasCompany() &&
+    this.workspace.branchOptions().length > 0
   );
 
   enterCompanyWorkspace(): void {
@@ -158,7 +202,9 @@ export class Sidebar {
 
   enterBranchWorkspace(): void {
     if (!this.canEnterBranch()) return;
+
     this.closeBranchSelector();
+
     // Branch dashboard is the stable workspace entry point.
     // AppShell presents the authorized branch picker when no branch is selected.
     void this.router.navigateByUrl('/branch/dashboard');
@@ -295,7 +341,13 @@ export class Sidebar {
       label: 'Products',
       icon: 'category',
       children: [
-        { label: 'Product Catalog', icon: 'view_list' },
+        {
+          label: 'Product Catalog',
+          icon: 'view_list',
+          route: '/settings/catalog/products',
+          workspaceScope: 'company',
+          implemented: true
+        },
         {
           label: 'Categories',
           icon: 'category',
@@ -310,7 +362,13 @@ export class Sidebar {
           workspaceScope: 'company',
           implemented: true
         },
-        { label: 'Units of Measurement', icon: 'straighten', route: '/settings/catalog/units-of-measurement', workspaceScope: 'company', implemented: true },
+        {
+          label: 'Units of Measurement',
+          icon: 'straighten',
+          route: '/settings/catalog/units-of-measurement',
+          workspaceScope: 'company',
+          implemented: true
+        },
         {
           label: 'Product Attributes',
           icon: 'tune',

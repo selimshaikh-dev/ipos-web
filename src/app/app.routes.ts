@@ -172,6 +172,23 @@ export const routes: Routes = [
         },
         title: 'Product Attributes | iPOS'
       },
+
+      // =====================================================
+      // Product Catalog / Product Master - Company Scope
+      // =====================================================
+      {
+        path: 'settings/catalog/products',
+        loadComponent: () =>
+          import(
+            './features/settings/catalog/products/pages/products/products'
+          ).then(m => m.Products),
+        canActivate: [permissionGuard],
+        data: {
+          workspaceScope: 'company' satisfies WorkspaceRouteScope
+        },
+        title: 'Product Catalog | iPOS'
+      },
+
       {
         path: 'settings/users-access-control/user-management',
         loadComponent: () =>

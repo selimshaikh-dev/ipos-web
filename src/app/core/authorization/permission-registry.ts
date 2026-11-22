@@ -87,6 +87,42 @@ export const PermissionCodes = {
     deactivate: 'product.attribute.deactivate'
   },
 
+  // =======================================================
+  // Product Master Management - Company Scope
+  // =======================================================
+
+  products: {
+    view: 'product.view',
+    create: 'product.create',
+    update: 'product.update',
+    activate: 'product.activate',
+    deactivate: 'product.deactivate'
+  },
+
+  // =======================================================
+  // Product Variant / SKU Management - Company Scope
+  // =======================================================
+
+  productVariants: {
+    view: 'product.variant.view',
+    create: 'product.variant.create',
+    update: 'product.variant.update',
+    activate: 'product.variant.activate',
+    deactivate: 'product.variant.deactivate'
+  },
+
+  // =======================================================
+  // Product Barcode Management - Company Scope
+  // =======================================================
+
+  productBarcodes: {
+    view: 'product.barcode.view',
+    create: 'product.barcode.create',
+    setPrimary: 'product.barcode.primary.manage',
+    activate: 'product.barcode.activate',
+    deactivate: 'product.barcode.deactivate'
+  },
+
   // User Management
   users: {
     view: 'user.view',
@@ -180,6 +216,7 @@ export interface PermissionRequirement {
  *
  * Routes without a registered permission must be
  * handled explicitly by the authorization layer.
+ *
  * An absent mapping must never imply permission.
  */
 export const RoutePermissionRegistry: Readonly<
@@ -225,6 +262,15 @@ export const RoutePermissionRegistry: Readonly<
   // Catalog / Product Attribute and Attribute Value Management
   '/settings/catalog/product-attributes': {
     code: PermissionCodes.productAttributes.view,
+    scope: 'company'
+  },
+
+  // =======================================================
+  // Catalog / Product Master Management - Company Scope
+  // =======================================================
+
+  '/settings/catalog/products': {
+    code: PermissionCodes.products.view,
     scope: 'company'
   },
 
