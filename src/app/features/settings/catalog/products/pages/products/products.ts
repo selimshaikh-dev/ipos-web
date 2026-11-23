@@ -1,4 +1,3 @@
-
 import {
   ChangeDetectionStrategy,
   Component,
@@ -33,6 +32,10 @@ import {
 } from '../../models/product.model';
 
 import { ProductService } from '../../service/product.service';
+
+import {
+  ProductSkuBarcodeManager
+} from '../../components/product-sku-barcode-manager/product-sku-barcode-manager';
 
 import {
   ProductCategory
@@ -81,7 +84,7 @@ interface ProductSearchInput {
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, ProductSkuBarcodeManager],
   templateUrl: './products.html',
   styleUrl: './products.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -718,8 +721,7 @@ export class Products {
   // =========================================================
   // Reference Data
   // =========================================================
-
-  private loadReferenceData(
+    private loadReferenceData(
     allowCategories: boolean,
     allowUnits: boolean,
     allowBrands: boolean
@@ -1154,7 +1156,9 @@ export class Products {
           brand.isActive
       )
     ) {
-      this.createError.set('Select an active brand.');
+      this.createError.set(
+        'Select an active brand.'
+      );
       return;
     }
 
@@ -1236,8 +1240,7 @@ export class Products {
   // =========================================================
   // Edit Product
   // =========================================================
-
-  openEditProduct(): void {
+    openEditProduct(): void {
 
     const product = this.selectedProduct();
 

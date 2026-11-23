@@ -1781,62 +1781,45 @@
         </section>
 
         <!-- =============================================== -->
-        <!-- VARIANT MANAGEMENT PREVIEW -->
+        <!-- SKU VARIANTS & BARCODE MANAGEMENT -->
         <!-- =============================================== -->
 
-        <section class="form-card product-variants-preview">
+        @if (companyId() === product.companyId) {
 
-          <div class="form-card-header">
+          <section
+            class="form-card product-variants-preview"
+            aria-labelledby="product-sku-barcode-title">
 
-            <div>
-
-              <h3>
-                SKU Variants &amp; Barcodes
-              </h3>
-
-              <p>
-                Manage product variants,
-                attribute combinations and
-                barcode mappings.
-              </p>
-
-            </div>
-
-          </div>
-
-          <div class="form-card-body">
-
-            <div class="product-feature-preview">
-
-              <div class="product-feature-preview-icon">
-
-                <span
-                  class="material-symbols-rounded"
-                  aria-hidden="true">
-                  qr_code_2
-                </span>
-
-              </div>
+            <div class="form-card-header">
 
               <div>
 
-                <h4>
-                  Variant Management
-                </h4>
+                <h3 id="product-sku-barcode-title">
+                  SKU Variants &amp; Barcodes
+                </h3>
 
                 <p>
-                  Variant and barcode management
-                  will be available in the next
-                  integration phase.
+                  Manage product variants, unique SKUs,
+                  attribute combinations and barcode
+                  mappings within the selected company.
                 </p>
 
               </div>
 
             </div>
 
-          </div>
+            <div class="form-card-body">
 
-        </section>
+              <app-product-sku-barcode-manager
+                [companyId]="product.companyId"
+                [productId]="product.id">
+              </app-product-sku-barcode-manager>
+
+            </div>
+
+          </section>
+
+        }
 
       }
 
