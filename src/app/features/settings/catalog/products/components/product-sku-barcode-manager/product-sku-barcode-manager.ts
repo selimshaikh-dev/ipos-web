@@ -161,17 +161,48 @@ import {
 
                 <div class="field">
 
-                  <label for="ipos-sku-code">
-                    SKU *
-                  </label>
-
-                  <input
-                    id="ipos-sku-code"
-                    type="text"
-                    formControlName="sku"
-                    placeholder="TEA-MASALA-200G"
-                    maxlength="100"
-                    autocomplete="off">
+                  @if (editingVariant()) {
+                    <label for="ipos-sku-code">SKU *</label>
+                    <input
+                      id="ipos-sku-code"
+                      type="text"
+                      formControlName="sku"
+                      placeholder="TEA-MASALA-200G"
+                      maxlength="100"
+                      autocomplete="off">
+                  } @else {
+                    <label>SKU Generation</label>
+                    @if (canOverrideSku()) {
+                      <div class="entry-methods" role="group" aria-label="SKU generation method">
+                        <button type="button" class="entry-method"
+                          [class.selected]="skuEntryMode() === 'auto'"
+                          [attr.aria-pressed]="skuEntryMode() === 'auto'"
+                          [disabled]="saving()"
+                          (click)="selectSkuEntryMode('auto')">
+                          Auto Generate
+                        </button>
+                        <button type="button" class="entry-method"
+                          [class.selected]="skuEntryMode() === 'manual'"
+                          [attr.aria-pressed]="skuEntryMode() === 'manual'"
+                          [disabled]="saving()"
+                          (click)="selectSkuEntryMode('manual')">
+                          Manual SKU
+                        </button>
+                      </div>
+                    }
+                    @if (skuEntryMode() === 'manual' && canOverrideSku()) {
+                      <label for="ipos-sku-code">Manual SKU *</label>
+                      <input
+                        id="ipos-sku-code"
+                        type="text"
+                        formControlName="sku"
+                        placeholder="TEA-MASALA-200G"
+                        maxlength="100"
+                        autocomplete="off">
+                    } @else {
+                      <p class="field-hint">A unique company-scoped SKU will be generated automatically when saved.</p>
+                    }
+                  }
 
                 </div>
 
@@ -209,7 +240,7 @@ import {
               </div>
 
               <p class="field-hint">
-                SKU must be unique within the company.
+                Manual SKUs must be unique within the company.
                 Prices must be zero or greater.
               </p>
 
@@ -660,13 +691,41 @@ import {
                     <h3>Add New Barcode</h3>
 
                     <p>
-                      Enter a barcode manually or scan it
-                      using a barcode scanner.
+                      Scan the barcode on the product package, or enter an existing code manually.
+                      You do not need to memorize barcode numbers.
                     </p>
 
                   </div>
 
                 </div>
+
+                <div class="entry-methods" role="group" aria-label="Barcode entry method">
+                  <button type="button" class="entry-method"
+                    [class.selected]="barcodeEntryMode() === 'scan'"
+                    [attr.aria-pressed]="barcodeEntryMode() === 'scan'"
+                    [disabled]="busy()"
+                    (click)="selectBarcodeEntryMode('scan')">
+                    Scan barcode
+                  </button>
+                  <button type="button" class="entry-method"
+                    [class.selected]="barcodeEntryMode() === 'manual'"
+                    [attr.aria-pressed]="barcodeEntryMode() === 'manual'"
+                    [disabled]="busy()"
+                    (click)="selectBarcodeEntryMode('manual')">
+                    Type barcode manually
+                  </button>
+                </div>
+
+                <p class="entry-help" id="ipos-barcode-help">
+                  @if (barcodeEntryMode() === 'scan') {
+                    Connect a USB/Bluetooth scanner, click the field below and scan the product.
+                    Most keyboard-mode scanners enter the number automatically and send Enter to save.
+                    If your scanner does not send Enter, click Add Barcode.
+                  } @else {
+                    Copy the barcode printed on the product or supplied by your vendor.
+                    This field is for an existing code; automatic generation will be available in the label module.
+                  }
+                </p>
 
                 <form
                   [formGroup]="barcodeForm"
@@ -677,7 +736,7 @@ import {
                     <div class="field">
 
                       <label for="ipos-barcode-entry">
-                        Barcode Number *
+                        {{ barcodeEntryMode() === 'scan' ? 'Scan product barcode *' : 'Existing barcode number *' }}
                       </label>
 
                       <input
@@ -685,9 +744,12 @@ import {
                         id="ipos-barcode-entry"
                         type="text"
                         formControlName="barcode"
-                        placeholder="Enter or scan barcode"
+                        [placeholder]="barcodeEntryMode() === 'scan' ? 'Click here, then scan barcode' : 'Enter code printed on product'"
+                        aria-describedby="ipos-barcode-help"
                         maxlength="100"
-                        autocomplete="off">
+                        autocomplete="off"
+                        autocapitalize="off"
+                        spellcheck="false">
 
                     </div>
 
@@ -697,7 +759,7 @@ import {
                         type="checkbox"
                         formControlName="isPrimary">
 
-                      Set as Primary Barcode
+                      Use as default barcode for labels
 
                     </label>
 
@@ -717,6 +779,14 @@ import {
                   </div>
 
                 </form>
+
+                <p class="entry-footnote">
+                  Default barcode: the preferred code for future label printing.
+                  Other active barcodes can still identify the same SKU.
+                  @if (barcodeTotal() === 0 && !loadingBarcodes() && !barcodeFilter()) {
+                    The first barcode is selected as default automatically.
+                  }
+                </p>
 
               </section>
 
@@ -917,7 +987,7 @@ import {
                                   class="btn secondary small"
                                   [disabled]="busy()"
                                   (click)="setPrimaryBarcode(barcode)">
-                                  Set Primary
+                                  Make Default
                                 </button>
 
                               }
@@ -1631,6 +1701,54 @@ import {
       gap: 14px;
     }
 
+    .entry-methods {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .entry-method {
+      padding: 9px 14px;
+      border: 1px solid #d4ddeb;
+      border-radius: 8px;
+      background: #fff;
+      color: #344054;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .entry-method.selected {
+      border-color: #2563eb;
+      background: #eff6ff;
+      color: #1d4ed8;
+    }
+
+    .entry-method:disabled {
+      opacity: .5;
+      cursor: not-allowed;
+    }
+
+    .entry-method:focus-visible {
+      outline: 2px solid #2563eb;
+      outline-offset: 2px;
+    }
+
+    .entry-help,
+    .entry-footnote {
+      margin: 0 0 14px;
+      color: #475467;
+      font-size: 11px;
+      line-height: 1.7;
+    }
+
+    .entry-footnote {
+      margin: 12px 0 0;
+      color: #667085;
+    }
+
     .primary-check {
       min-height: 37px;
     }
@@ -1859,6 +1977,9 @@ export class ProductSkuBarcodeManager {
   readonly variantEditorOpen = signal(false);
   readonly barcodeModalOpen = signal(false);
 
+  readonly barcodeEntryMode = signal<'scan' | 'manual'>('scan');
+  readonly skuEntryMode = signal<'auto' | 'manual'>('auto');
+
   readonly skuFilter = signal('');
   readonly barcodeFilter = signal('');
 
@@ -1888,6 +2009,12 @@ export class ProductSkuBarcodeManager {
   readonly canCreateVariant = computed(() =>
     this.permissionService.hasCompanyPermission(
       PermissionCodes.productVariants.create
+    )
+  );
+
+  readonly canOverrideSku = computed(() =>
+    this.permissionService.hasCompanyPermission(
+      PermissionCodes.productVariants.manualSkuOverride
     )
   );
 
@@ -1946,7 +2073,6 @@ export class ProductSkuBarcodeManager {
   readonly variantForm = this.fb.group({
 
     sku: this.fb.nonNullable.control('', [
-      Validators.required,
       Validators.maxLength(100)
     ]),
 
@@ -2047,6 +2173,7 @@ export class ProductSkuBarcodeManager {
 
     this.variantEditorOpen.set(false);
     this.barcodeModalOpen.set(false);
+    this.skuEntryMode.set('auto');
 
     this.restoreModalFocus();
 
@@ -2314,6 +2441,23 @@ export class ProductSkuBarcodeManager {
   // CREATE / EDIT SKU
   // ========================================================
 
+  selectSkuEntryMode(mode: 'auto' | 'manual'): void {
+
+    if (
+      this.saving() ||
+      this.editingVariant() ||
+      !this.variantEditorOpen() ||
+      (mode === 'manual' && !this.canOverrideSku())
+    ) {
+      return;
+    }
+
+    this.skuEntryMode.set(mode);
+    this.variantForm.controls.sku.setValue('');
+    this.variantForm.controls.sku.markAsUntouched();
+
+  }
+
   startCreateVariant(): void {
 
     if (
@@ -2325,6 +2469,7 @@ export class ProductSkuBarcodeManager {
     }
 
     this.editingVariant.set(null);
+    this.skuEntryMode.set('auto');
 
     this.variantForm.reset({
       sku: '',
@@ -2346,6 +2491,7 @@ export class ProductSkuBarcodeManager {
     }
 
     this.editingVariant.set(variant);
+    this.skuEntryMode.set('auto');
 
     this.variantForm.reset({
       sku: variant.sku,
@@ -2365,6 +2511,7 @@ export class ProductSkuBarcodeManager {
 
     this.variantEditorOpen.set(false);
     this.editingVariant.set(null);
+    this.skuEntryMode.set('auto');
 
     this.variantForm.reset({
       sku: '',
@@ -2397,12 +2544,22 @@ export class ProductSkuBarcodeManager {
       return;
     }
 
+    const manualSku = !editing && this.skuEntryMode() === 'manual';
+
+    if (manualSku && !this.canOverrideSku()) {
+      this.notifyError(
+        'You do not have permission to specify a manual SKU.',
+        'Permission Denied'
+      );
+      return;
+    }
+
     if (this.variantForm.invalid) {
 
       this.variantForm.markAllAsTouched();
 
       this.notifyError(
-        'Enter a valid SKU and selling price.',
+        'Enter valid SKU and pricing information.',
         'Validation Failed'
       );
 
@@ -2412,6 +2569,7 @@ export class ProductSkuBarcodeManager {
     const value = this.variantForm.getRawValue();
 
     const sku = value.sku.trim();
+    const requiresSku = !!editing || manualSku;
     const sellingPrice = Number(value.sellingPrice);
 
     const rawCost = value.costPrice;
@@ -2424,7 +2582,7 @@ export class ProductSkuBarcodeManager {
         : Number(rawCost);
 
     if (
-      !sku ||
+      (requiresSku && !sku) ||
       !Number.isFinite(sellingPrice) ||
       sellingPrice < 0 ||
       (
@@ -2437,7 +2595,7 @@ export class ProductSkuBarcodeManager {
     ) {
 
       this.notifyError(
-        'Please provide a valid SKU and prices.',
+        'Please provide a valid SKU when required and valid prices.',
         'Validation Failed'
       );
 
@@ -2462,7 +2620,7 @@ export class ProductSkuBarcodeManager {
           companyId,
           productId,
           {
-            sku,
+            sku: manualSku ? sku : null,
             sellingPrice,
             costPrice,
             attributes: [],
@@ -2486,6 +2644,7 @@ export class ProductSkuBarcodeManager {
 
         this.variantEditorOpen.set(false);
         this.editingVariant.set(null);
+        this.skuEntryMode.set('auto');
 
         this.notifySuccess(
           editing
@@ -2606,6 +2765,24 @@ export class ProductSkuBarcodeManager {
   }
 
   // ========================================================
+  // BARCODE ENTRY METHOD
+  // ========================================================
+
+  selectBarcodeEntryMode(mode: 'scan' | 'manual'): void {
+    if (this.busy()) {
+      return;
+    }
+
+    this.barcodeEntryMode.set(mode);
+
+    requestAnimationFrame(() => {
+      if (this.barcodeModalOpen()) {
+        this.barcodeInput?.nativeElement.focus();
+      }
+    });
+  }
+
+  // ========================================================
   // OPEN BARCODE MODAL
   // ========================================================
 
@@ -2629,6 +2806,7 @@ export class ProductSkuBarcodeManager {
     this.barcodeTotal.set(0);
 
     this.barcodes.set([]);
+    this.barcodeEntryMode.set('scan');
 
     this.barcodeForm.reset({
       barcode: '',
@@ -2896,6 +3074,17 @@ export class ProductSkuBarcodeManager {
 
           this.barcodePage.set(result.pageNumber);
 
+          // Default the first barcode to primary only when the unfiltered
+          // directory is empty. Server remains authoritative for uniqueness.
+          if (
+            !this.barcodeFilter() &&
+            !this.includeInactiveBarcodes() &&
+            result.totalCount === 0 &&
+            !this.barcodeForm.controls.isPrimary.dirty
+          ) {
+            this.barcodeForm.controls.isPrimary.setValue(true);
+          }
+
           this.loadingBarcodes.set(false);
 
         },
@@ -3031,6 +3220,16 @@ export class ProductSkuBarcodeManager {
         'Validation Failed'
       );
 
+      return;
+    }
+
+    if (this.barcodes().some(item =>
+      item.barcode.toLowerCase() === barcode.toLowerCase()
+    )) {
+      this.notifyError(
+        'This barcode is already listed for this SKU.',
+        'Duplicate Barcode'
+      );
       return;
     }
 

@@ -59,7 +59,9 @@ export interface CreateProductVariantBarcodeRequest {
 }
 
 export interface CreateProductVariantRequest {
-  sku: string;
+  // Omit or send null for backend-generated SKU.
+  // A non-empty SKU requires product.variant.sku.override.
+  sku?: string | null;
   sellingPrice: number;
   costPrice: number | null;
   attributes: ProductVariantAttribute[];

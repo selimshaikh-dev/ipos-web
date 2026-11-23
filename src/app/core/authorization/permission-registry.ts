@@ -108,7 +108,11 @@ export const PermissionCodes = {
     create: 'product.variant.create',
     update: 'product.variant.update',
     activate: 'product.variant.activate',
-    deactivate: 'product.variant.deactivate'
+    deactivate: 'product.variant.deactivate',
+
+    // Only authorized users may manually specify
+    // an SKU when creating a product variant.
+    manualSkuOverride: 'product.variant.sku.override'
   },
 
   // =======================================================
