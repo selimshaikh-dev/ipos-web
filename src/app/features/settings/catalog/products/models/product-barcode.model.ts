@@ -38,6 +38,10 @@ export interface CreateProductBarcodeRequest {
   isPrimary: boolean;
 }
 
+export interface GenerateProductBarcodeRequest {
+  isPrimary: boolean;
+}
+
 export interface ProductBarcodeConcurrencyRequest {
   rowVersion: string;
 }

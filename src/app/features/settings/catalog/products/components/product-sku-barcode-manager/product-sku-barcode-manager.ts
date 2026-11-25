@@ -691,8 +691,7 @@ import {
                     <h3>Add New Barcode</h3>
 
                     <p>
-                      Scan the barcode on the product package, or enter an existing code manually.
-                      You do not need to memorize barcode numbers.
+                      Scan an existing barcode, generate an internal barcode, or enter a code manually.
                     </p>
 
                   </div>
@@ -708,6 +707,13 @@ import {
                     Scan barcode
                   </button>
                   <button type="button" class="entry-method"
+                    [class.selected]="barcodeEntryMode() === 'generate'"
+                    [attr.aria-pressed]="barcodeEntryMode() === 'generate'"
+                    [disabled]="busy()"
+                    (click)="selectBarcodeEntryMode('generate')">
+                    Generate barcode
+                  </button>
+                  <button type="button" class="entry-method"
                     [class.selected]="barcodeEntryMode() === 'manual'"
                     [attr.aria-pressed]="barcodeEntryMode() === 'manual'"
                     [disabled]="busy()"
@@ -721,18 +727,25 @@ import {
                     Connect a USB/Bluetooth scanner, click the field below and scan the product.
                     Most keyboard-mode scanners enter the number automatically and send Enter to save.
                     If your scanner does not send Enter, click Add Barcode.
+                  } @else if (barcodeEntryMode() === 'generate') {
+                    Generate and register a unique internal barcode for this SKU.
+                    No barcode input is required.
                   } @else {
                     Copy the barcode printed on the product or supplied by your vendor.
-                    This field is for an existing code; automatic generation will be available in the label module.
                   }
                 </p>
 
                 <form
                   [formGroup]="barcodeForm"
-                  (ngSubmit)="createBarcode()">
+                  (ngSubmit)="barcodeEntryMode() !== 'generate' && createBarcode()">
 
                   <div class="barcode-form-grid">
 
+                    @if (barcodeEntryMode() === 'generate') {
+                      <div class="field">
+                        <span class="field-hint">The server assigns the barcode when you select Generate &amp; Register.</span>
+                      </div>
+                    } @else {
                     <div class="field">
 
                       <label for="ipos-barcode-entry">
@@ -745,33 +758,43 @@ import {
                         type="text"
                         formControlName="barcode"
                         [placeholder]="barcodeEntryMode() === 'scan' ? 'Click here, then scan barcode' : 'Enter code printed on product'"
-                        aria-describedby="ipos-barcode-help"
                         maxlength="100"
                         autocomplete="off"
                         autocapitalize="off"
-                        spellcheck="false">
+                        spellcheck="false"
+                        [readOnly]="busy()"
+                        [attr.aria-invalid]="barcodeValidationAttempted() && barcodeForm.controls.barcode.invalid"
+                        [attr.aria-describedby]="barcodeValidationAttempted() && barcodeForm.controls.barcode.invalid ? 'ipos-barcode-help ipos-barcode-error' : 'ipos-barcode-help'">
 
+                      @if (barcodeValidationAttempted() && barcodeForm.controls.barcode.invalid) {
+                        <span class="field-error" id="ipos-barcode-error">
+                          Enter a barcode of up to 100 characters without spaces or control characters.
+                        </span>
+                      }
                     </div>
+                    }
 
                     <label class="checkbox-label primary-check">
 
                       <input
                         type="checkbox"
-                        formControlName="isPrimary">
+                        formControlName="isPrimary"
+                        (click)="busy() && $event.preventDefault()">
 
                       Use as default barcode for labels
 
                     </label>
 
                     <button
-                      type="submit"
+                      [type]="barcodeEntryMode() === 'generate' ? 'button' : 'submit'"
                       class="btn primary"
-                      [disabled]="busy()">
+                      [disabled]="busy()"
+                      (click)="barcodeEntryMode() === 'generate' ? createBarcode() : undefined">
 
                       @if (saving()) {
-                        Saving...
+                        {{ barcodeEntryMode() === 'generate' ? 'Generating...' : 'Saving...' }}
                       } @else {
-                        + Add Barcode
+                        {{ barcodeEntryMode() === 'generate' ? 'Generate & Register' : '+ Add Barcode' }}
                       }
 
                     </button>
@@ -1749,6 +1772,12 @@ import {
       color: #667085;
     }
 
+    .field-error {
+      color: #b42318;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
     .primary-check {
       min-height: 37px;
     }
@@ -1977,7 +2006,8 @@ export class ProductSkuBarcodeManager {
   readonly variantEditorOpen = signal(false);
   readonly barcodeModalOpen = signal(false);
 
-  readonly barcodeEntryMode = signal<'scan' | 'manual'>('scan');
+  readonly barcodeEntryMode = signal<'scan' | 'generate' | 'manual'>('scan');
+  readonly barcodeValidationAttempted = signal(false);
   readonly skuEntryMode = signal<'auto' | 'manual'>('auto');
 
   readonly skuFilter = signal('');
@@ -2091,7 +2121,8 @@ export class ProductSkuBarcodeManager {
 
     barcode: this.fb.nonNullable.control('', [
       Validators.required,
-      Validators.maxLength(100)
+      Validators.maxLength(100),
+      Validators.pattern(/^[^\s\x00-\x1f\x7f-\x9f]+$/)
     ]),
 
     isPrimary: this.fb.nonNullable.control(false)
@@ -2182,6 +2213,8 @@ export class ProductSkuBarcodeManager {
       sellingPrice: 0,
       costPrice: null
     });
+
+    this.barcodeValidationAttempted.set(false);
 
     this.barcodeForm.reset({
       barcode: '',
@@ -2768,12 +2801,20 @@ export class ProductSkuBarcodeManager {
   // BARCODE ENTRY METHOD
   // ========================================================
 
-  selectBarcodeEntryMode(mode: 'scan' | 'manual'): void {
+  selectBarcodeEntryMode(mode: 'scan' | 'generate' | 'manual'): void {
     if (this.busy()) {
       return;
     }
 
+    if (this.barcodeEntryMode() !== mode) {
+      this.barcodeValidationAttempted.set(false);
+    }
+
     this.barcodeEntryMode.set(mode);
+
+    if (mode === 'generate') {
+      return;
+    }
 
     requestAnimationFrame(() => {
       if (this.barcodeModalOpen()) {
@@ -2807,6 +2848,8 @@ export class ProductSkuBarcodeManager {
 
     this.barcodes.set([]);
     this.barcodeEntryMode.set('scan');
+
+    this.barcodeValidationAttempted.set(false);
 
     this.barcodeForm.reset({
       barcode: '',
@@ -2919,6 +2962,8 @@ export class ProductSkuBarcodeManager {
     this.barcodePage.set(1);
     this.barcodePages.set(1);
     this.barcodeTotal.set(0);
+
+    this.barcodeValidationAttempted.set(false);
 
     this.barcodeForm.reset({
       barcode: '',
@@ -3198,39 +3243,29 @@ export class ProductSkuBarcodeManager {
       return;
     }
 
-    if (this.barcodeForm.invalid) {
-
-      this.barcodeForm.markAllAsTouched();
-
-      this.notifyError(
-        'Enter a valid barcode.',
-        'Validation Failed'
-      );
-
-      return;
-    }
-
+    const generate = this.barcodeEntryMode() === 'generate';
     const value = this.barcodeForm.getRawValue();
     const barcode = value.barcode.trim();
 
-    if (!barcode) {
+    if (!generate) {
+      this.barcodeForm.controls.barcode.setValue(barcode);
 
-      this.notifyError(
-        'Barcode cannot be empty.',
-        'Validation Failed'
-      );
+      if (this.barcodeForm.invalid) {
+        this.barcodeValidationAttempted.set(true);
+        this.barcodeForm.markAllAsTouched();
+        this.notifyError('Enter a valid barcode.', 'Validation Failed');
+        return;
+      }
 
-      return;
-    }
-
-    if (this.barcodes().some(item =>
-      item.barcode.toLowerCase() === barcode.toLowerCase()
-    )) {
-      this.notifyError(
-        'This barcode is already listed for this SKU.',
-        'Duplicate Barcode'
-      );
-      return;
+      if (this.barcodes().some(item =>
+        item.barcode.toLowerCase() === barcode.toLowerCase()
+      )) {
+        this.notifyError(
+          'This barcode is already listed for this SKU.',
+          'Duplicate Barcode'
+        );
+        return;
+      }
     }
 
     const context = this.contextVersion;
@@ -3238,19 +3273,19 @@ export class ProductSkuBarcodeManager {
 
     this.saving.set(true);
 
-    this.mutationSubscription = this.barcodeService
-      .createBarcode(
-        companyId,
-        productId,
-        variantId,
-        {
+    const request = generate
+      ? this.barcodeService.generateBarcode(companyId, productId, variantId, {
+          isPrimary: value.isPrimary
+        })
+      : this.barcodeService.createBarcode(companyId, productId, variantId, {
           barcode,
           isPrimary: value.isPrimary
-        }
-      )
+        });
+
+    this.mutationSubscription = request
       .subscribe({
 
-        next: () => {
+        next: (created: ProductBarcode) => {
 
           if (
             context !== this.contextVersion ||
@@ -3261,6 +3296,8 @@ export class ProductSkuBarcodeManager {
 
           this.saving.set(false);
 
+          this.barcodeValidationAttempted.set(false);
+
           this.barcodeForm.reset({
             barcode: '',
             isPrimary: false
@@ -3269,10 +3306,11 @@ export class ProductSkuBarcodeManager {
           this.barcodeForm.markAsPristine();
 
           this.notifySuccess(
-            'Barcode added successfully.',
-            'Barcode Created'
+            generate ? `Barcode ${created.barcode} generated and registered successfully.` : 'Barcode added successfully.',
+            generate ? 'Barcode Generated' : 'Barcode Created'
           );
 
+          this.barcodeFilter.set('');
           this.barcodePage.set(1);
           this.loadBarcodes();
 
@@ -3289,8 +3327,10 @@ export class ProductSkuBarcodeManager {
           this.saving.set(false);
 
           this.notifyError(
-            this.errorMessage(error),
-            'Barcode Creation Failed'
+            generate && (error.status === 0 || error.status >= 500)
+              ? 'Registration could not be confirmed. Refresh the barcode directory before generating again.'
+              : this.errorMessage(error),
+            generate ? 'Barcode Generation Failed' : 'Barcode Creation Failed'
           );
 
         }
